@@ -1,37 +1,23 @@
-"""数据模型定义（内存模拟）"""
-from typing import Optional
-from datetime import datetime, timezone
-from pydantic import BaseModel
+"""用户模型"""
+import uuid
+from datetime import datetime
+from sqlalchemy import String, Boolean, DateTime, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+from app.core.database import Base
 
 
-class UserInDB(BaseModel):
-    """内存中的用户模型"""
-    id: str
-    username: str
-    email: str
-    hashed_password: str
-    is_active: bool = True
-    created_at: datetime = datetime.now(timezone.utc)
+class User(Base):
+    """SQLAlchemy User model"""
+    __tablename__ = "users"
 
-
-class EmployeeInDB(BaseModel):
-    """内存中的数字员工模型"""
-    id: str
-    name: str
-    category: str
-    description: str
-    avatar: str
-    system_prompt: str
-    skills: list[str]
-    is_active: bool = True
-    created_at: datetime = datetime.now(timezone.utc)
-
-
-class ConversationInDB(BaseModel):
-    """内存中的对话模型"""
-    id: str
-    user_id: str
-    employee_id: str
-    messages: list[dict] = []
-    created_at: datetime = datetime.now(timezone.utc)
-    updated_at: datetime = datetime.now(timezone.utc)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    phone: Mapped[str | None] = mapped_column(String(20))
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(String(20), default="user")  # admin/manager/user
+    org_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"), index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
