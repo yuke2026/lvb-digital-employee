@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>联想百应 - AI 数字员工平台</title>
+
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <style>
+    /* ===== RESET & BASE ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #0a0a1a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(139, 92, 246, 0.5); }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes float {
+      0%   { transform: translateY(0) translateX(0); opacity: 0; }
+      10%  { opacity: 0.6; }
+      25%  { transform: translateY(-100px) translateX(50px); opacity: 0.4; }
+      50%  { transform: translateY(-200px) translateX(-30px); opacity: 0.3; }
+      75%  { transform: translateY(-300px) translateX(80px); opacity: 0.5; }
+      100% { transform: translateY(-400px) translateX(0); opacity: 0; }
+    }
+    @keyframes float2 {
+      0%   { transform: translateY(0) translateX(0); opacity: 0; }
+      10%  { opacity: 0.5; }
+      33%  { transform: translateY(-150px) translateX(-60px); opacity: 0.3; }
+      66%  { transform: translateY(-280px) translateX(40px); opacity: 0.4; }
+      100% { transform: translateY(-420px) translateX(-20px); opacity: 0; }
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(139,92,246,0.2), 0 0 40px rgba(59,130,246,0.1); }
+      50% { box-shadow: 0 0 30px rgba(139,92,246,0.4), 0 0 60px rgba(59,130,246,0.2); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes ripple {
+      to { transform: scale(4); opacity: 0; }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    @keyframes spin-slow {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== UTILITY CLASSES ===== */
+    .bg-dynamic {
+      background: linear-gradient(-45deg, #0a0a1a, #0f0f2a, #0a0a2e, #0f0f2a);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+    }
+    .bg-dynamic-auth {
+      background: linear-gradient(-45deg, #0a0a1a, #0f0f2a, #120a2e, #0a0a2e, #0f0f2a);
+      background-size: 400% 400%;
+      animation: gradientShift 20s ease infinite;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .glass-hover:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(139, 92, 246, 0.3);
+    }
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .glow-border {
+      box-shadow: 0 0 15px rgba(139, 92, 246, 0.3), 0 0 30px rgba(59, 130, 246, 0.1);
+    }
+    .glow-border-hover:hover {
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.2);
+      border-color: rgba(139, 92, 246, 0.4);
+    }
+
+    .text-gradient {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6, #22d3ee);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .text-gradient-primary {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .btn-gradient {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-gradient:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+    }
+    .btn-gradient:active {
+      transform: translateY(0);
+    }
+
+    .btn-ripple {
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-ripple::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.3);
+      border-radius: 50%;
+      transform: scale(0);
+      opacity: 1;
+    }
+    .btn-ripple:active::after {
+      animation: ripple 0.6s ease-out;
+    }
+
+    /* ===== AUTH PARTICLES ===== */
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(139, 92, 246, 0.6);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .particle:nth-child(1)  { left: 10%; top: 60%; animation: float 8s infinite; width: 3px; height: 3px; }
+    .particle:nth-child(2)  { left: 20%; top: 40%; animation: float2 10s infinite 1s; width: 5px; height: 5px; background: rgba(59,130,246,0.5); }
+    .particle:nth-child(3)  { left: 30%; top: 70%; animation: float 9s infinite 2s; width: 3px; height: 3px; background: rgba(34,211,238,0.5); }
+    .particle:nth-child(4)  { left: 45%; top: 30%; animation: float2 11s infinite 0.5s; width: 4px; height: 4px; }
+    .particle:nth-child(5)  { left: 55%; top: 65%; animation: float 7s infinite 3s; width: 3px; height: 3px; background: rgba(59,130,246,0.6); }
+    .particle:nth-child(6)  { left: 65%; top: 45%; animation: float2 12s infinite 1.5s; width: 5px; height: 5px; }
+    .particle:nth-child(7)  { left: 75%; top: 55%; animation: float 8s infinite 0.5s; width: 3px; height: 3px; background: rgba(34,211,238,0.4); }
+    .particle:nth-child(8)  { left: 85%; top: 35%; animation: float2 9s infinite 2.5s; width: 4px; height: 4px; }
+    .particle:nth-child(9)  { left: 15%; top: 80%; animation: float 10s infinite 1s; width: 3px; height: 3px; }
+    .particle:nth-child(10) { left: 50%; top: 20%; animation: float2 8s infinite 3s; width: 4px; height: 4px; background: rgba(139,92,246,0.7); }
+    .particle:nth-child(11) { left: 35%; top: 50%; animation: float 11s infinite 2s; width: 3px; height: 3px; }
+    .particle:nth-child(12) { left: 70%; top: 75%; animation: float2 7s infinite 1.5s; width: 5px; height: 5px; background: rgba(59,130,246,0.4); }
+    .particle:nth-child(13) { left: 5%; top: 25%; animation: float 9s infinite 3.5s; width: 3px; height: 3px; }
+    .particle:nth-child(14) { left: 95%; top: 50%; animation: float2 10s infinite 0.5s; width: 4px; height: 4px; background: rgba(34,211,238,0.5); }
+    .particle:nth-child(15) { left: 40%; top: 90%; animation: float 8s infinite 2.5s; width: 3px; height: 3px; }
+
+    /* ===== INPUT STYLES ===== */
+    .input-glow {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      transition: all 0.3s ease;
+    }
+    .input-glow:focus {
+      outline: none;
+      border-color: #8b5cf6;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2), 0 0 20px rgba(139, 92, 246, 0.1);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .input-glow::placeholder { color: rgba(255,255,255,0.3); }
+
+    /* ===== CARD EFFECTS ===== */
+    .card-float {
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .card-float:hover {
+      transform: translateY(-6px) scale(1.01);
+    }
+
+    /* ===== TYPING EFFECT ===== */
+    .typing-cursor::after {
+      content: '|';
+      animation: blink 1s infinite;
+      color: #8b5cf6;
+      margin-left: 2px;
+    }
+
+    /* ===== CHAT BUBBLES ===== */
+    .chat-user {
+      background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(139,92,246,0.2));
+      border: 1px solid rgba(139,92,246,0.2);
+      border-radius: 18px 18px 4px 18px;
+      max-width: 75%;
+      margin-left: auto;
+      animation: slideInRight 0.3s ease;
+    }
+    .chat-ai {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px 18px 18px 4px;
+      max-width: 80%;
+      animation: slideUp 0.3s ease;
+    }
+
+    /* ===== SKILL BADGE ===== */
+    .skill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      background: rgba(139,92,246,0.15);
+      border: 1px solid rgba(139,92,246,0.25);
+      color: #a78bfa;
+      transition: all 0.2s;
+    }
+    .skill-badge:hover {
+      background: rgba(139,92,246,0.25);
+    }
+    .skill-badge-cyan {
+      background: rgba(34,211,238,0.12);
+      border-color: rgba(34,211,238,0.2);
+      color: #22d3ee;
+    }
+    .skill-badge-emerald {
+      background: rgba(52,211,153,0.12);
+      border-color: rgba(52,211,153,0.2);
+      color: #34d399;
+    }
+    .skill-badge-amber {
+      background: rgba(251,191,36,0.12);
+      border-color: rgba(251,191,36,0.2);
+      color: #fbbf24;
+    }
+    .skill-badge-rose {
+      background: rgba(244,63,94,0.12);
+      border-color: rgba(244,63,94,0.2);
+      color: #fb7185;
+    }
+
+    /* ===== LOADING SPINNER ===== */
+    .spinner-ring {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(139,92,246,0.15);
+      border-top-color: #8b5cf6;
+      border-radius: 50%;
+      animation: spin-slow 0.8s linear infinite;
+    }
+
+    /* ===== PAGE TRANSITIONS ===== */
+    .page-enter {
+      animation: fadeIn 0.4s ease;
+    }
+
+    /* ===== NAV LINK ===== */
+    .nav-link {
+      position: relative;
+      color: rgba(255,255,255,0.5);
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .nav-link:hover {
+      color: rgba(255,255,255,0.8);
+    }
+    .nav-link.active {
+      color: #a78bfa;
+    }
+    .nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 2px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      border-radius: 1px;
+    }
+
+    /* ===== RESPONSIVE ADJUSTMENTS ===== */
+    @media (max-width: 768px) {
+      .chat-user, .chat-ai { max-width: 90%; }
+    }
+
+    /* ===== EMPLOYEE AVATAR ===== */
+    .emp-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.15));
+      border: 1px solid rgba(139,92,246,0.15);
+      font-size: 28px;
+      transition: all 0.3s;
+    }
+    .card-float:hover .emp-avatar {
+      border-color: rgba(139,92,246,0.4);
+      box-shadow: 0 0 20px rgba(139,92,246,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================================================================ -->
+  <!-- ROOT: x-data on body to hold ALL Alpine state + methods          -->
+  <!-- ================================================================ -->
+  <div x-data="app()" x-init="init()" class="min-h-screen bg-dynamic">
+
+    <!-- ============================================================== -->
+    <!-- AUTH PAGE (shown when NOT logged in)                            -->
+    <!-- ============================================================== -->
+    <template x-if="!isLoggedIn">
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-dynamic-auth">
+        <!-- Particles -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+          <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+          <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+          <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+          <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+          <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+        </div>
+
+        <!-- Auth Card -->
+        <div class="relative w-full max-w-md mx-4 page-enter">
+          <div class="glass-strong rounded-2xl p-8 glow-border">
+            <!-- Logo -->
+            <div class="text-center mb-8">
+              <div class="text-4xl mb-3">
+                <i class="fas fa-robot text-gradient"></i>
+              </div>
+              <h1 class="text-2xl font-bold text-gradient">联想百应</h1>
+              <p class="text-gray-400 text-sm mt-2">AI 数字员工平台</p>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex mb-6 bg-white/5 rounded-lg p-1">
+              <button @click="showLogin = true"
+                      class="flex-1 py-2 text-sm font-medium rounded-md transition-all duration-300"
+                      :class="showLogin ? 'bg-gradient-to-r from-blue-500/20 to-violet-500/20 text-white shadow-sm' : 'text-gray-400 hover:text-gray-300'">
+                <i class="fas fa-sign-in-alt mr-2"></i>登录
+              </button>
+              <button @click="showLogin = false"
+                      class="flex-1 py-2 text-sm font-medium rounded-md transition-all duration-300"
+                      :class="!showLogin ? 'bg-gradient-to-r from-blue-500/20 to-violet-500/20 text-white shadow-sm' : 'text-gray-400 hover:text-gray-300'">
+                <i class="fas fa-user-plus mr-2"></i>注册
+              </button>
+            </div>
+
+            <!-- Login Form -->
+            <form x-show="showLogin" @submit.prevent="login" class="space-y-4">
+              <div>
+                <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-envelope mr-1.5 text-violet-400"></i>邮箱</label>
+                <input type="email" x-model="authEmail" required
+                       class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
+                       placeholder="请输入邮箱地址" />
+              </div>
+              <div>
+                <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-lock mr-1.5 text-violet-400"></i>密码</label>
+                <input type="password" x-model="authPassword" required
+                       class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
+                       placeholder="请输入密码" />
+              </div>
+              <button type="submit" :disabled="authLoading"
+                      class="btn-gradient w-full py-2.5 rounded-lg text-sm font-semibold text-white btn-ripple disabled:opacity-50">
+                <span x-show="!authLoading"><i class="fas fa-arrow-right-to-bracket mr-2"></i>登录</span>
+                <span x-show="authLoading"><i class="fas fa-circle-notch fa-spin mr-2"></i>登录中...</span>
+              </button>
+            </form>
+
+            <!-- Register Form -->
+            <form x-show="!showLogin" @submit.prevent="register" class="space-y-4">
+              <div>
+                <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-user mr-1.5 text-violet-400"></i>用户名</label>
+                <input type="text" x-model="authUsername" required
+                       class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
+                       placeholder="请输入用户名" />
+              </div>
+              <div>
+                <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-envelope mr-1.5 text-violet-400"></i>邮箱</label>
+                <input type="email" x-model="authEmail" required
+                       class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
+                       placeholder="请输入邮箱地址" />
+              </div>
+              <div>
+                <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-lock mr-1.5 text-violet-400"></i>密码</label>
+                <input type="password" x-model="authPassword" required minlength="6"
+                       class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
+                       placeholder="至少6位密码" />
+              </div>
+              <button type="submit" :disabled="authLoading"
+                      class="btn-gradient w-full py-2.5 rounded-lg text-sm font-semibold text-white btn-ripple disabled:opacity-50">
+                <span x-show="!authLoading"><i class="fas fa-user-plus mr-2"></i>注册</span>
+                <span x-show="authLoading"><i class="fas fa-circle-notch fa-spin mr-2"></i>注册中...</span>
+              </button>
+            </form>
+
+            <!-- Demo Account Hint -->
+            <div class="mt-6 pt-4 border-t border-white/5 text-center">
+              <p class="text-xs text-gray-500">
+                <i class="fas fa-info-circle mr-1 text-cyan-400"></i>
+                演示账号: <span class="text-cyan-400 font-mono">admin@lvb.com</span>
+                <span class="mx-1 text-gray-600">/</span>
+                <span class="text-cyan-400 font-mono">admin123</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- ============================================================== -->
+    <!-- MAIN APP (logged in)                                            -->
+    <!-- ============================================================== -->
+    <template x-if="isLoggedIn">
+      <div class="min-h-screen flex flex-col">
+
+        <!-- ===== TOP NAVBAR ===== -->
+        <nav class="glass border-b border-white/5 sticky top-0 z-40">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+              <!-- Left: Logo -->
+              <div class="flex items-center gap-3 cursor-pointer" @click="switchPage('store')">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-lg">
+                  <i class="fas fa-robot text-white text-sm"></i>
+                </div>
+                <span class="text-lg font-bold text-gradient hidden sm:block">联想百应</span>
+              </div>
+
+              <!-- Center: Nav Links -->
+              <div class="flex items-center gap-6">
+                <a @click="switchPage('store')"
+                   class="nav-link text-sm font-medium flex items-center gap-1.5"
+                   :class="currentPage === 'store' ? 'active' : ''">
+                  <i class="fas fa-store"></i>
+                  <span class="hidden sm:inline">数字员工商店</span>
+                </a>
+                <a @click="switchPage('chat')"
+                   class="nav-link text-sm font-medium flex items-center gap-1.5"
+                   :class="currentPage === 'chat' ? 'active' : ''">
+                  <i class="fas fa-comments"></i>
+                  <span class="hidden sm:inline">我的对话</span>
+                </a>
+              </div>
+
+              <!-- Right: User -->
+              <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5">
+                  <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-xs text-white font-semibold shadow-sm"
+                       x-text="user?.username?.charAt(0)?.toUpperCase() || 'U'">
+                  </div>
+                  <span class="text-sm text-gray-300 hidden sm:block" x-text="user?.username || '用户'"></span>
+                </div>
+                <button @click="logout"
+                        class="px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 flex items-center gap-1.5">
+                  <i class="fas fa-right-from-bracket"></i>
+                  <span class="hidden sm:inline">退出</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="flex-1 overflow-hidden">
+          <div class="h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 page-enter">
+
+            <!-- ==================== STORE PAGE ==================== -->
+            <template x-if="currentPage === 'store'">
+              <div class="page-enter">
+
+                <!-- Hero -->
+                <div class="text-center mb-10">
+                  <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs mb-4">
+                    <i class="fas fa-sparkles"></i>
+                    <span>AI 赋能未来工作方式</span>
+                  </div>
+                  <h1 class="text-3xl sm:text-4xl font-bold mb-3">
+                    <span class="text-gradient">选择你的 AI 数字员工</span>
+                  </h1>
+                  <p class="text-gray-400 text-sm sm:text-base max-w-xl mx-auto">
+                    每位数字员工具备独特的专业技能，随时待命，助你高效完成工作
+                  </p>
+                </div>
+
+                <!-- Employee Grid -->
+                <div x-show="employees.length === 0" class="flex justify-center py-20">
+                  <div class="text-center">
+                    <div class="spinner-ring mx-auto mb-4" style="width:40px;height:40px;border-width:3px;"></div>
+                    <p class="text-gray-400 text-sm">正在加载数字员工...</p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                  <template x-for="emp in employees" :key="emp.id">
+                    <div class="glass rounded-2xl p-6 card-float glow-border-hover cursor-pointer group"
+                         @click="selectEmployee(emp)">
+                      <!-- Avatar -->
+                      <div class="flex items-start gap-4 mb-4">
+                        <div class="emp-avatar shrink-0">
+                          <template x-if="emp.avatar && emp.avatar.startsWith('http')">
+                            <img :src="emp.avatar" :alt="emp.name" class="w-full h-full rounded-[17px] object-cover" />
+                          </template>
+                          <template x-if="!emp.avatar || !emp.avatar.startsWith('http')">
+                            <i class="fas fa-robot text-gradient-primary text-2xl"></i>
+                          </template>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <h3 class="text-lg font-semibold text-white truncate" x-text="emp.name"></h3>
+                          <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                                x-text="emp.category || '通用'"></span>
+                        </div>
+                      </div>
+
+                      <!-- Description -->
+                      <p class="text-sm text-gray-400 line-clamp-2 mb-4 min-h-[2.5rem]" x-text="emp.description || '暂无描述'"></p>
+
+                      <!-- Skills -->
+                      <div class="flex flex-wrap gap-1.5 mb-4 min-h-[1.5rem]">
+                        <template x-for="skill in (emp.skills || [])" :key="skill">
+                          <span class="skill-badge" :class="'skill-badge-' + ['cyan','emerald','amber','rose'][Math.floor(Math.random()*4)]">
+                            <i class="fas fa-microchip text-[9px]"></i>
+                            <span x-text="skill"></span>
+                          </span>
+                        </template>
+                      </div>
+
+                      <!-- Button -->
+                      <button class="btn-gradient w-full py-2 rounded-lg text-sm font-semibold text-white btn-ripple flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <i class="fas fa-comment-dots text-xs"></i>
+                        开始对话
+                      </button>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+
+            <!-- ==================== CHAT PAGE ==================== -->
+            <template x-if="currentPage === 'chat'">
+              <div class="flex gap-4 h-[calc(100vh-8rem)] page-enter">
+
+                <!-- Left: Employee List (compact) -->
+                <div class="w-56 shrink-0 hidden md:block">
+                  <div class="glass rounded-xl p-3 h-full overflow-y-auto">
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-2">
+                      <i class="fas fa-users mr-1.5"></i>数字员工
+                    </h3>
+                    <div class="space-y-1.5">
+                      <template x-for="emp in employees" :key="emp.id">
+                        <div @click="selectEmployee(emp)"
+                             class="flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200"
+                             :class="selectedEmployee?.id === emp.id
+                               ? 'bg-violet-500/15 border border-violet-500/20'
+                               : 'hover:bg-white/5 border border-transparent'">
+                          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-violet-500/20 flex items-center justify-center shrink-0">
+                            <i class="fas fa-robot text-xs text-violet-400"></i>
+                          </div>
+                          <div class="min-w-0">
+                            <p class="text-sm font-medium text-gray-200 truncate" x-text="emp.name"></p>
+                            <p class="text-xs text-gray-500 truncate" x-text="emp.category || '通用'"></p>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right: Chat Area -->
+                <div class="flex-1 flex flex-col glass rounded-xl overflow-hidden">
+                  <!-- Chat Header -->
+                  <div class="px-5 py-3 border-b border-white/5 flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-3">
+                      <template x-if="selectedEmployee">
+                        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500/20 to-violet-500/20 flex items-center justify-center">
+                          <i class="fas fa-robot text-sm text-violet-400"></i>
+                        </div>
+                      </template>
+                      <div>
+                        <p class="text-sm font-semibold text-gray-200" x-text="selectedEmployee?.name || '选择一位数字员工'"></p>
+                        <p class="text-xs text-gray-500">
+                          <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-1.5"></span>
+                          <span x-text="selectedEmployee ? '在线 · 准备就绪' : '请从左侧选择一个员工'"></span>
+                        </p>
+                      </div>
+                    </div>
+                    <button @click="clearChat" class="text-gray-500 hover:text-gray-300 transition text-sm">
+                      <i class="fas fa-rotate-right"></i>
+                    </button>
+                  </div>
+
+                  <!-- Messages -->
+                  <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4" x-ref="chatMessages">
+                    <!-- Welcome message -->
+                    <template x-if="!selectedEmployee">
+                      <div class="flex flex-col items-center justify-center h-full text-center py-16">
+                        <div class="text-5xl mb-4 opacity-30">
+                          <i class="fas fa-comment-dots text-gradient"></i>
+                        </div>
+                        <p class="text-gray-400 text-sm">请从左侧选择一个数字员工开始对话</p>
+                      </div>
+                    </template>
+
+                    <template x-if="selectedEmployee && messages.length === 0">
+                      <div class="flex items-center justify-center h-full text-center py-16">
+                        <div class="text-center">
+                          <div class="spinner-ring mx-auto mb-4" style="width:30px;height:30px;border-width:2px;"></div>
+                          <p class="text-gray-400 text-sm">正在初始化与 <span x-text="selectedEmployee?.name" class="text-violet-400"></span> 的对话...</p>
+                        </div>
+                      </div>
+                    </template>
+
+                    <template x-for="(msg, idx) in messages" :key="idx">
+                      <div>
+                        <!-- User Message -->
+                        <div x-show="msg.role === 'user'"
+                             class="chat-user px-4 py-3 text-sm text-gray-100 leading-relaxed mb-3">
+                          <p x-text="msg.content"></p>
+                        </div>
+
+                        <!-- AI Message -->
+                        <div x-show="msg.role === 'assistant'"
+                             class="chat-ai px-4 py-3 text-sm text-gray-200 leading-relaxed mb-3">
+                          <div class="flex items-start gap-2">
+                            <div class="w-6 h-6 rounded-md bg-gradient-to-br from-blue-500/20 to-violet-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                              <i class="fas fa-robot text-[10px] text-violet-400"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                              <!-- Streaming content with typing cursor -->
+                              <div x-show="isStreaming && idx === messages.length - 1"
+                                   class="typing-cursor"
+                                   x-html="msg.content + (streamingContent ? streamingContent : '')">
+                              </div>
+                              <div x-show="!(isStreaming && idx === messages.length - 1)"
+                                   x-html="msg.content">
+                              </div>
+                              <!-- Skills used badge -->
+                              <template x-if="msg.skills_used && msg.skills_used.length > 0">
+                                <div class="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-white/5">
+                                  <template x-for="skill in msg.skills_used" :key="skill">
+                                    <span class="skill-badge skill-badge-cyan">
+                                      <i class="fas fa-bolt text-[9px]"></i>
+                                      <span x-text="skill"></span>
+                                    </span>
+                                  </template>
+                                </div>
+                              </template>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+
+                    <!-- Thinking indicator -->
+                    <div x-show="isStreaming && messages.length === 0" class="chat-ai px-4 py-3">
+                      <div class="flex items-center gap-3">
+                        <div class="spinner-ring"></div>
+                        <span class="text-sm text-gray-400">正在思考...</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Input Area -->
+                  <div class="px-5 py-3 border-t border-white/5 shrink-0">
+                    <div class="flex items-center gap-3">
+                      <div class="flex-1 relative">
+                        <input type="text"
+                               x-model="chatInput"
+                               @keydown.enter.prevent="sendMessage"
+                               :disabled="!selectedEmployee || isStreaming"
+                               class="input-glow w-full px-4 py-2.5 pr-10 rounded-xl text-sm"
+                               :placeholder="selectedEmployee ? `向 ${selectedEmployee.name} 发送消息...` : '请先选择一位数字员工'" />
+                        <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">
+                          <i class="fas fa-arrow-up"></i>
+                        </div>
+                      </div>
+                      <button @click="sendMessage"
+                              :disabled="!selectedEmployee || isStreaming || !chatInput.trim()"
+                              class="btn-gradient w-10 h-10 rounded-xl flex items-center justify-center text-white disabled:opacity-30 btn-ripple shrink-0">
+                        <i class="fas fa-paper-plane text-sm"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+
+          </div>
+        </main>
+      </div>
+    </template>
+
+    <!-- ============================================================== -->
+    <!-- TOAST NOTIFICATION                                              -->
+    <!-- ============================================================== -->
+    <div x-show="toast.show"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 translate-y-0"
+         x-transition:leave-end="opacity-0 translate-y-2"
+         @click="toast.show = false"
+         class="fixed bottom-6 right-6 z-50 cursor-pointer"
+         :class="toast.type === 'error' ? 'glass-strong border-red-500/30' : 'glass-strong border-emerald-500/30'">
+      <div class="px-5 py-3 rounded-xl flex items-center gap-3">
+        <i :class="toast.type === 'error' ? 'fas fa-circle-exclamation text-red-400' : 'fas fa-circle-check text-emerald-400'"></i>
+        <span class="text-sm text-gray-200" x-text="toast.message"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- ALPINE.JS APP LOGIC                                              -->
+  <!-- ================================================================ -->
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('app', () => ({
+        // ---- Auth ----
+        token: localStorage.getItem('token') || null,
+        user: null,
+        isLoggedIn: false,
+
+        // ---- Auth Form ----
+        showLogin: true,
+        authEmail: '',
+        authPassword: '',
+        authUsername: '',
+        authLoading: false,
+
+        // ---- Pages ----
+        currentPage: 'store',
+
+        // ---- Employees ----
+        employees: [],
+        selectedEmployee: null,
+
+        // ---- Chat ----
+        chatInput: '',
+        messages: [],
+        isStreaming: false,
+        streamingContent: '',
+        currentConversationId: null,
+
+        // ---- Toast ----
+        toast: { show: false, message: '', type: 'info' },
+
+        // ================================================================
+        // INIT
+        // ================================================================
+        async init() {
+          // If we have a stored token, try to validate it
+          if (this.token) {
+            try {
+              const res = await fetch('/api/v1/auth/me', {
+                headers: { 'Authorization': `Bearer ${this.token}` }
+              });
+              if (res.ok) {
+                this.user = await res.json();
+                this.isLoggedIn = true;
+                await this.loadEmployees();
+                return;
+              } else {
+                // Token expired
+                localStorage.removeItem('token');
+                this.token = null;
+              }
+            } catch (e) {
+              // Network error — keep token, try anyway
+              this.isLoggedIn = true;
+              this.user = { username: '用户' };
+              await this.loadEmployees();
+              return;
+            }
+          }
+          // Not logged in — auth page will show
+        },
+
+        // ================================================================
+        // TOAST
+        // ================================================================
+        showToast(message, type = 'info') {
+          this.toast = { show: true, message, type };
+          setTimeout(() => { this.toast.show = false; }, 3500);
+        },
+
+        // ================================================================
+        // AUTH
+        // ================================================================
+        async login() {
+          this.authLoading = true;
+          try {
+            const res = await fetch('/api/v1/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: this.authEmail, password: this.authPassword })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || '登录失败');
+            this.token = data.access_token;
+            this.user = data.user;
+            this.isLoggedIn = true;
+            localStorage.setItem('token', this.token);
+            this.showToast('登录成功，欢迎回来！', 'success');
+            await this.loadEmployees();
+          } catch (e) {
+            this.showToast(e.message || '登录失败，请检查账号密码', 'error');
+          } finally {
+            this.authLoading = false;
+          }
+        },
+
+        async register() {
+          this.authLoading = true;
+          try {
+            const res = await fetch('/api/v1/auth/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                username: this.authUsername,
+                email: this.authEmail,
+                password: this.authPassword
+              })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || '注册失败');
+            this.token = data.access_token;
+            this.user = data.user;
+            this.isLoggedIn = true;
+            localStorage.setItem('token', this.token);
+            this.showToast('注册成功，欢迎加入！', 'success');
+            await this.loadEmployees();
+          } catch (e) {
+            this.showToast(e.message || '注册失败', 'error');
+          } finally {
+            this.authLoading = false;
+          }
+        },
+
+        logout() {
+          this.token = null;
+          this.user = null;
+          this.isLoggedIn = false;
+          this.employees = [];
+          this.selectedEmployee = null;
+          this.messages = [];
+          this.currentPage = 'store';
+          localStorage.removeItem('token');
+          this.showToast('已退出登录', 'info');
+        },
+
+        // ================================================================
+        // EMPLOYEES
+        // ================================================================
+        async loadEmployees() {
+          try {
+            const res = await fetch('/api/v1/employees');
+            if (res.ok) {
+              this.employees = await res.json();
+            }
+          } catch (e) {
+            console.error('Failed to load employees', e);
+          }
+        },
+
+        // ================================================================
+        // CHAT
+        // ================================================================
+        async selectEmployee(emp) {
+          this.selectedEmployee = emp;
+          this.currentPage = 'chat';
+          this.messages = [];
+          this.currentConversationId = null;
+          this.streamingContent = '';
+
+          // Send welcome message via SSE
+          await this.startConversation(emp);
+        },
+
+        async startConversation(emp) {
+          this.isStreaming = true;
+
+          // Add a placeholder AI message that will be streamed into
+          const aiMsg = { role: 'assistant', content: '', skills_used: [] };
+          this.messages.push(aiMsg);
+
+          try {
+            const res = await fetch('/api/v1/chat/send', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+              },
+              body: JSON.stringify({
+                employee_id: emp.id,
+                message: '你好'
+              })
+            });
+
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.detail || `请求失败 (${res.status})`);
+            }
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';  // Keep incomplete line in buffer
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const payload = JSON.parse(line.slice(6));
+                    if (payload.content) {
+                      this.streamingContent += payload.content;
+                      // Update the last assistant message
+                      if (this.messages.length > 0) {
+                        this.messages[this.messages.length - 1].content = this.streamingContent;
+                      }
+                      // Auto-scroll
+                      this.$nextTick(() => {
+                        const el = this.$refs.chatMessages;
+                        if (el) el.scrollTop = el.scrollHeight;
+                      });
+                    }
+                    if (payload.done) {
+                      this.currentConversationId = payload.conversation_id;
+                      // Finalize the message
+                      if (this.messages.length > 0) {
+                        const lastMsg = this.messages[this.messages.length - 1];
+                        lastMsg.content = this.streamingContent;
+                        lastMsg.skills_used = payload.skills_used || [];
+                      }
+                      this.streamingContent = '';
+                      this.isStreaming = false;
+                    }
+                  } catch (e) {
+                    // Skip malformed JSON lines
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            this.showToast(e.message || '对话初始化失败', 'error');
+            // Remove the placeholder message on error
+            this.messages = this.messages.filter(m => m.content !== '');
+            this.streamingContent = '';
+          } finally {
+            this.isStreaming = false;
+          }
+        },
+
+        async sendMessage() {
+          const msg = this.chatInput.trim();
+          if (!msg || !this.selectedEmployee || this.isStreaming) return;
+
+          // Add user message
+          this.messages.push({ role: 'user', content: msg });
+          this.chatInput = '';
+
+          // Add placeholder for AI response
+          const aiMsg = { role: 'assistant', content: '', skills_used: [] };
+          this.messages.push(aiMsg);
+
+          this.isStreaming = true;
+          this.streamingContent = '';
+
+          // Auto-scroll
+          this.$nextTick(() => {
+            const el = this.$refs.chatMessages;
+            if (el) el.scrollTop = el.scrollHeight;
+          });
+
+          try {
+            const res = await fetch('/api/v1/chat/send', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+              },
+              body: JSON.stringify({
+                employee_id: this.selectedEmployee.id,
+                message: msg,
+                conversation_id: this.currentConversationId
+              })
+            });
+
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.detail || `请求失败 (${res.status})`);
+            }
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const payload = JSON.parse(line.slice(6));
+                    if (payload.content) {
+                      this.streamingContent += payload.content;
+                      if (this.messages.length > 0) {
+                        this.messages[this.messages.length - 1].content = this.streamingContent;
+                      }
+                      this.$nextTick(() => {
+                        const el = this.$refs.chatMessages;
+                        if (el) el.scrollTop = el.scrollHeight;
+                      });
+                    }
+                    if (payload.done) {
+                      this.currentConversationId = payload.conversation_id;
+                      if (this.messages.length > 0) {
+                        const lastMsg = this.messages[this.messages.length - 1];
+                        lastMsg.content = this.streamingContent;
+                        lastMsg.skills_used = payload.skills_used || [];
+                      }
+                      this.streamingContent = '';
+                      this.isStreaming = false;
+                    }
+                  } catch (e) {
+                    // skip
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            this.showToast(e.message || '发送失败', 'error');
+            this.messages = this.messages.filter(m => m.content !== '');
+            this.streamingContent = '';
+          } finally {
+            this.isStreaming = false;
+          }
+        },
+
+        clearChat() {
+          this.messages = [];
+          this.currentConversationId = null;
+          this.streamingContent = '';
+          this.isStreaming = false;
+          if (this.selectedEmployee) {
+            this.startConversation(this.selectedEmployee);
+          }
+        },
+
+        // ================================================================
+        // NAVIGATION
+        // ================================================================
+        switchPage(page) {
+          this.currentPage = page;
+          if (page === 'chat' && !this.selectedEmployee && this.employees.length > 0) {
+            // Optionally auto-select first employee
+          }
+        }
+      }));
+    });
+  </script>
+</body>
+</html>
