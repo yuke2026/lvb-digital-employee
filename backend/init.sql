@@ -65,6 +65,7 @@ CREATE INDEX idx_topics_active ON topics(is_active) WHERE is_active = TRUE;
 -- =====================================================
 CREATE TABLE news_sources (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     source_type VARCHAR(20) NOT NULL,
     url TEXT NOT NULL,
@@ -76,6 +77,7 @@ CREATE TABLE news_sources (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+CREATE INDEX idx_news_sources_org ON news_sources(org_id);
 CREATE INDEX idx_news_sources_active ON news_sources(is_active);
 
 -- =====================================================
