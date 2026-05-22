@@ -1,67 +1,64 @@
 """认证路由：注册、登录、获取当前用户"""
 from fastapi import APIRouter, Depends, HTTPException, status
-from app.schemas.user import (
-    RegisterRequest,
-    LoginRequest,
-    TokenResponse,
-    UserResponse,
-)
-from app.core.security import create_access_token, verify_password
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from app.core.database import get_db
+from app.core.security import hash_password, verify_password, create_access_token, decode_access_token
 from app.core.deps import get_current_user
-from app.services.db import db
+from app.models.user import User
+from app.schemas.user import UserRegister, UserLogin, TokenResponse, LoginResponse, UserResponse
 
-router = APIRouter()
+router = APIRouter(prefix="/auth", tags=["认证"])
 
 
-@router.post("/register", response_model=TokenResponse)
-async def register(req: RegisterRequest):
+@router.post("/register", response_model=LoginResponse)
+async def register(req: UserRegister, db: AsyncSession = Depends(get_db)):
     """注册新用户"""
     # 检查邮箱是否已注册
-    if db.get_user_by_email(req.email):
+    result = await db.execute(select(User).where(User.email == req.email))
+    if result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="该邮箱已被注册",
+            detail="邮箱已被注册",
         )
 
     # 检查用户名是否已存在
-    if db.get_user_by_username(req.username):
+    result = await db.execute(select(User).where(User.username == req.username))
+    if result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="该用户名已被使用",
+            detail="用户名已被使用",
         )
 
     # 创建用户
-    user = db.create_user(
+    user = User(
         username=req.username,
         email=req.email,
-        password=req.password,
+        password_hash=hash_password(req.password),
+        role="user",
     )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
 
     # 生成 token
-    token = create_access_token({"sub": user.id, "email": user.email})
+    access_token = create_access_token({"sub": str(user.id), "role": user.role})
 
-    return TokenResponse(
-        access_token=token,
+    return LoginResponse(
+        access_token=access_token,
+        refresh_token="",
         token_type="bearer",
-        user={
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-        },
+        user=UserResponse.model_validate(user),
     )
 
 
-@router.post("/login", response_model=TokenResponse)
-async def login(req: LoginRequest):
+@router.post("/login", response_model=LoginResponse)
+async def login(req: UserLogin, db: AsyncSession = Depends(get_db)):
     """用户登录"""
-    user = db.get_user_by_email(req.email)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="邮箱或密码错误",
-        )
+    result = await db.execute(select(User).where(User.email == req.email))
+    user = result.scalar_one_or_none()
 
-    if not verify_password(req.password, user.hashed_password):
+    if not user or not verify_password(req.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="邮箱或密码错误",
@@ -73,33 +70,37 @@ async def login(req: LoginRequest):
             detail="账号已被禁用",
         )
 
-    token = create_access_token({"sub": user.id, "email": user.email})
+    access_token = create_access_token({"sub": str(user.id), "role": user.role})
 
-    return TokenResponse(
-        access_token=token,
+    return LoginResponse(
+        access_token=access_token,
+        refresh_token="",
         token_type="bearer",
-        user={
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-        },
+        user=UserResponse.model_validate(user),
     )
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_me(current_user: dict = Depends(get_current_user)):
+async def get_me(current_user: User = Depends(get_current_user)):
     """获取当前用户信息"""
-    user_id = current_user.get("sub")
-    user = db.get_user_by_id(user_id)
-    if not user:
+    return UserResponse.model_validate(current_user)
+
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_token(refresh_token: str):
+    """刷新访问令牌"""
+    payload = decode_access_token(refresh_token)
+    if not payload:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="用户不存在",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="刷新令牌无效",
         )
-    return UserResponse(
-        id=user.id,
-        username=user.username,
-        email=user.email,
-        is_active=user.is_active,
-        created_at=user.created_at,
-    )
+    new_token = create_access_token({"sub": payload["sub"], "role": payload.get("role", "user")})
+    return TokenResponse(access_token=new_token)
+
+
+@router.post("/logout")
+async def logout():
+    """退出登录（预留接口）"""
+    # TODO: 实现 refresh token 黑名单
+    return {"message": "退出成功"}
