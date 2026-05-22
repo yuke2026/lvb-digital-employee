@@ -12,3 +12,4 @@ openai>=1.55.0
 httpx>=0.28.0
 sse-starlette>=2.2.0
 redis>=5.2.0
+bcrypt<5.0.0

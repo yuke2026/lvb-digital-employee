@@ -318,6 +318,64 @@
       .chat-user, .chat-ai { max-width: 90%; }
     }
 
+    /* ===== LANDING PAGE ===== */
+    .landing-section {
+      min-height: 100vh;
+      scroll-snap-align: start;
+    }
+    .hero-glow {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+    }
+    .hero-glow-1 { background: #8b5cf6; top: -10%; left: -5%; animation: pulse-glow 4s ease-in-out infinite; }
+    .hero-glow-2 { background: #3b82f6; bottom: -10%; right: -5%; animation: pulse-glow 4s ease-in-out infinite 2s; }
+    .hero-glow-3 { background: #22d3ee; top: 40%; left: 40%; animation: pulse-glow 6s ease-in-out infinite 1s; }
+
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .stat-number {
+      background: linear-gradient(135deg, #fff 30%, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .scroll-indicator {
+      animation: float 2s ease-in-out infinite;
+    }
+    @keyframes orbFloat {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-20px) scale(1.05); }
+    }
+    .orb {
+      animation: orbFloat 6s ease-in-out infinite;
+    }
+    .orb:nth-child(2) { animation-delay: -2s; }
+    .orb:nth-child(3) { animation-delay: -4s; }
+
+    .benefit-icon-wrap {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      transition: all 0.3s;
+    }
+    .card-float:hover .benefit-icon-wrap {
+      transform: scale(1.1);
+    }
+
+    /* Scroll snap */
+    html { scroll-behavior: smooth; }
+
     /* ===== EMPLOYEE AVATAR ===== */
     .emp-avatar {
       width: 72px;
@@ -345,101 +403,465 @@
   <div x-data="app()" x-init="init()" class="min-h-screen bg-dynamic">
 
     <!-- ============================================================== -->
-    <!-- AUTH PAGE (shown when NOT logged in)                            -->
+    <!-- LANDING PAGE (shown when NOT logged in)                        -->
     <!-- ============================================================== -->
     <template x-if="!isLoggedIn">
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-dynamic-auth">
-        <!-- Particles -->
-        <div class="absolute inset-0 overflow-hidden pointer-events-none">
-          <div class="particle"></div><div class="particle"></div><div class="particle"></div>
-          <div class="particle"></div><div class="particle"></div><div class="particle"></div>
-          <div class="particle"></div><div class="particle"></div><div class="particle"></div>
-          <div class="particle"></div><div class="particle"></div><div class="particle"></div>
-          <div class="particle"></div><div class="particle"></div><div class="particle"></div>
-        </div>
+      <div class="fixed inset-0 z-50 overflow-y-auto bg-dynamic" x-data="{ showMobileMenu: false }">
 
-        <!-- Auth Card -->
-        <div class="relative w-full max-w-md mx-4 page-enter">
-          <div class="glass-strong rounded-2xl p-8 glow-border">
-            <!-- Logo -->
-            <div class="text-center mb-8">
-              <div class="text-4xl mb-3">
-                <i class="fas fa-robot text-gradient"></i>
+        <!-- ===== NAVBAR ===== -->
+        <nav class="fixed top-0 left-0 right-0 z-50 glass border-b border-white/5">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-lg">
+                  <i class="fas fa-robot text-white text-xs"></i>
+                </div>
+                <span class="text-lg font-bold text-gradient">百应智星</span>
               </div>
-              <h1 class="text-2xl font-bold text-gradient">百应智星</h1>
-              <p class="text-gray-400 text-sm mt-2">AI 数字员工平台</p>
-            </div>
-
-            <!-- Tabs -->
-            <div class="flex mb-6 bg-white/5 rounded-lg p-1">
-              <button @click="showLogin = true"
-                      class="flex-1 py-2 text-sm font-medium rounded-md transition-all duration-300"
-                      :class="showLogin ? 'bg-gradient-to-r from-blue-500/20 to-violet-500/20 text-white shadow-sm' : 'text-gray-400 hover:text-gray-300'">
-                <i class="fas fa-sign-in-alt mr-2"></i>登录
-              </button>
-              <button @click="showLogin = false"
-                      class="flex-1 py-2 text-sm font-medium rounded-md transition-all duration-300"
-                      :class="!showLogin ? 'bg-gradient-to-r from-blue-500/20 to-violet-500/20 text-white shadow-sm' : 'text-gray-400 hover:text-gray-300'">
-                <i class="fas fa-user-plus mr-2"></i>注册
+              <div class="hidden md:flex items-center gap-8">
+                <a href="#advantages" class="text-sm text-gray-400 hover:text-white transition">核心优势</a>
+                <a href="#usecases" class="text-sm text-gray-400 hover:text-white transition">应用场景</a>
+                <a href="#stats" class="text-sm text-gray-400 hover:text-white transition">数据</a>
+                <button @click="showAuthModal = true"
+                        class="btn-gradient px-5 py-2 rounded-lg text-sm font-semibold text-white btn-ripple">
+                  <i class="fas fa-sign-in-alt mr-1.5"></i>登录
+                </button>
+              </div>
+              <!-- Mobile menu button -->
+              <button @click="showMobileMenu = !showMobileMenu" class="md:hidden text-gray-400 hover:text-white text-xl">
+                <i :class="showMobileMenu ? 'fas fa-times' : 'fas fa-bars'"></i>
               </button>
             </div>
+            <!-- Mobile menu -->
+            <div x-show="showMobileMenu" class="md:hidden pb-4 space-y-3">
+              <a href="#advantages" @click="showMobileMenu = false" class="block text-sm text-gray-400 hover:text-white transition">核心优势</a>
+              <a href="#usecases" @click="showMobileMenu = false" class="block text-sm text-gray-400 hover:text-white transition">应用场景</a>
+              <a href="#stats" @click="showMobileMenu = false" class="block text-sm text-gray-400 hover:text-white transition">数据</a>
+              <button @click="showAuthModal = true; showMobileMenu = false"
+                      class="btn-gradient w-full py-2 rounded-lg text-sm font-semibold text-white">登录 / 注册</button>
+            </div>
+          </div>
+        </nav>
 
-            <!-- Login Form -->
-            <form x-show="showLogin" @submit.prevent="login" class="space-y-4">
-              <div>
-                <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-envelope mr-1.5 text-violet-400"></i>邮箱</label>
-                <input type="email" x-model="authEmail" required
-                       class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
-                       placeholder="请输入邮箱地址" />
-              </div>
-              <div>
-                <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-lock mr-1.5 text-violet-400"></i>密码</label>
-                <input type="password" x-model="authPassword" required
-                       class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
-                       placeholder="请输入密码" />
-              </div>
-              <button type="submit" :disabled="authLoading"
-                      class="btn-gradient w-full py-2.5 rounded-lg text-sm font-semibold text-white btn-ripple disabled:opacity-50">
-                <span x-show="!authLoading"><i class="fas fa-arrow-right-to-bracket mr-2"></i>登录</span>
-                <span x-show="authLoading"><i class="fas fa-circle-notch fa-spin mr-2"></i>登录中...</span>
+        <!-- ===== HERO SECTION ===== -->
+        <section class="landing-section relative flex items-center justify-center overflow-hidden pt-16">
+          <!-- Glow orbs -->
+          <div class="hero-glow hero-glow-1"></div>
+          <div class="hero-glow hero-glow-2"></div>
+          <div class="hero-glow hero-glow-3"></div>
+
+          <!-- Floating 3D orbs decoration -->
+          <div class="absolute inset-0 overflow-hidden pointer-events-none hidden lg:block">
+            <div class="orb absolute w-32 h-32 rounded-full bg-violet-500/5 top-[15%] right-[12%] border border-violet-500/10"></div>
+            <div class="orb absolute w-48 h-48 rounded-full bg-blue-500/5 bottom-[20%] left-[8%] border border-blue-500/10"></div>
+            <div class="orb absolute w-24 h-24 rounded-full bg-cyan-500/5 top-[35%] left-[45%] border border-cyan-500/10"></div>
+          </div>
+
+          <div class="relative z-10 text-center px-4 max-w-5xl mx-auto py-20 md:py-32">
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs mb-6 md:mb-8">
+              <i class="fas fa-sparkles"></i>
+              <span>AI 驱动 · 企业级数字员工平台</span>
+            </div>
+
+            <!-- Headline -->
+            <h1 class="text-4xl sm:text-5xl md:text-7xl font-bold leading-tight mb-6 text-white">
+              <span class="block">让人工智能</span>
+              <span class="text-gradient">成为你的超级员工</span>
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="text-base md:text-lg text-gray-400 max-w-2xl mx-auto mb-8 leading-relaxed">
+              百应智星为企业提供 AI 数字员工，<br class="hidden sm:block" />
+              7×24 小时在线，覆盖营销、销售、客服等场景，<br class="hidden sm:block" />
+              让团队专注在更有价值的工作上。
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <button @click="showAuthModal = true"
+                      class="btn-gradient px-8 py-3.5 rounded-xl text-base font-semibold text-white btn-ripple glow-border hover:scale-105 transition-transform duration-300">
+                <i class="fas fa-rocket mr-2"></i>
+                免费开始使用
               </button>
-            </form>
+              <a href="#advantages"
+                 class="px-8 py-3.5 rounded-xl text-base font-semibold text-gray-300 glass glass-hover border border-white/10 hover:border-white/20 transition-all flex items-center gap-2">
+                <i class="fas fa-play-circle text-violet-400"></i>
+                了解更多
+              </a>
+            </div>
 
-            <!-- Register Form -->
-            <form x-show="!showLogin" @submit.prevent="register" class="space-y-4">
-              <div>
-                <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-user mr-1.5 text-violet-400"></i>用户名</label>
-                <input type="text" x-model="authUsername" required
-                       class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
-                       placeholder="请输入用户名" />
+            <!-- Hero image/mockup -->
+            <div class="mt-16 md:mt-20 relative">
+              <div class="glass-strong rounded-2xl p-1 max-w-4xl mx-auto glow-border">
+                <div class="rounded-xl overflow-hidden bg-gradient-to-b from-gray-900/50 to-transparent">
+                  <div class="flex items-center gap-1.5 px-4 py-3 border-b border-white/5">
+                    <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                    <div class="w-3 h-3 rounded-full bg-emerald-500/50"></div>
+                    <span class="text-xs text-gray-500 ml-2">百应智星 · 数字员工面板</span>
+                  </div>
+                  <div class="p-6 md:p-8 flex flex-col md:flex-row gap-4">
+                    <div class="flex-1 space-y-3">
+                      <div class="h-3 w-3/4 rounded-full bg-white/5"></div>
+                      <div class="h-3 w-1/2 rounded-full bg-white/5"></div>
+                      <div class="flex gap-2 pt-2">
+                        <div class="h-8 w-20 rounded-lg bg-violet-500/20 border border-violet-500/30"></div>
+                        <div class="h-8 w-20 rounded-lg bg-blue-500/20 border border-blue-500/30"></div>
+                        <div class="h-8 w-20 rounded-lg bg-cyan-500/20 border border-cyan-500/30"></div>
+                      </div>
+                      <div class="pt-4">
+                        <div class="h-20 rounded-xl bg-white/5 border border-white/10 p-3">
+                          <div class="h-2 w-16 rounded-full bg-violet-400/30 mb-2"></div>
+                          <div class="h-2 w-full rounded-full bg-white/10 mb-1.5"></div>
+                          <div class="h-2 w-5/6 rounded-full bg-white/10"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex-1 space-y-2 pt-4 md:pt-0">
+                      <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center"><i class="fas fa-robot text-violet-400 text-xs"></i></div>
+                        <div><div class="h-2 w-24 rounded-full bg-white/10 mb-1"></div><div class="h-2 w-16 rounded-full bg-white/5"></div></div>
+                      </div>
+                      <div class="ml-11 p-3 rounded-xl bg-white/5 border border-white/10">
+                        <div class="h-2 w-full rounded-full bg-white/10 mb-1.5"></div>
+                        <div class="h-2 w-4/5 rounded-full bg-white/10"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-envelope mr-1.5 text-violet-400"></i>邮箱</label>
-                <input type="email" x-model="authEmail" required
-                       class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
-                       placeholder="请输入邮箱地址" />
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== ADVANTAGES SECTION ===== -->
+        <section id="advantages" class="py-20 md:py-32 px-4">
+          <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+              <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-xs mb-4">
+                <i class="fas fa-star"></i>
+                <span>为什么选择百应智星</span>
               </div>
-              <div>
-                <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-lock mr-1.5 text-violet-400"></i>密码</label>
-                <input type="password" x-model="authPassword" required minlength="6"
-                       class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
-                       placeholder="至少6位密码" />
+              <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">
+                数字员工带来的 <span class="text-gradient">核心价值</span>
+              </h2>
+              <p class="text-gray-400 max-w-xl mx-auto">让 AI 成为团队的重要成员，释放每个人的创造力</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+              <!-- Advantage 1: 24/7 -->
+              <div class="glass rounded-2xl p-8 card-float glow-border-hover group">
+                <div class="benefit-icon-wrap bg-violet-500/15 border border-violet-500/20 text-violet-400 mb-5">
+                  <i class="fas fa-clock"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-white mb-3">7×24 全天候在线</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                  数字员工永不疲倦。无论是深夜还是节假日，随时响应需求。
+                  营销文案深夜灵感迸发？销售方案周末急需？数字员工永远在线。
+                </p>
+                <div class="mt-4 flex items-center gap-2 text-xs text-violet-400">
+                  <i class="fas fa-check-circle"></i>
+                  <span>零等待，即时响应</span>
+                </div>
               </div>
-              <button type="submit" :disabled="authLoading"
-                      class="btn-gradient w-full py-2.5 rounded-lg text-sm font-semibold text-white btn-ripple disabled:opacity-50">
-                <span x-show="!authLoading"><i class="fas fa-user-plus mr-2"></i>注册</span>
-                <span x-show="authLoading"><i class="fas fa-circle-notch fa-spin mr-2"></i>注册中...</span>
+
+              <!-- Advantage 2: 专业 -->
+              <div class="glass rounded-2xl p-8 card-float glow-border-hover group md:translate-y-6">
+                <div class="benefit-icon-wrap bg-blue-500/15 border border-blue-500/20 text-blue-400 mb-5">
+                  <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-white mb-3">专业技能，开箱即用</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                  每个数字员工都经过精心训练，精通特定领域技能。
+                  营销助手懂品牌策划，销售顾问通B2B技巧。无需培训，直接上岗。
+                </p>
+                <div class="mt-4 flex items-center gap-2 text-xs text-blue-400">
+                  <i class="fas fa-check-circle"></i>
+                  <span>预设技能库，即选即用</span>
+                </div>
+              </div>
+
+              <!-- Advantage 3: 成本 -->
+              <div class="glass rounded-2xl p-8 card-float glow-border-hover group">
+                <div class="benefit-icon-wrap bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 mb-5">
+                  <i class="fas fa-coins"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-white mb-3">成本降低 10 倍</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                  一个数字员工的年度成本不到人工的十分之一。
+                  不需社保、不需办公空间、不需管理精力。用最小的投入获得最大的产出。
+                </p>
+                <div class="mt-4 flex items-center gap-2 text-xs text-emerald-400">
+                  <i class="fas fa-check-circle"></i>
+                  <span>零边际成本规模化</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Secondary advantages row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+              <div class="glass rounded-xl p-5 flex items-start gap-3 card-float">
+                <div class="text-violet-400 mt-0.5"><i class="fas fa-bolt"></i></div>
+                <div>
+                  <h4 class="text-sm font-semibold text-white mb-1">秒级响应</h4>
+                  <p class="text-xs text-gray-400">输入即输出，无需等待</p>
+                </div>
+              </div>
+              <div class="glass rounded-xl p-5 flex items-start gap-3 card-float">
+                <div class="text-blue-400 mt-0.5"><i class="fas fa-shield"></i></div>
+                <div>
+                  <h4 class="text-sm font-semibold text-white mb-1">数据安全</h4>
+                  <p class="text-xs text-gray-400">本地部署，物理隔离</p>
+                </div>
+              </div>
+              <div class="glass rounded-xl p-5 flex items-start gap-3 card-float">
+                <div class="text-cyan-400 mt-0.5"><i class="fas fa-puzzle-piece"></i></div>
+                <div>
+                  <h4 class="text-sm font-semibold text-white mb-1">灵活集成</h4>
+                  <p class="text-xs text-gray-400">API 开放，无缝对接</p>
+                </div>
+              </div>
+              <div class="glass rounded-xl p-5 flex items-start gap-3 card-float">
+                <div class="text-emerald-400 mt-0.5"><i class="fas fa-arrows-rotate"></i></div>
+                <div>
+                  <h4 class="text-sm font-semibold text-white mb-1">持续进化</h4>
+                  <p class="text-xs text-gray-400">AI 模型更新，越来越强</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== USE CASES SECTION ===== -->
+        <section id="usecases" class="py-20 md:py-32 px-4 relative">
+          <div class="hero-glow hero-glow-1" style="top:20%;left:50%;"></div>
+          <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center mb-16">
+              <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs mb-4">
+                <i class="fas fa-briefcase"></i>
+                <span>适用场景</span>
+              </div>
+              <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">
+                为企业 <span class="text-gradient">每个部门</span> 赋能
+              </h2>
+              <p class="text-gray-400 max-w-xl mx-auto">从营销到销售，从客服到IT，数字员工无处不在</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Marketing -->
+              <div class="glass rounded-2xl p-6 card-float glow-border-hover border-t-2 border-t-violet-500/30">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="w-12 h-12 rounded-xl bg-violet-500/15 flex items-center justify-center text-xl text-violet-400">
+                    <i class="fas fa-bullhorn"></i>
+                  </div>
+                  <span class="text-2xl opacity-10 text-violet-400"><i class="fas fa-quote-right"></i></span>
+                </div>
+                <h3 class="text-lg font-semibold text-white mb-2">营销团队</h3>
+                <p class="text-sm text-gray-400 mb-4">文案生成、标题优化、社媒运营、竞品分析，一人即可搞定全链路营销内容。</p>
+                <div class="flex flex-wrap gap-1.5">
+                  <span class="skill-badge">文案生成</span>
+                  <span class="skill-badge skill-badge-cyan">标题优化</span>
+                  <span class="skill-badge skill-badge-amber">竞品分析</span>
+                </div>
+              </div>
+
+              <!-- Sales -->
+              <div class="glass rounded-2xl p-6 card-float glow-border-hover border-t-2 border-t-blue-500/30 md:translate-y-6">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="w-12 h-12 rounded-xl bg-blue-500/15 flex items-center justify-center text-xl text-blue-400">
+                    <i class="fas fa-chart-line"></i>
+                  </div>
+                  <span class="text-2xl opacity-10 text-blue-400"><i class="fas fa-quote-right"></i></span>
+                </div>
+                <h3 class="text-lg font-semibold text-white mb-2">销售团队</h3>
+                <p class="text-sm text-gray-400 mb-4">客户沟通话术、需求分析、跟进策略、方案定制，提升转化率30%以上。</p>
+                <div class="flex flex-wrap gap-1.5">
+                  <span class="skill-badge skill-badge-emerald">客户话术</span>
+                  <span class="skill-badge skill-badge-cyan">需求分析</span>
+                  <span class="skill-badge skill-badge-rose">跟进策略</span>
+                </div>
+              </div>
+
+              <!-- Support -->
+              <div class="glass rounded-2xl p-6 card-float glow-border-hover border-t-2 border-t-emerald-500/30">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="w-12 h-12 rounded-xl bg-emerald-500/15 flex items-center justify-center text-xl text-emerald-400">
+                    <i class="fas fa-headset"></i>
+                  </div>
+                  <span class="text-2xl opacity-10 text-emerald-400"><i class="fas fa-quote-right"></i></span>
+                </div>
+                <h3 class="text-lg font-semibold text-white mb-2">客服团队</h3>
+                <p class="text-sm text-gray-400 mb-4">自动回复常见问题、处理工单、知识库检索，让客服专注处理复杂问题。</p>
+                <div class="flex flex-wrap gap-1.5">
+                  <span class="skill-badge skill-badge-amber">智能问答</span>
+                  <span class="skill-badge skill-badge-emerald">工单处理</span>
+                  <span class="skill-badge skill-badge-cyan">知识库</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== STATS / TRUST SECTION ===== -->
+        <section id="stats" class="py-16 md:py-24 px-4">
+          <div class="max-w-7xl mx-auto">
+            <div class="glass-strong rounded-3xl p-8 md:p-12 glow-border">
+              <div class="text-center mb-10">
+                <h2 class="text-2xl md:text-4xl font-bold text-white mb-2">
+                  数据驱动的 <span class="text-gradient">效率革命</span>
+                </h2>
+              </div>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+                <div class="text-center">
+                  <div class="text-3xl md:text-5xl font-bold stat-number mb-1">99.9%</div>
+                  <p class="text-gray-400 text-sm">可用性</p>
+                </div>
+                <div class="text-center">
+                  <div class="text-3xl md:text-5xl font-bold stat-number mb-1">10×</div>
+                  <p class="text-gray-400 text-sm">效率提升</p>
+                </div>
+                <div class="text-center">
+                  <div class="text-3xl md:text-5xl font-bold stat-number mb-1">7×24</div>
+                  <p class="text-gray-400 text-sm">全天候在线</p>
+                </div>
+                <div class="text-center">
+                  <div class="text-3xl md:text-5xl font-bold stat-number mb-1">90%</div>
+                  <p class="text-gray-400 text-sm">成本节省</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== CTA + FOOTER ===== -->
+        <section class="py-20 px-4 text-center relative">
+          <div class="hero-glow hero-glow-2" style="top:auto;bottom:0;left:50%;"></div>
+          <div class="max-w-3xl mx-auto relative z-10">
+            <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">
+              准备好迎接 <span class="text-gradient">AI 数字员工</span> 了吗？
+            </h2>
+            <p class="text-gray-400 mb-8 max-w-lg mx-auto">
+              立即注册，免费体验百应智星数字员工平台。无需部署，无需培训，即开即用。
+            </p>
+            <button @click="showAuthModal = true"
+                    class="btn-gradient px-10 py-4 rounded-xl text-lg font-semibold text-white btn-ripple glow-border hover:scale-105 transition-transform duration-300 inline-flex items-center gap-2">
+              <i class="fas fa-rocket"></i>
+              免费开始使用
+            </button>
+
+            <!-- Footer -->
+            <div class="mt-20 pt-8 border-t border-white/5">
+              <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
+                    <i class="fas fa-robot text-white text-[10px]"></i>
+                  </div>
+                  <span class="text-sm font-bold text-gradient">百应智星</span>
+                </div>
+                <p class="text-xs text-gray-500">© 2026 百应智星 · AI 数字员工平台 · 数据本地化部署</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== AUTH MODAL (floating overlay) ===== -->
+        <div x-show="showAuthModal"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+             @click.self="showAuthModal = false">
+          <!-- Auth Card -->
+          <div class="relative w-full max-w-md mx-4 page-enter" @click.stop>
+            <div class="glass-strong rounded-2xl p-8 glow-border">
+              <!-- Close button -->
+              <button @click="showAuthModal = false" class="absolute top-4 right-4 text-gray-500 hover:text-gray-300 transition text-lg">
+                <i class="fas fa-times"></i>
               </button>
-            </form>
+              <!-- Logo -->
+              <div class="text-center mb-6">
+                <div class="text-3xl mb-2">
+                  <i class="fas fa-robot text-gradient"></i>
+                </div>
+                <h2 class="text-xl font-bold text-gradient">欢迎使用百应智星</h2>
+                <p class="text-gray-400 text-xs mt-1" x-text="showLogin ? '登录你的账号' : '创建一个新账号'"></p>
+              </div>
 
-            <!-- Demo Account Hint -->
-            <div class="mt-6 pt-4 border-t border-white/5 text-center">
-              <p class="text-xs text-gray-500">
-                <i class="fas fa-info-circle mr-1 text-cyan-400"></i>
-                演示账号: <span class="text-cyan-400 font-mono">admin@lvb.com</span>
-                <span class="mx-1 text-gray-600">/</span>
-                <span class="text-cyan-400 font-mono">admin123</span>
-              </p>
+              <!-- Tabs -->
+              <div class="flex mb-6 bg-white/5 rounded-lg p-1">
+                <button @click="showLogin = true"
+                        class="flex-1 py-2 text-sm font-medium rounded-md transition-all duration-300"
+                        :class="showLogin ? 'bg-gradient-to-r from-blue-500/20 to-violet-500/20 text-white shadow-sm' : 'text-gray-400 hover:text-gray-300'">
+                  <i class="fas fa-sign-in-alt mr-2"></i>登录
+                </button>
+                <button @click="showLogin = false"
+                        class="flex-1 py-2 text-sm font-medium rounded-md transition-all duration-300"
+                        :class="!showLogin ? 'bg-gradient-to-r from-blue-500/20 to-violet-500/20 text-white shadow-sm' : 'text-gray-400 hover:text-gray-300'">
+                  <i class="fas fa-user-plus mr-2"></i>注册
+                </button>
+              </div>
+
+              <!-- Login Form -->
+              <form x-show="showLogin" @submit.prevent="login" class="space-y-4">
+                <div>
+                  <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-envelope mr-1.5 text-violet-400"></i>邮箱</label>
+                  <input type="email" x-model="authEmail" required
+                         class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
+                         placeholder="请输入邮箱地址" />
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-lock mr-1.5 text-violet-400"></i>密码</label>
+                  <input type="password" x-model="authPassword" required
+                         class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
+                         placeholder="请输入密码" />
+                </div>
+                <button type="submit" :disabled="authLoading"
+                        class="btn-gradient w-full py-2.5 rounded-lg text-sm font-semibold text-white btn-ripple disabled:opacity-50">
+                  <span x-show="!authLoading"><i class="fas fa-arrow-right-to-bracket mr-2"></i>登录</span>
+                  <span x-show="authLoading"><i class="fas fa-circle-notch fa-spin mr-2"></i>登录中...</span>
+                </button>
+              </form>
+
+              <!-- Register Form -->
+              <form x-show="!showLogin" @submit.prevent="register" class="space-y-4">
+                <div>
+                  <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-user mr-1.5 text-violet-400"></i>用户名</label>
+                  <input type="text" x-model="authUsername" required
+                         class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
+                         placeholder="请输入用户名" />
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-envelope mr-1.5 text-violet-400"></i>邮箱</label>
+                  <input type="email" x-model="authEmail" required
+                         class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
+                         placeholder="请输入邮箱地址" />
+                </div>
+                <div>
+                  <label class="block text-sm text-gray-400 mb-1.5"><i class="fas fa-lock mr-1.5 text-violet-400"></i>密码</label>
+                  <input type="password" x-model="authPassword" required minlength="6"
+                         class="input-glow w-full px-4 py-2.5 rounded-lg text-sm"
+                         placeholder="至少6位密码" />
+                </div>
+                <button type="submit" :disabled="authLoading"
+                        class="btn-gradient w-full py-2.5 rounded-lg text-sm font-semibold text-white btn-ripple disabled:opacity-50">
+                  <span x-show="!authLoading"><i class="fas fa-user-plus mr-2"></i>注册</span>
+                  <span x-show="authLoading"><i class="fas fa-circle-notch fa-spin mr-2"></i>注册中...</span>
+                </button>
+              </form>
+
+              <!-- Demo Account Hint -->
+              <div class="mt-6 pt-4 border-t border-white/5 text-center">
+                <p class="text-xs text-gray-500">
+                  <i class="fas fa-info-circle mr-1 text-cyan-400"></i>
+                  演示账号: <span class="text-cyan-400 font-mono">admin@lvb.com</span>
+                  <span class="mx-1 text-gray-600">/</span>
+                  <span class="text-cyan-400 font-mono">admin123</span>
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -758,6 +1180,7 @@
         token: localStorage.getItem('token') || null,
         user: null,
         isLoggedIn: false,
+        showAuthModal: false,
 
         // ---- Auth Form ----
         showLogin: true,

@@ -1,0 +1,16 @@
+[Unit]
+Description=百应智星数字员工平台
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/lvb-digital-employee/backend
+ExecStart=/home/ubuntu/lvb-digital-employee/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8081
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
