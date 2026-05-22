@@ -1,5 +1,7 @@
 """FastAPI 应用入口"""
+import asyncio
 import os
+from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
@@ -37,6 +39,94 @@ app.include_router(chat.router, prefix="/api/v1/chat", tags=["对话"])
 async def health_check():
     """健康检查"""
     return {"status": "ok", "version": settings.APP_VERSION, "app": "百应智星"}
+
+
+# =====================================================
+# 综合健康检查端点
+# =====================================================
+async def check_db_health():
+    """检查数据库连接"""
+    try:
+        from sqlalchemy import text
+        from app.core.database import async_session
+        async with async_session() as session:
+            await session.execute(text("SELECT 1"))
+        return "ok"
+    except Exception as e:
+        return f"error: {str(e)[:50]}"
+
+
+def check_redis_health_sync():
+    """检查Redis连接 (同步)"""
+    try:
+        import redis
+        r = redis.from_url(settings.REDIS_URL, decode_responses=True)
+        r.ping()
+        return "ok"
+    except Exception as e:
+        return f"error: {str(e)[:50]}"
+
+
+async def check_redis_health():
+    """检查Redis连接"""
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, check_redis_health_sync)
+
+
+async def check_deepseek_health():
+    """检查DeepSeek API连通性"""
+    if not settings.DEEPSEEK_API_KEY:
+        return "skipped"
+    try:
+        import httpx
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://api.deepseek.com/v1/models",
+                headers={"Authorization": f"Bearer {settings.DEEPSEEK_API_KEY}"},
+                timeout=5.0
+            )
+            if response.status_code == 200:
+                return "ok"
+            return f"error: status {response.status_code}"
+    except Exception as e:
+        return f"error: {str(e)[:50]}"
+
+
+@app.get("/health", tags=["监控"])
+async def comprehensive_health_check():
+    """
+    综合健康检查
+    返回状态: healthy (所有检查通过), degraded (部分通过), unhealthy (全部失败)
+    """
+    db_status = await check_db_health()
+    redis_status = await check_redis_health()
+    deepseek_status = await check_deepseek_health()
+
+    all_ok = db_status == "ok" and redis_status == "ok"
+    any_ok = db_status == "ok" or redis_status == "ok"
+
+    status = "healthy" if all_ok else ("degraded" if any_ok else "unhealthy")
+
+    return {
+        "status": status,
+        "version": settings.APP_VERSION,
+        "app": settings.APP_NAME,
+        "timestamp": datetime.utcnow().isoformat(),
+        "checks": {
+            "database": db_status,
+            "redis": redis_status,
+            "deepseek_api": deepseek_status
+        }
+    }
+
+
+@app.get("/ready", tags=["监控"])
+async def readiness_check():
+    """Kubernetes readiness probe - 检查应用是否可处理请求"""
+    return {"status": "ready"}
+
+
+# =====================================================
 
 
 # 前端 SPA 路由
