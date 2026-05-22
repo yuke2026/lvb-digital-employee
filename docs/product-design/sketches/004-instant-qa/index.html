@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>即时问答 - 智闻</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #0f1724;
+    color: #e8eaed;
+    line-height: 1.6;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  /* Header */
+  .header {
+    background: #0a1020;
+    padding: 14px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #1e2d45;
+    flex-shrink: 0;
+  }
+  .header-left { display: flex; align-items: center; gap: 20px; }
+  .brand { font-size: 15px; font-weight: 700; color: #d4a853; }
+  .brand span { color: #7a8ba8; font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .mode-badge {
+    background: linear-gradient(135deg, #d4a853, #f0c878);
+    color: #0f1724;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+  }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .header-link { font-size: 13px; color: #7a8ba8; cursor: pointer; text-decoration: none; }
+  .header-link:hover { color: #d4a853; }
+  /* Chat Container */
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 860px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 24px;
+    overflow: hidden;
+  }
+  /* Welcome Screen */
+  .welcome {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-bottom: 120px;
+  }
+  .welcome-icon { font-size: 56px; margin-bottom: 20px; }
+  .welcome h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+  .welcome p { font-size: 14px; color: #7a8ba8; max-width: 480px; line-height: 1.8; }
+  .welcome-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 28px;
+    max-width: 600px;
+  }
+  .suggestion-chip {
+    background: #1a2840;
+    border: 1px solid #2a3a5c;
+    color: #a0aec0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .suggestion-chip:hover { border-color: #d4a853; color: #d4a853; }
+  /* Messages */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 0;
+    display: none;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .messages.active { display: flex; }
+  .message { display: flex; gap: 14px; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .message.user { flex-direction: row-reverse; }
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .avatar.ai { background: linear-gradient(135deg, #1a3a5c, #d4a853); color: #fff; }
+  .avatar.user { background: #2a3a5c; color: #d4a853; }
+  .message-content { max-width: 75%; }
+  .message-label { font-size: 11px; color: #5a6b82; margin-bottom: 6px; }
+  .message.user .message-label { text-align: right; }
+  .message-bubble {
+    background: #1a2840;
+    border-radius: 16px;
+    padding: 16px 20px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #e8eaed;
+    border-top-left-radius: 4px;
+  }
+  .message.user .message-bubble {
+    background: #2a4a6c;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 4px;
+  }
+  .message-bubble .source { color: #7a8ba8; font-size: 12px; margin-top: 10px; border-top: 1px solid #2a3a5c; padding-top: 10px; }
+  .message-bubble .source span { color: #d4a853; }
+  /* Analysis Card in AI response */
+  .analysis-card {
+    background: #0f2035;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 12px 0;
+    border: 1px solid #2a3a5c;
+  }
+  .analysis-card .card-title {
+    font-size: 11px;
+    color: #d4a853;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .analysis-card .data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #1a2840;
+    font-size: 13px;
+  }
+  .analysis-card .data-row:last-child { border-bottom: none; }
+  .analysis-card .data-label { color: #7a8ba8; }
+  .analysis-card .data-value { color: #fff; font-weight: 600; }
+  .analysis-card .data-value.up { color: #e74c3c; }
+  .analysis-card .data-value.down { color: #27ae60; }
+  /* Typing indicator */
+  .typing {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 0;
+  }
+  .typing-dot {
+    width: 6px;
+    height: 6px;
+    background: #d4a853;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+  /* Input Area */
+  .input-area {
+    padding: 16px 0 24px;
+    flex-shrink: 0;
+  }
+  .input-wrapper {
+    background: #1a2840;
+    border: 1px solid #2a3a5c;
+    border-radius: 16px;
+    padding: 4px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    transition: border-color 0.2s;
+  }
+  .input-wrapper:focus-within { border-color: #d4a853; }
+  .input-field {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #e8eaed;
+    font-size: 14px;
+    padding: 12px 16px;
+    line-height: 1.5;
+    resize: none;
+    max-height: 120px;
+    font-family: inherit;
+  }
+  .input-field::placeholder { color: #5a6b82; }
+  .input-actions { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
+  .input-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.15s;
+  }
+  .input-btn.attach { background: transparent; color: #5a6b82; }
+  .input-btn.attach:hover { color: #d4a853; }
+  .input-btn.send { background: linear-gradient(135deg, #d4a853, #f0c878); color: #0f1724; }
+  .input-btn.send:hover { transform: scale(1.05); }
+  .input-btn.send:disabled { opacity: 0.5; cursor: not-allowed; }
+  /* Context Chips */
+  .context-chips {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .context-chip {
+    background: rgba(212,168,83,0.15);
+    border: 1px solid rgba(212,168,83,0.3);
+    color: #d4a853;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .context-chip .remove { cursor: pointer; opacity: 0.7; font-size: 13px; }
+  .context-chip .remove:hover { opacity: 1; }
+</style>
+</head>
+<body>
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="brand">智闻 <span>· 即时问答</span></div>
+    <div class="mode-badge">⚡ 实时分析模式</div>
+  </div>
+  <div class="header-right">
+    <a class="header-link">报告历史</a>
+    <a class="header-link">主题配置</a>
+  </div>
+</div>
+
+<!-- Chat Container -->
+<div class="chat-container">
+  <!-- Welcome Screen -->
+  <div class="welcome" id="welcome">
+    <div class="welcome-icon">🤖</div>
+    <h1>行业专家，随时候命</h1>
+    <p>基于今日采集的87条信息、4份行业报告和实时市场数据，我可以为你提供深度分析和决策支持。</p>
+    <div class="welcome-suggestions">
+      <div class="suggestion-chip">分析这个政策对行业的影响</div>
+      <div class="suggestion-chip">帮我评估竞品最近的融资</div>
+      <div class="suggestion-chip">预测下季度行业趋势</div>
+      <div class="suggestion-chip">对比我们与竞争对手的差距</div>
+      <div class="suggestion-chip">评估当前宏观风险</div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages" id="messages">
+    <!-- AI Response -->
+    <div class="message">
+      <div class="avatar ai">AI</div>
+      <div class="message-content">
+        <div class="message-label">智闻 · AI分析</div>
+        <div class="message-bubble">
+          <p>根据今日采集的信息和多源交叉验证，我的分析如下：</p>
+          
+          <div class="analysis-card">
+            <div class="card-title">📊 核心数据</div>
+            <div class="data-row">
+              <span class="data-label">AI板块指数</span>
+              <span class="data-value down">↓ 3.2% (今日)</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">监管政策发布时间</span>
+              <span class="data-value">05-22 10:00</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">政策生效日期</span>
+              <span class="data-value">06-15</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">类似政策历史影响</span>
+              <span class="data-value">板块调整持续2-3周</span>
+            </div>
+          </div>
+          
+          <p><strong>📋 结论：</strong></p>
+          <p>工信部新规对行业的影响属于<strong>中期压力</strong>，短期情绪面已释放。历史数据显示，类似政策发布后板块平均调整12-15%，持续2-3周后企稳。</p>
+          
+          <p><strong>💡 建议行动：</strong></p>
+          <p>1. 本周内启动合规审查（紧迫度高）<br>
+          2. 观望2周后再评估加仓机会<br>
+          3. 关注头部竞争对手的应对策略</p>
+          
+          <div class="source">📌 信息来源：工信部官网、Wind、36Kr · 置信度：高（3个独立来源交叉验证）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-area">
+    <!-- Context Chips -->
+    <div class="context-chips">
+      <div class="context-chip">📅 今日日报 <span class="remove">×</span></div>
+      <div class="context-chip">🏭 行业动态 <span class="remove">×</span></div>
+      <div class="context-chip">💰 资本市场 <span class="remove">×</span></div>
+    </div>
+    
+    <div class="input-wrapper">
+      <textarea class="input-field" rows="1" placeholder="输入你的问题，AI即时分析..." id="questionInput"></textarea>
+      <div class="input-actions">
+        <button class="input-btn attach">📎</button>
+        <button class="input-btn send" id="sendBtn">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const input = document.getElementById('questionInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const messages = document.getElementById('messages');
+  const welcome = document.getElementById('welcome');
+  
+  // Auto-resize textarea
+  input.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+  
+  // Send message
+  function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+    
+    // Hide welcome, show messages
+    welcome.style.display = 'none';
+    messages.classList.add('active');
+    
+    // Add user message
+    const userMsg = document.createElement('div');
+    userMsg.className = 'message user';
+    userMsg.innerHTML = `
+      <div class="message-content">
+        <div class="message-label">你</div>
+        <div class="message-bubble">${text}</div>
+      </div>
+      <div class="avatar user">CEO</div>
+    `;
+    messages.appendChild(userMsg);
+    messages.scrollTop = messages.scrollHeight;
+    
+    // Clear input
+    input.value = '';
+    input.style.height = 'auto';
+    
+    // Show typing indicator
+    const typing = document.createElement('div');
+    typing.className = 'message';
+    typing.innerHTML = `
+      <div class="avatar ai">AI</div>
+      <div class="message-content">
+        <div class="message-label">智闻 · AI分析中</div>
+        <div class="message-bubble">
+          <div class="typing">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+      </div>
+    `;
+    messages.appendChild(typing);
+    messages.scrollTop = messages.scrollHeight;
+    
+    // Simulate AI response after delay
+    setTimeout(() => {
+      typing.remove();
+      // In real app, this would be replaced by actual AI response
+    }, 2000);
+  }
+  
+  sendBtn.addEventListener('click', sendMessage);
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+</script>
+</body>
+</html>

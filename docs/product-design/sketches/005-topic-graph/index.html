@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>主题关联图谱 - 智闻</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #0a0f1a;
+    color: #e8eaed;
+    min-height: 100vh;
+  }
+  /* Header */
+  .header {
+    background: #0a1020;
+    padding: 14px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #1e2d45;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .brand { font-size: 15px; font-weight: 700; color: #d4a853; }
+  .brand span { color: #7a8ba8; font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .header-link { font-size: 13px; color: #7a8ba8; cursor: pointer; text-decoration: none; margin-left: 16px; }
+  .header-link:hover { color: #d4a853; }
+  /* Layout */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 300px;
+    height: calc(100vh - 57px);
+  }
+  /* Left Panel: Categories */
+  .left-panel {
+    background: #0f1829;
+    border-right: 1px solid #1e2d45;
+    padding: 20px 0;
+    overflow-y: auto;
+  }
+  .panel-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #5a6b82;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 0 20px 12px;
+    border-bottom: 1px solid #1e2d45;
+    margin-bottom: 8px;
+  }
+  .category-group { padding: 8px 0; }
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .category-header:hover { background: #1a2840; }
+  .category-header.selected { background: rgba(212,168,83,0.1); border-left-color: #d4a853; }
+  .cat-icon { font-size: 18px; width: 26px; text-align: center; }
+  .cat-name { font-size: 13px; font-weight: 500; flex: 1; }
+  .cat-badge {
+    font-size: 10px;
+    background: #1e2d45;
+    color: #7a8ba8;
+    padding: 2px 7px;
+    border-radius: 10px;
+  }
+  .cat-connections { font-size: 11px; color: #d4a853; }
+  .sub-items { padding: 0 20px 0 56px; }
+  .sub-item {
+    font-size: 12px;
+    color: #7a8ba8;
+    padding: 6px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sub-item:hover { color: #d4a853; }
+  .sub-item.selected { color: #d4a853; }
+  .sub-item .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #3a4a5c;
+  }
+  .sub-item.selected .dot { background: #d4a853; }
+  /* Center: Graph Canvas */
+  .graph-canvas {
+    background: #0a0f1a;
+    position: relative;
+    overflow: hidden;
+  }
+  .graph-canvas-inner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    height: 500px;
+  }
+  /* SVG Graph */
+  .graph-svg { width: 100%; height: 100%; }
+  .node-circle {
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .node-circle:hover { filter: brightness(1.3); }
+  .node-text { fill: #fff; font-size: 11px; font-weight: 600; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+  .edge-line {
+    stroke: #2a3a5c;
+    stroke-width: 1.5;
+    fill: none;
+    opacity: 0.6;
+  }
+  .edge-line.highlighted { stroke: #d4a853; stroke-width: 2.5; opacity: 1; }
+  .edge-arrow { fill: #2a3a5c; opacity: 0.6; }
+  .edge-arrow.highlighted { fill: #d4a853; opacity: 1; }
+  .edge-label { fill: #5a6b82; font-size: 9px; }
+  .edge-label.highlighted { fill: #d4a853; }
+  /* Center Stats */
+  .center-stats {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 24px;
+    background: rgba(15,24,41,0.9);
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: 1px solid #1e2d45;
+  }
+  .stat-item { text-align: center; }
+  .stat-value { font-size: 20px; font-weight: 700; color: #d4a853; }
+  .stat-label { font-size: 11px; color: #5a6b82; margin-top: 2px; }
+  /* Right Panel: Connection Details */
+  .right-panel {
+    background: #0f1829;
+    border-left: 1px solid #1e2d45;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .detail-header {
+    margin-bottom: 16px;
+  }
+  .detail-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .detail-subtitle { font-size: 12px; color: #7a8ba8; }
+  /* Connection List */
+  .connection-list { display: flex; flex-direction: column; gap: 10px; }
+  .connection-item {
+    background: #1a2840;
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+  .connection-item:hover { border-color: #d4a853; }
+  .connection-item.selected { border-color: #d4a853; background: rgba(212,168,83,0.08); }
+  .conn-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .conn-icon { font-size: 14px; }
+  .conn-name { font-size: 13px; font-weight: 600; color: #fff; }
+  .conn-strength { font-size: 10px; padding: 2px 7px; border-radius: 10px; }
+  .conn-strength.strong { background: #d4a853; color: #0a0f1a; }
+  .conn-strength.medium { background: #2a3a5c; color: #a0aec0; }
+  .conn-desc { font-size: 12px; color: #7a8ba8; line-height: 1.6; margin-bottom: 8px; }
+  .conn-meta { display: flex; gap: 12px; font-size: 11px; color: #5a6b82; }
+  /* Selected Connection Detail */
+  .conn-detail { margin-top: 16px; padding-top: 16px; border-top: 1px solid #1e2d45; }
+  .conn-detail-title { font-size: 12px; font-weight: 600; color: #d4a853; margin-bottom: 10px; }
+  .detail-row { display: flex; justify-content: space-between; font-size: 12px; padding: 5px 0; border-bottom: 1px solid #1a2840; }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-key { color: #5a6b82; }
+  .detail-val { color: #e8eaed; font-weight: 500; }
+  .detail-val.red { color: #e74c3c; }
+  .detail-val.green { color: #27ae60; }
+  .detail-val.gold { color: #d4a853; }
+  /* Legend */
+  .legend {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #1e2d45;
+  }
+  .legend-title { font-size: 11px; font-weight: 600; color: #5a6b82; margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase; }
+  .legend-items { display: flex; flex-direction: column; gap: 6px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #7a8ba8; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .legend-line { width: 20px; height: 2px; border-radius: 1px; }
+  /* Node Tooltip */
+  .node-tooltip {
+    position: absolute;
+    background: #1a2840;
+    border: 1px solid #2a3a5c;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 100;
+    min-width: 160px;
+  }
+  .node-tooltip.visible { opacity: 1; }
+  .tooltip-title { font-weight: 600; color: #fff; margin-bottom: 6px; }
+  .tooltip-stat { color: #7a8ba8; margin-top: 4px; }
+  .tooltip-stat span { color: #d4a853; }
+</style>
+</head>
+<body>
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="brand">智闻 <span>· 主题关联图谱</span></div>
+    <a class="header-link">日报</a>
+    <a class="header-link">主题配置</a>
+    <a class="header-link" style="color:#d4a853;">关联图谱</a>
+  </div>
+</div>
+
+<!-- Main Layout -->
+<div class="main-layout">
+  <!-- Left: Categories -->
+  <div class="left-panel">
+    <div class="panel-title">主题分类</div>
+    
+    <div class="category-group">
+      <div class="category-header selected">
+        <span class="cat-icon">🏛️</span>
+        <span class="cat-name">政策宏观</span>
+        <span class="cat-badge">4</span>
+        <span class="cat-connections">🔗6</span>
+      </div>
+      <div class="sub-items">
+        <div class="sub-item selected"><span class="dot"></span>国家政策</div>
+        <div class="sub-item"><span class="dot"></span>地方政策</div>
+        <div class="sub-item"><span class="dot"></span>监管动态</div>
+        <div class="sub-item"><span class="dot"></span>国际政策</div>
+      </div>
+    </div>
+    
+    <div class="category-group">
+      <div class="category-header">
+        <span class="cat-icon">💰</span>
+        <span class="cat-name">资本市场</span>
+        <span class="cat-badge">4</span>
+        <span class="cat-connections">🔗5</span>
+      </div>
+      <div class="sub-items">
+        <div class="sub-item"><span class="dot"></span>投融资</div>
+        <div class="sub-item"><span class="dot"></span>并购重组</div>
+        <div class="sub-item"><span class="dot"></span>IPO动态</div>
+        <div class="sub-item"><span class="dot"></span>二级市场</div>
+      </div>
+    </div>
+    
+    <div class="category-group">
+      <div class="category-header">
+        <span class="cat-icon">🏭</span>
+        <span class="cat-name">行业动态</span>
+        <span class="cat-badge">4</span>
+        <span class="cat-connections">🔗8</span>
+      </div>
+      <div class="sub-items">
+        <div class="sub-item"><span class="dot"></span>竞品情报</div>
+        <div class="sub-item"><span class="dot"></span>行业报告</div>
+        <div class="sub-item"><span class="dot"></span>技术趋势</div>
+        <div class="sub-item"><span class="dot"></span>行业数据</div>
+      </div>
+    </div>
+    
+    <div class="category-group">
+      <div class="category-header">
+        <span class="cat-icon">🌍</span>
+        <span class="cat-name">国际形势</span>
+        <span class="cat-badge">3</span>
+        <span class="cat-connections">🔗7</span>
+      </div>
+      <div class="sub-items">
+        <div class="sub-item"><span class="dot"></span>地缘政治</div>
+        <div class="sub-item"><span class="dot"></span>全球经济</div>
+        <div class="sub-item"><span class="dot"></span>大宗商品</div>
+      </div>
+    </div>
+    
+    <div class="category-group">
+      <div class="category-header">
+        <span class="cat-icon">📊</span>
+        <span class="cat-name">经济数据</span>
+        <span class="cat-badge">3</span>
+        <span class="cat-connections">🔗4</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Center: Graph -->
+  <div class="graph-canvas">
+    <div class="graph-canvas-inner">
+      <svg class="graph-svg" viewBox="0 0 500 500">
+        <!-- Edges -->
+        <!-- 俄乌 → 石油 -->
+        <path class="edge-line" d="M170,80 Q200,120 230,160" />
+        <polygon class="edge-arrow" points="230,155 238,168 222,165" />
+        
+        <!-- 俄乌 → 汇率 -->
+        <path class="edge-line" d="M170,80 Q100,140 70,200" />
+        <polygon class="edge-arrow" points="72,195 63,208 78,203" />
+        
+        <!-- 石油 → 化工 -->
+        <path class="edge-line highlighted" d="M230,160 Q280,180 330,200" />
+        <polygon class="edge-arrow highlighted" points="330,195 340,208 325,205" />
+        <text class="edge-label highlighted" x="275" y="168">+22%</text>
+        
+        <!-- 化工 → 制造PMI -->
+        <path class="edge-line highlighted" d="M330,200 Q360,250 380,300" />
+        <polygon class="edge-arrow highlighted" points="380,295 388,308 373,305" />
+        <text class="edge-label highlighted" x="355" y="250">↓0.8pp</text>
+        
+        <!-- 汇率 → 出口 -->
+        <path class="edge-line" d="M70,200 Q90,260 130,320" />
+        <polygon class="edge-arrow" points="130,315 140,328 125,325" />
+        
+        <!-- 出口 → 企业营收 -->
+        <path class="edge-line" d="M130,320 Q180,350 240,370" />
+        <polygon class="edge-arrow" points="240,365 250,378 235,375" />
+        
+        <!-- 政策 → 股价 -->
+        <path class="edge-line highlighted" d="M250,50 Q310,80 370,130" />
+        <polygon class="edge-arrow highlighted" points="370,125 380,138 365,135" />
+        <text class="edge-label highlighted" x="305" y="85">-3.2%</text>
+        
+        <!-- 政策 → AI板块 -->
+        <path class="edge-line" d="M250,50 Q280,110 310,170" />
+        <polygon class="edge-arrow" points="310,165 320,178 305,175" />
+        
+        <!-- AI板块 → 竞品 -->
+        <path class="edge-line" d="M370,130 Q420,200 420,270" />
+        <polygon class="edge-arrow" points="420,265 428,278 413,275" />
+        
+        <!-- 竞品 → 融资 -->
+        <path class="edge-line" d="M420,270 Q430,320 410,370" />
+        <polygon class="edge-arrow" points="410,365 418,378 403,375" />
+        
+        <!-- Nodes -->
+        <!-- 俄乌局势 -->
+        <circle class="node-circle" cx="170" cy="80" r="28" fill="#8B0000" opacity="0.8" />
+        <text class="node-text" x="170" y="80">俄乌局势</text>
+        
+        <!-- 石油价格 -->
+        <circle class="node-circle" cx="230" cy="160" r="26" fill="#d4a853" opacity="0.8" />
+        <text class="node-text" x="230" y="160">石油价格</text>
+        
+        <!-- 化工原料 -->
+        <circle class="node-circle" cx="330" cy="200" r="24" fill="#d4a853" opacity="0.85" />
+        <text class="node-text" x="330" y="200">化工原料</text>
+        
+        <!-- 制造PMI -->
+        <circle class="node-circle" cx="380" cy="300" r="24" fill="#e74c3c" opacity="0.8" />
+        <text class="node-text" x="380" y="300">制造PMI</text>
+        
+        <!-- 汇率 -->
+        <circle class="node-circle" cx="70" cy="200" r="22" fill="#f39c12" opacity="0.8" />
+        <text class="node-text" x="70" y="200">汇率</text>
+        
+        <!-- 出口 -->
+        <circle class="node-circle" cx="130" cy="320" r="22" fill="#27ae60" opacity="0.8" />
+        <text class="node-text" x="130" y="320">出口</text>
+        
+        <!-- 企业营收 -->
+        <circle class="node-circle" cx="240" cy="370" r="24" fill="#27ae60" opacity="0.8" />
+        <text class="node-text" x="240" y="370">企业营收</text>
+        
+        <!-- AI监管政策 -->
+        <circle class="node-circle" cx="250" cy="50" r="30" fill="#e74c3c" opacity="0.9" />
+        <text class="node-text" x="250" y="50">AI监管</text>
+        
+        <!-- 股价 -->
+        <circle class="node-circle" cx="370" cy="130" r="22" fill="#e74c3c" opacity="0.8" />
+        <text class="node-text" x="370" y="130">股价</text>
+        
+        <!-- AI板块 -->
+        <circle class="node-circle" cx="310" cy="170" r="22" fill="#3498db" opacity="0.8" />
+        <text class="node-text" x="310" y="170">AI板块</text>
+        
+        <!-- 竞品 -->
+        <circle class="node-circle" cx="420" cy="270" r="24" fill="#3498db" opacity="0.8" />
+        <text class="node-text" x="420" y="270">竞品</text>
+        
+        <!-- 融资 -->
+        <circle class="node-circle" cx="410" cy="370" r="22" fill="#3498db" opacity="0.8" />
+        <text class="node-text" x="410" y="370">融资</text>
+      </svg>
+    </div>
+    
+    <!-- Bottom Stats -->
+    <div class="center-stats">
+      <div class="stat-item">
+        <div class="stat-value">12</div>
+        <div class="stat-label">关联主题</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">18</div>
+        <div class="stat-label">传导链路</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">4</div>
+        <div class="stat-label">今日新增</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">3</div>
+        <div class="stat-label">高风险链</div>
+      </div>
+    </div>
+    
+    <!-- Tooltip -->
+    <div class="node-tooltip" id="tooltip">
+      <div class="tooltip-title">AI监管政策</div>
+      <div class="tooltip-stat">关联主题: <span>6个</span></div>
+      <div class="tooltip-stat">影响评级: <span style="color:#e74c3c">高</span></div>
+      <div class="tooltip-stat">置信度: <span>95%</span></div>
+    </div>
+  </div>
+  
+  <!-- Right: Connection Details -->
+  <div class="right-panel">
+    <div class="detail-header">
+      <div class="detail-title">🔗 关联详情</div>
+      <div class="detail-subtitle">俄乌局势 → 制造业成本</div>
+    </div>
+    
+    <div class="connection-list">
+      <div class="connection-item selected">
+        <div class="conn-header">
+          <span class="conn-icon">🛢️</span>
+          <span class="conn-name">俄乌局势 → 石油价格</span>
+          <span class="conn-strength strong">强关联</span>
+        </div>
+        <div class="conn-desc">俄乌冲突持续，欧洲能源危机加剧，天然气价格暴涨34%</div>
+        <div class="conn-meta">
+          <span>📈 +22.7% YoY</span>
+          <span>置信度: 高</span>
+        </div>
+      </div>
+      
+      <div class="connection-item">
+        <div class="conn-header">
+          <span class="conn-icon">🏭</span>
+          <span class="conn-name">石油 → 化工原料</span>
+          <span class="conn-strength strong">强关联</span>
+        </div>
+        <div class="conn-desc">石油是化工主要原料，成本传导约滞后2-4周</div>
+        <div class="conn-meta">
+          <span>📈 +12.3%</span>
+          <span>置信度: 高</span>
+        </div>
+      </div>
+      
+      <div class="connection-item">
+        <div class="conn-header">
+          <span class="conn-icon">📉</span>
+          <span class="conn-name">化工原料 → 制造PMI</span>
+          <span class="conn-strength medium">中关联</span>
+        </div>
+        <div class="conn-desc">原料成本上升压缩制造业利润，PMI已下滑0.8pp</div>
+        <div class="conn-meta">
+          <span>↓0.8pp</span>
+          <span>置信度: 中</span>
+        </div>
+      </div>
+      
+      <div class="connection-item">
+        <div class="conn-header">
+          <span class="conn-icon">💱</span>
+          <span class="conn-name">汇率 → 出口竞争力</span>
+          <span class="conn-strength medium">中关联</span>
+        </div>
+        <div class="conn-desc">人民币贬值7.25，利好出口但增加进口成本</div>
+        <div class="conn-meta">
+          <span>↓0.3%</span>
+          <span>置信度: 高</span>
+        </div>
+      </div>
+      
+      <div class="connection-item">
+        <div class="conn-header">
+          <span class="conn-icon">📊</span>
+          <span class="conn-name">出口 → 企业营收</span>
+          <span class="conn-strength medium">中关联</span>
+        </div>
+        <div class="conn-desc">汇率利好预计在Q3后体现，需观察订单数据</div>
+        <div class="conn-meta">
+          <span>滞后: 3-6月</span>
+          <span>置信度: 低</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Selected Detail -->
+    <div class="conn-detail">
+      <div class="conn-detail-title">📊 关联分析</div>
+      <div class="detail-row">
+        <span class="detail-key">传导时滞</span>
+        <span class="detail-val gold">2-4周（石油→化工）</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">影响幅度</span>
+        <span class="detail-val red">成本↑约15-20%</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">置信度</span>
+        <span class="detail-val green">高（3个独立来源）</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">历史类比</span>
+        <span class="detail-val">2019年中东局势</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-key">类比结果</span>
+        <span class="detail-val red">成本↑18%，3个月后PMI↓1.2pp</span>
+      </div>
+    </div>
+    
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-title">图例</div>
+      <div class="legend-items">
+        <div class="legend-item"><span class="legend-dot" style="background:#e74c3c"></span>高风险节点</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#d4a853"></span>重要传导节点</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#3498db"></span>行业相关</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#27ae60"></span>正向利好</div>
+        <div class="legend-item"><span class="legend-line" style="background:#d4a853"></span>强关联（今日活跃）</div>
+        <div class="legend-item"><span class="legend-line" style="background:#2a3a5c"></span>普通关联</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Simple tooltip on node hover
+  const tooltip = document.getElementById('tooltip');
+  const nodes = document.querySelectorAll('.node-circle');
+  
+  nodes.forEach(node => {
+    node.addEventListener('mouseenter', (e) => {
+      const title = node.nextElementSibling.textContent;
+      tooltip.querySelector('.tooltip-title').textContent = title;
+      tooltip.classList.add('visible');
+    });
+    
+    node.addEventListener('mousemove', (e) => {
+      tooltip.style.left = (e.clientX + 15) + 'px';
+      tooltip.style.top = (e.clientY - 10) + 'px';
+    });
+    
+    node.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('visible');
+    });
+  });
+</script>
+</body>
+</html>

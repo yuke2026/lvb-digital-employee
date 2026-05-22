@@ -24,6 +24,35 @@ class Settings(BaseSettings):
     DEEPSEEK_API_KEY: str = ""
     DEEPSEEK_BASE_URL: str = "https://api.deepseek.com/v1"
     DEEPSEEK_MODEL: str = "deepseek-v4-flash"
+    DEEPSEEK_EMBEDDING_MODEL: str = "text-embedding-3-large"
+
+    # Feishu (Lark)
+    LARK_APP_ID: str = ""
+    LARK_APP_SECRET: str = ""
+    LARK_VERIFICATION_TOKEN: str = ""
+    LARK_ENCRYPT_KEY: str = ""
+
+    # S3 / MinIO
+    S3_ENDPOINT: str = "http://localhost:9000"
+    S3_ACCESS_KEY: str = ""
+    S3_SECRET_KEY: str = ""
+    S3_BUCKET: str = "lvb-employee"
+
+    # SMTP / Email
+    SMTP_HOST: str = "localhost"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = ""
+    SMTP_FROM_NAME: str = "百应智星数字员工"
+
+    # Push notifications
+    PUSH_ENABLED: bool = False
+    PUSH_PROVIDER: str = "fcmp"  # fcmp, jiguang, getui
+
+    # Logging
+    LOG_LEVEL: str = "INFO"
+    LOG_FORMAT: str = "json"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

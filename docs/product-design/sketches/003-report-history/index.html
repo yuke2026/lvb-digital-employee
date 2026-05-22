@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>报告历史 - 智闻</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #f0f2f7;
+    color: #1a1a2e;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  /* Header */
+  .header {
+    background: #fff;
+    padding: 16px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e8eaf0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .brand { font-size: 16px; font-weight: 700; color: #1a3a5c; }
+  .brand span { color: #d4a853; }
+  .header-nav { display: flex; gap: 4px; }
+  .nav-item {
+    padding: 6px 14px;
+    font-size: 13px;
+    color: #7a8ba8;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .nav-item:hover { background: #f0f4ff; color: #1a3a5c; }
+  .nav-item.active { background: #1a3a5c; color: #fff; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a3a5c, #d4a853);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  /* Page Content */
+  .page-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 32px;
+  }
+  /* Page Title */
+  .page-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .page-title { font-size: 22px; font-weight: 700; }
+  .page-title span { color: #7a8ba8; font-weight: 400; font-size: 14px; margin-left: 10px; }
+  /* Filter Bar */
+  .filter-bar {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .filter-group { display: flex; align-items: center; gap: 8px; }
+  .filter-label { font-size: 12px; color: #7a8ba8; white-space: nowrap; }
+  .filter-select {
+    padding: 6px 12px;
+    border: 1px solid #e0e4ec;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #1a1a2e;
+    background: #fff;
+    cursor: pointer;
+    outline: none;
+  }
+  .filter-select:focus { border-color: #1a3a5c; }
+  .date-range {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .date-input {
+    padding: 6px 12px;
+    border: 1px solid #e0e4ec;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    color: #1a1a2e;
+  }
+  .date-input:focus { border-color: #1a3a5c; }
+  .date-sep { color: #7a8ba8; font-size: 12px; }
+  .filter-search {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: #f5f6fa;
+    border-radius: 8px;
+    padding: 6px 14px;
+    gap: 8px;
+  }
+  .filter-search input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    outline: none;
+    color: #1a1a2e;
+  }
+  .filter-search input::placeholder { color: #a0a8b8; }
+  .filter-search .icon { color: #7a8ba8; font-size: 14px; }
+  /* Report Grid */
+  .report-list { display: flex; flex-direction: column; gap: 14px; }
+  .report-item {
+    background: #fff;
+    border-radius: 14px;
+    padding: 22px 24px;
+    display: grid;
+    grid-template-columns: 200px 1fr 180px;
+    gap: 24px;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    border: 1px solid transparent;
+  }
+  .report-item:hover {
+    border-color: #1a3a5c;
+    box-shadow: 0 4px 16px rgba(26,58,92,0.1);
+    transform: translateY(-1px);
+  }
+  /* Left: Date & Type */
+  .report-date-block { }
+  .report-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+  }
+  .report-type.daily { background: #e8f4fd; color: #1a3a5c; }
+  .report-type.weekly { background: #fef3e8; color: #c0700a; }
+  .report-type.monthly { background: #f0e8fe; color: #7a3ac0; }
+  .report-type.quarterly { background: #e8fef3; color: #1a7a4a; }
+  .report-date {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+    line-height: 1.2;
+  }
+  .report-weekday { font-size: 12px; color: #7a8ba8; }
+  /* Middle: Title & Highlights */
+  .report-middle { }
+  .report-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+  }
+  .report-highlights { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .highlight-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #f0f2f7;
+    color: #5a6270;
+  }
+  .highlight-tag.red { background: #fde8e8; color: #c02020; }
+  .highlight-tag.yellow { background: #fef9e8; color: #a07010; }
+  .highlight-tag.green { background: #e8fef3; color: #1a7a4a; }
+  .report-stats {
+    display: flex;
+    gap: 20px;
+    font-size: 12px;
+    color: #7a8ba8;
+  }
+  .report-stats .stat { display: flex; align-items: center; gap: 4px; }
+  .report-stats .stat .num { color: #1a3a5c; font-weight: 600; }
+  /* Right: Actions */
+  .report-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+  .action-icons { display: flex; gap: 8px; }
+  .action-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 16px;
+  }
+  .action-icon.view { background: #f0f4ff; color: #1a3a5c; }
+  .action-icon.feishu { background: #e8f9ef; color: #27ae60; }
+  .action-icon.share { background: #fef3e8; color: #c0700a; }
+  .action-icon:hover { transform: scale(1.08); }
+  .view-count { font-size: 11px; color: #a0a8b8; }
+  /* Pagination */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 32px;
+  }
+  .page-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid #e0e4ec;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 13px;
+    color: #5a6270;
+    transition: all 0.15s;
+  }
+  .page-btn:hover { border-color: #1a3a5c; color: #1a3a5c; }
+  .page-btn.active { background: #1a3a5c; color: #fff; border-color: #1a3a5c; }
+  .page-btn.nav { font-size: 16px; }
+</style>
+</head>
+<body>
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="brand">智闻<span> · ZhiWen</span></div>
+    <div class="header-nav">
+      <a class="nav-item" href="#">首页</a>
+      <a class="nav-item active" href="#">报告历史</a>
+      <a class="nav-item" href="#">主题配置</a>
+      <a class="nav-item" href="#">即时问答</a>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="user-avatar">CEO</div>
+  </div>
+</div>
+
+<!-- Page Content -->
+<div class="page-content">
+  <!-- Page Title -->
+  <div class="page-title-row">
+    <div class="page-title">
+      报告历史
+      <span>共 127 份报告</span>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <span class="filter-label">报告类型</span>
+      <select class="filter-select">
+        <option>全部</option>
+        <option>日报</option>
+        <option selected>周报</option>
+        <option>月报</option>
+        <option>季报</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">风险级别</span>
+      <select class="filter-select">
+        <option>全部</option>
+        <option>有红色预警</option>
+        <option>有黄色预警</option>
+        <option>无预警</option>
+      </select>
+    </div>
+    <div class="date-range">
+      <span class="filter-label">日期</span>
+      <input class="date-input" type="date" value="2025-05-01" />
+      <span class="date-sep">至</span>
+      <input class="date-input" type="date" value="2025-05-22" />
+    </div>
+    <div class="filter-search">
+      <span class="icon">🔍</span>
+      <input placeholder="搜索报告关键词，如：AI监管、竞品融资..." />
+    </div>
+  </div>
+
+  <!-- Report List -->
+  <div class="report-list">
+    <!-- Report Item 1: Weekly -->
+    <div class="report-item">
+      <div class="report-date-block">
+        <div class="report-type weekly">📆 周报</div>
+        <div class="report-date">5月12日</div>
+        <div class="report-weekday">第20周 · 周一</div>
+      </div>
+      <div class="report-middle">
+        <div class="report-title">AI行业周报：监管政策密集出台，资本市场情绪分化</div>
+        <div class="report-highlights">
+          <span class="highlight-tag red">🔴 红色预警：工信部AI监管办法</span>
+          <span class="highlight-tag yellow">⚠️ 原材料成本压力</span>
+          <span class="highlight-tag">💰 竞品融资3亿</span>
+          <span class="highlight-tag green">✅ IPO进展顺利</span>
+        </div>
+        <div class="report-stats">
+          <div class="stat"><span class="num">15</span> 条重点新闻</div>
+          <div class="stat"><span class="num">3</span> 条风险预警</div>
+          <div class="stat"><span class="num">2</span> 条机会建议</div>
+          <div class="stat"><span class="num">1</span> 条关联分析</div>
+        </div>
+      </div>
+      <div class="report-actions">
+        <div class="action-icons">
+          <div class="action-icon view" title="查看">📄</div>
+          <div class="action-icon feishu" title="飞书">💬</div>
+          <div class="action-icon share" title="分享">↗️</div>
+        </div>
+        <div class="view-count">阅读 8 分钟</div>
+      </div>
+    </div>
+
+    <!-- Report Item 2: Daily -->
+    <div class="report-item">
+      <div class="report-date-block">
+        <div class="report-type daily">📅 日报</div>
+        <div class="report-date">5月21日</div>
+        <div class="report-weekday">周三</div>
+      </div>
+      <div class="report-middle">
+        <div class="report-title">行业日报：美联储维持利率不变，人民币汇率承压</div>
+        <div class="report-highlights">
+          <span class="highlight-tag yellow">⚠️ 汇率波动风险</span>
+          <span class="highlight-tag">🏭 制造业PMI下滑</span>
+          <span class="highlight-tag">🗼 竞品新品发布</span>
+        </div>
+        <div class="report-stats">
+          <div class="stat"><span class="num">22</span> 条新闻</div>
+          <div class="stat"><span class="num">1</span> 条预警</div>
+          <div class="stat"><span class="num">3</span> 条机会</div>
+        </div>
+      </div>
+      <div class="report-actions">
+        <div class="action-icons">
+          <div class="action-icon view" title="查看">📄</div>
+          <div class="action-icon feishu" title="飞书">💬</div>
+          <div class="action-icon share" title="分享">↗️</div>
+        </div>
+        <div class="view-count">阅读 5 分钟</div>
+      </div>
+    </div>
+
+    <!-- Report Item 3: Daily -->
+    <div class="report-item">
+      <div class="report-date-block">
+        <div class="report-type daily">📅 日报</div>
+        <div class="report-date">5月20日</div>
+        <div class="report-weekday">周二</div>
+      </div>
+      <div class="report-middle">
+        <div class="report-title">行业日报：芯片国产化提速，政策利好密集释放</div>
+        <div class="report-highlights">
+          <span class="highlight-tag green">✅ 政策利好：国产替代</span>
+          <span class="highlight-tag">📊 行业数据回升</span>
+          <span class="highlight-tag">💰 并购动态</span>
+        </div>
+        <div class="report-stats">
+          <div class="stat"><span class="num">18</span> 条新闻</div>
+          <div class="stat"><span class="num">0</span> 条预警</div>
+          <div class="stat"><span class="num">4</span> 条机会</div>
+        </div>
+      </div>
+      <div class="report-actions">
+        <div class="action-icons">
+          <div class="action-icon view" title="查看">📄</div>
+          <div class="action-icon feishu" title="飞书">💬</div>
+          <div class="action-icon share" title="分享">↗️</div>
+        </div>
+        <div class="view-count">阅读 4 分钟</div>
+      </div>
+    </div>
+
+    <!-- Report Item 4: Monthly -->
+    <div class="report-item">
+      <div class="report-date-block">
+        <div class="report-type monthly">📊 月报</div>
+        <div class="report-date">5月1日</div>
+        <div class="report-weekday">5月 · 深度复盘</div>
+      </div>
+      <div class="report-middle">
+        <div class="report-title">行业月报（5月）：政策周期切换，布局窗口期开启</div>
+        <div class="report-highlights">
+          <span class="highlight-tag red">🔴 监管收紧信号</span>
+          <span class="highlight-tag green">💡 战略机会窗口</span>
+          <span class="highlight-tag">📈 竞争格局变化</span>
+          <span class="highlight-tag">🌍 出口形势</span>
+        </div>
+        <div class="report-stats">
+          <div class="stat"><span class="num">186</span> 条新闻</div>
+          <div class="stat"><span class="num">5</span> 条预警</div>
+          <div class="stat"><span class="num">8</span> 条建议</div>
+        </div>
+      </div>
+      <div class="report-actions">
+        <div class="action-icons">
+          <div class="action-icon view" title="查看">📄</div>
+          <div class="action-icon feishu" title="飞书">💬</div>
+          <div class="action-icon share" title="分享">↗️</div>
+        </div>
+        <div class="view-count">阅读 28 分钟</div>
+      </div>
+    </div>
+
+    <!-- Report Item 5: Quarterly -->
+    <div class="report-item">
+      <div class="report-date-block">
+        <div class="report-type quarterly">📈 季报</div>
+        <div class="report-date">4月1日</div>
+        <div class="report-weekday">Q1 · 战略复盘</div>
+      </div>
+      <div class="report-middle">
+        <div class="report-title">行业季报（Q1）：复苏态势确立，把握三条主线</div>
+        <div class="report-highlights">
+          <span class="highlight-tag green">📊 宏观复苏确认</span>
+          <span class="highlight-tag">🎯 三条投资主线</span>
+          <span class="highlight-tag red">⚠️ 二季度风险点</span>
+          <span class="highlight-tag">🏆 竞争格局</span>
+        </div>
+        <div class="report-stats">
+          <div class="stat"><span class="num">420</span> 条新闻</div>
+          <div class="stat"><span class="num">12</span> 条预警</div>
+          <div class="stat"><span class="num">15</span> 条建议</div>
+        </div>
+      </div>
+      <div class="report-actions">
+        <div class="action-icons">
+          <div class="action-icon view" title="查看">📄</div>
+          <div class="action-icon feishu" title="飞书">💬</div>
+          <div class="action-icon share" title="分享">↗️</div>
+        </div>
+        <div class="view-count">阅读 45 分钟</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <div class="page-btn nav">‹</div>
+    <div class="page-btn">1</div>
+    <div class="page-btn active">2</div>
+    <div class="page-btn">3</div>
+    <div class="page-btn">4</div>
+    <div class="page-btn">5</div>
+    <div class="page-btn">...</div>
+    <div class="page-btn">13</div>
+    <div class="page-btn nav">›</div>
+  </div>
+</div>
+</body>
+</html>

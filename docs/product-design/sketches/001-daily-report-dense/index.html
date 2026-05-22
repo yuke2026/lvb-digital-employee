@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智闻 · 行业日报 2025-05-22</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background: #0f1724;
+    color: #e8eaed;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 20px;
+  }
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #2a3a5c;
+  }
+  .header-left .brand {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #d4a853;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .header-left .title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .header-left .subtitle {
+    font-size: 13px;
+    color: #7a8ba8;
+  }
+  .header-right {
+    text-align: right;
+  }
+  .date-badge {
+    background: #d4a853;
+    color: #0f1724;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+  .time-sent {
+    font-size: 12px;
+    color: #7a8ba8;
+    margin-top: 6px;
+  }
+  /* Section label */
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #d4a853;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #2a3a5c;
+  }
+  /* Top News */
+  .top-news {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .news-card {
+    background: #1a2840;
+    border-radius: 12px;
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+  .news-card:hover {
+    border-color: #d4a853;
+    transform: translateY(-2px);
+  }
+  .news-card.red-alert {
+    border-left: 3px solid #e74c3c;
+  }
+  .news-card.yellow-alert {
+    border-left: 3px solid #f39c12;
+  }
+  .news-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .tag {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .tag.policy { background: #1e4d7b; color: #60b4f5; }
+  .tag.capital { background: #3d1e6b; color: #b87af5; }
+  .tag.industry { background: #1e5d3a; color: #60d495; }
+  .tag.alert-red { background: #7b1e1e; color: #f56060; }
+  .impact-score {
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .impact-high { color: #e74c3c; }
+  .impact-med { color: #f39c12; }
+  .impact-low { color: #27ae60; }
+  .news-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .news-meta {
+    font-size: 11px;
+    color: #5a6b82;
+  }
+  .news-meta span { margin-right: 12px; }
+  .confidence {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+  }
+  .confidence.high { background: #27ae60; }
+  .confidence.med { background: #f39c12; }
+  .confidence.low { background: #e74c3c; }
+  /* Stats Row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: #1a2840;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: #7a8ba8;
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .stat-change {
+    font-size: 11px;
+    margin-top: 4px;
+  }
+  .stat-change.up { color: #e74c3c; }
+  .stat-change.down { color: #27ae60; }
+  /* Swot */
+  .swot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .swot-card {
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .swot-card.s { background: linear-gradient(135deg, #0d3d2e, #1a2840); border: 1px solid #27ae60; }
+  .swot-card.w { background: linear-gradient(135deg, #3d2e0d, #1a2840); border: 1px solid #f39c12; }
+  .swot-card.o { background: linear-gradient(135deg, #0d2d4a, #1a2840); border: 1px solid #3498db; }
+  .swot-card.t { background: linear-gradient(135deg, #3d0d1a, #1a2840); border: 1px solid #e74c3c; }
+  .swot-label {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .swot-card.s .swot-label { color: #27ae60; }
+  .swot-card.w .swot-label { color: #f39c12; }
+  .swot-card.o .swot-label { color: #3498db; }
+  .swot-card.t .swot-label { color: #e74c3c; }
+  .swot-items {
+    font-size: 12px;
+    color: #a0aec0;
+    line-height: 1.8;
+  }
+  .swot-items li { list-style: none; padding-left: 14px; position: relative; }
+  .swot-items li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: inherit;
+    opacity: 0.5;
+  }
+  /* Alerts */
+  .alerts {
+    margin-bottom: 28px;
+  }
+  .alert-item {
+    background: #1a2840;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .alert-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .alert-content { flex: 1; }
+  .alert-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .alert-desc {
+    font-size: 12px;
+    color: #a0aec0;
+    margin-bottom: 8px;
+  }
+  .alert-actions {
+    font-size: 11px;
+    color: #d4a853;
+    background: rgba(212,168,83,0.1);
+    padding: 4px 10px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  /* Report Links */
+  .report-links {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .report-link {
+    background: #1a2840;
+    border: 1px solid #2a3a5c;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .report-link:hover {
+    border-color: #d4a853;
+    transform: translateY(-2px);
+  }
+  .report-link .icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  .report-link .name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .report-link .desc {
+    font-size: 11px;
+    color: #7a8ba8;
+  }
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid #2a3a5c;
+    font-size: 11px;
+    color: #5a6b82;
+  }
+  .footer a { color: #d4a853; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="brand">ZHIWEN · 智闻</div>
+      <div class="title">行业日报</div>
+      <div class="subtitle">每日 8:30 · 定时推送</div>
+    </div>
+    <div class="header-right">
+      <div class="date-badge">2025-05-22</div>
+      <div class="time-sent">已发送 08:30</div>
+    </div>
+  </div>
+
+  <!-- 今日重点 -->
+  <div class="section-label">🔥 今日重点</div>
+  <div class="top-news">
+    <div class="news-card red-alert">
+      <div class="card-header">
+        <span class="tag policy">政策</span>
+        <span class="impact-score impact-high">⬆️ 5/5</span>
+      </div>
+      <div class="news-title">工信部发布《AI生成内容管理办法》，要求平台负主体责任</div>
+      <div class="news-meta">
+        <span><span class="confidence high"></span>置信度: 高</span>
+        <span>工信部官网</span>
+        <span>05-22 10:00</span>
+      </div>
+    </div>
+    <div class="news-card yellow-alert">
+      <div class="card-header">
+        <span class="tag capital">资本</span>
+        <span class="impact-score impact-med">⬆️ 3/5</span>
+      </div>
+      <div class="news-title">竞品X公司完成B轮3亿元融资，红杉中国领投</div>
+      <div class="news-meta">
+        <span><span class="confidence high"></span>置信度: 高</span>
+        <span>36Kr</span>
+        <span>05-22 09:30</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 数据速览 -->
+  <div class="section-label">📈 数据速览</div>
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">布伦特原油</div>
+      <div class="stat-value">$92.4</div>
+      <div class="stat-change up">↑ 1.2%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">制造业PMI</div>
+      <div class="stat-value">50.1</div>
+      <div class="stat-change down">↓ 0.8pp</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">人民币汇率</div>
+      <div class="stat-value">7.25</div>
+      <div class="stat-change down">↓ 0.3%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">AI板块指数</div>
+      <div class="stat-value">1,842</div>
+      <div class="stat-change down">↓ 3.2%</div>
+    </div>
+  </div>
+
+  <!-- SWOT -->
+  <div class="section-label">📊 SWOT 战略分析</div>
+  <div class="swot-grid">
+    <div class="swot-card s">
+      <div class="swot-label">S · 优势</div>
+      <ul class="swot-items">
+        <li>技术储备业内领先</li>
+        <li>客户复购率85%</li>
+        <li>研发投入占比30%</li>
+      </ul>
+    </div>
+    <div class="swot-card w">
+      <div class="swot-label">W · 劣势</div>
+      <ul class="swot-items">
+        <li>销售团队规模不足</li>
+        <li>品牌认知度偏低</li>
+        <li>国际化布局滞后</li>
+      </ul>
+    </div>
+    <div class="swot-card o">
+      <div class="swot-label">O · 机会</div>
+      <ul class="swot-items">
+        <li>政策合规需求爆发</li>
+        <li>制造业智能化提速</li>
+        <li>出海市场空间大</li>
+      </ul>
+    </div>
+    <div class="swot-card t">
+      <div class="swot-label">T · 威胁</div>
+      <ul class="swot-items">
+        <li>大厂低价竞争</li>
+        <li>监管成本上升</li>
+        <li>技术迭代风险</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 风险预警 -->
+  <div class="section-label">⚠️ 风险预警</div>
+  <div class="alerts">
+    <div class="alert-item">
+      <div class="alert-icon">🚨</div>
+      <div class="alert-content">
+        <div class="alert-title">[红色] AI监管政策落地，合规整改倒计时</div>
+        <div class="alert-desc">工信部新规6月15日生效，现有产品需在30天内完成改造。预估成本增加20-30%。</div>
+        <div class="alert-actions">⚡ 建议本周启动合规审查</div>
+      </div>
+    </div>
+    <div class="alert-item">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-content">
+        <div class="alert-title">[黄色] 原材料成本持续上涨，需启动对冲</div>
+        <div class="alert-desc">化工原料指数连续3月上涨，若油价维持$95以上，Q3毛利将承压。</div>
+        <div class="alert-actions">📋 建议期货锁价60%敞口</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 报告链接 -->
+  <div class="section-label">📎 完整报告</div>
+  <div class="report-links">
+    <div class="report-link">
+      <div class="icon">📄</div>
+      <div class="name">飞书文档</div>
+      <div class="desc">协同编辑 · 存档</div>
+    </div>
+    <div class="report-link">
+      <div class="icon">🌐</div>
+      <div class="name">HTML版</div>
+      <div class="desc">精美图表 · 深度阅读</div>
+    </div>
+    <div class="report-link">
+      <div class="icon">🖼️</div>
+      <div class="name">图片版</div>
+      <div class="desc">一图读懂 · 快速浏览</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    智闻 · CEO行业专家助手 · 
+    <a href="#">查看历史报告</a> · 
+    <a href="#">配置主题</a> · 
+    <a href="#">即时提问</a>
+  </div>
+</div>
+</body>
+</html>
