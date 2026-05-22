@@ -4,7 +4,7 @@ from typing import Optional
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "联想百应数字员工"
+    APP_NAME: str = "百应智星数字员工"
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = True
 
