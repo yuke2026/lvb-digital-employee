@@ -66,3 +66,76 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+
+# ===== Legacy in-memory DB models (used by services/db.py) =====
+
+class UserInDB(BaseModel):
+    id: str
+    username: str
+    email: str
+    hashed_password: str
+    is_active: bool
+    created_at: datetime
+
+
+class EmployeeInDB(BaseModel):
+    id: str
+    name: str
+    category: str
+    description: str
+    avatar: str
+    system_prompt: str
+    skills: list[str]
+    is_active: bool
+    created_at: datetime
+
+
+class ConversationInDB(BaseModel):
+    id: str
+    user_id: str
+    employee_id: str
+    messages: list[dict]
+    created_at: datetime
+    updated_at: datetime
+
+
+# ===== Employee schemas =====
+
+class EmployeeResponse(BaseModel):
+    id: str
+    name: str
+    category: str
+    description: str
+    avatar: str
+    skills: list[str]
+    is_active: bool
+
+
+class EmployeeToggleResponse(BaseModel):
+    id: str
+    is_active: bool
+    message: str
+
+
+# ===== Chat schemas =====
+
+class MessageResponse(BaseModel):
+    role: str
+    content: str
+    timestamp: datetime
+
+
+class ConversationResponse(BaseModel):
+    id: str
+    user_id: str
+    employee_id: str
+    messages: list[MessageResponse]
+    created_at: datetime
+    updated_at: datetime
+
+
+class ChatSendRequest(BaseModel):
+    employee_id: str
+    message: str
+    conversation_id: Optional[str] = None

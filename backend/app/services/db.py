@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from app.core.security import hash_password
-from app.models.user import UserInDB, EmployeeInDB, ConversationInDB
+from app.schemas.user import UserInDB, EmployeeInDB, ConversationInDB
 
 
 class MemoryDB:

@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     DEEPSEEK_BASE_URL: str = "https://api.deepseek.com/v1"
     DEEPSEEK_MODEL: str = "deepseek-v4-flash"
     DEEPSEEK_EMBEDDING_MODEL: str = "text-embedding-3-large"
+    EMBEDDING_BATCH_SIZE: int = 32
 
     # Feishu (Lark)
     LARK_APP_ID: str = ""
