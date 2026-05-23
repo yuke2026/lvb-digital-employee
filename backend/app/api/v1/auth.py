@@ -8,7 +8,7 @@ from app.core.deps import get_current_user
 from app.models.user import User
 from app.schemas.user import UserRegister, UserLogin, TokenResponse, LoginResponse, UserResponse
 
-router = APIRouter(prefix="/auth", tags=["认证"])
+router = APIRouter(tags=["认证"])
 
 
 @router.post("/register", response_model=LoginResponse)
