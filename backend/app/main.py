@@ -1,21 +1,54 @@
 """FastAPI 应用入口"""
 import asyncio
+import logging
 import os
+from contextlib import asynccontextmanager
 from datetime import datetime
+
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
+
 from app.core.config import settings
 
+logger = logging.getLogger(__name__)
+
+
+# ===== Lifespan handler =====
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用生命周期：启动时恢复定时任务，关闭时停止调度器"""
+    # 启动时：从数据库恢复所有活跃的定时任务
+    try:
+        from app.services.scheduler import restore_jobs_from_db, start_scheduler
+        start_scheduler()
+        await restore_jobs_from_db()
+        logger.info("✅ 定时任务已从数据库恢复")
+    except Exception as e:
+        logger.warning(f"启动时恢复定时任务失败（不影响服务）: {e}")
+
+    yield  # 应用运行中
+
+    # 关闭时：停止调度器
+    try:
+        from app.services.scheduler import stop_scheduler
+        stop_scheduler()
+    except Exception:
+        pass
+
+
+# ===== FastAPI app =====
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description="百应智星数字员工 API 后端",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # CORS 跨域配置
@@ -28,7 +61,7 @@ app.add_middleware(
 )
 
 # 注册路由
-from app.api.v1 import auth, employees, chat, news_sources, topics, reports, scheduler_api, push_configs
+from app.api.v1 import auth, employees, chat, news_sources, topics, reports, scheduler_api, push_configs, feishu_events
 
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])
 app.include_router(employees.router, prefix="/api/v1/employees", tags=["数字员工"])
@@ -38,6 +71,7 @@ app.include_router(topics.router, prefix="/api/v1/topics", tags=["主题"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["报告"])
 app.include_router(scheduler_api.router, prefix="/api/v1/scheduler", tags=["调度管理"])
 app.include_router(push_configs.router, prefix="/api/v1/push-configs", tags=["推送配置"])
+app.include_router(feishu_events.router, prefix="/api/v1", tags=["飞书事件"])
 
 
 @app.get("/api/health", include_in_schema=False)

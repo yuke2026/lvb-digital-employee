@@ -83,8 +83,21 @@ async def schedule_collection(
         org_id=current_user.org_id,
         cron_expr=req.cron_expr,
     )
+
+    # 持久化到数据库
     from app.services.scheduler import _collect_job_name
     job_id = _collect_job_name(req.topic_id)
+    now = datetime.utcnow()
+    await db.execute(
+        text("""
+            INSERT INTO scheduled_jobs (topic_id, job_type, cron_expr, hour, minute, is_active, next_run_at, created_at, updated_at)
+            VALUES (:topic_id, 'collect', :cron_expr, 0, 0, TRUE, NULL, :now, :now)
+            ON CONFLICT (topic_id) WHERE job_type = 'collect'
+            DO UPDATE SET cron_expr = :cron_expr, is_active = TRUE, updated_at = :now
+        """),
+        {"topic_id": str(req.topic_id), "cron_expr": req.cron_expr, "now": now}
+    )
+    await db.commit()
     return ScheduleResponse(message="采集任务已设置", job_id=job_id)
 
 
@@ -113,8 +126,21 @@ async def schedule_report_endpoint(
         hour=req.hour,
         minute=req.minute,
     )
+
+    # 持久化到数据库
     from app.services.scheduler import _report_job_name
     job_id = _report_job_name(req.topic_id, req.report_type)
+    now = datetime.utcnow()
+    await db.execute(
+        text("""
+            INSERT INTO scheduled_jobs (topic_id, job_type, cron_expr, hour, minute, is_active, next_run_at, created_at, updated_at)
+            VALUES (:topic_id, :job_type, NULL, :hour, :minute, TRUE, NULL, :now, :now)
+            ON CONFLICT (topic_id) WHERE job_type = :job_type
+            DO UPDATE SET hour = :hour, minute = :minute, is_active = TRUE, updated_at = :now
+        """),
+        {"topic_id": str(req.topic_id), "job_type": f"report_{req.report_type}", "hour": req.hour, "minute": req.minute, "now": now}
+    )
+    await db.commit()
     return ScheduleResponse(
         message=f"{req.report_type}报告任务已设置",
         job_id=job_id,
@@ -137,6 +163,13 @@ async def remove_schedule(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
 
     remove_topic_jobs(topic_id)
+
+    # 从数据库删除
+    await db.execute(
+        text("DELETE FROM scheduled_jobs WHERE topic_id = :topic_id"),
+        {"topic_id": str(topic_id)}
+    )
+    await db.commit()
 
 
 @router.get("/jobs", response_model=JobListResponse)

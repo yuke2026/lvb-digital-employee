@@ -232,7 +232,8 @@ CREATE TABLE scheduled_jobs (
     last_run_at TIMESTAMP,
     next_run_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(topic_id, job_type)
 );
 
 CREATE INDEX idx_scheduled_jobs_topic ON scheduled_jobs(topic_id);

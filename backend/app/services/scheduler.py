@@ -259,3 +259,43 @@ def list_scheduled_jobs() -> list[dict]:
             "trigger": str(job.trigger),
         })
     return jobs
+
+
+async def restore_jobs_from_db():
+    """
+    应用启动时从 scheduled_jobs 表恢复所有活跃任务到 APScheduler。
+    """
+    from app.core.database import async_session
+    from sqlalchemy import text
+
+    async with async_session() as db:
+        result = await db.execute(
+            text("SELECT topic_id, job_type, cron_expr, hour, minute FROM scheduled_jobs WHERE is_active = TRUE")
+        )
+        rows = result.fetchall()
+
+    if not rows:
+        logger.info("[Scheduler] 数据库中无活跃定时任务，跳过恢复")
+        return
+
+    sched = get_scheduler()
+    restored = 0
+    for row in rows:
+        topic_id = uuid.UUID(row.topic_id)
+        job_type = row.job_type
+        cron_expr = row.cron_expr
+        hour = row.hour or 8
+        minute = row.minute or 0
+
+        try:
+            if job_type == "collect" and cron_expr:
+                schedule_collect(topic_id=topic_id, org_id=uuid.UUID("00000000-0000-0000-0000-000000000000"), cron_expr=cron_expr)
+                restored += 1
+            elif job_type.startswith("report_"):
+                report_type = job_type.replace("report_", "")
+                schedule_report(topic_id=topic_id, org_id=uuid.UUID("00000000-0000-0000-0000-000000000000"), user_id=uuid.UUID("00000000-0000-0000-0000-000000000000"), report_type=report_type, hour=hour, minute=minute)
+                restored += 1
+        except Exception as e:
+            logger.warning(f"[Scheduler] 恢复任务失败 topic={topic_id} type={job_type}: {e}")
+
+    logger.info(f"[Scheduler] 已从数据库恢复 {restored} 个定时任务")

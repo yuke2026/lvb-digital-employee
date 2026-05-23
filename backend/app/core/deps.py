@@ -16,7 +16,7 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """获取当前登录用户（从JWT解码并查询数据库）"""
-    credentials = await decode_access_token(token.credentials)
+    credentials = decode_access_token(token.credentials)
     if not credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -58,6 +58,6 @@ async def get_current_user_optional(
     if not token:
         return None
     try:
-        return await get_current_user(token, db)
+        return await get_current_user(token.credentials, db)
     except HTTPException:
         return None
