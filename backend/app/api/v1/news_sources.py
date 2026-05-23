@@ -17,7 +17,7 @@ from app.schemas.source import (
     NewsSourceUpdate,
 )
 
-router = APIRouter(prefix="/news-sources", tags=["news-sources"])
+router = APIRouter(tags=["新闻源"])
 
 
 # ------------------------------------------------------------------
