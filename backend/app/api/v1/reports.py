@@ -157,6 +157,46 @@ async def generate_report(
     )
     row = result.fetchone()
     await db.commit()
+    report_id = row.id
+
+    # === Auto-push: fetch topic's push config and push to Feishu ===
+    try:
+        push_cfg_result = await db.execute(
+            text("""
+                SELECT feishu_chat_id, feishu_push_enabled
+                FROM topic_push_configs
+                WHERE topic_id = :topic_id
+            """),
+            {"topic_id": str(report_in.topic_id)},
+        )
+        push_row = push_cfg_result.fetchone()
+        if push_row and push_row.feishu_push_enabled and push_row.feishu_chat_id:
+            from app.services.push_service import push_report_full_with_db
+            # Add feishu_doc_token/msg_id to report_data for push
+            report_data["feishu_doc_token"] = None  # will be filled by push
+            report_data["report_type"] = report_in.report_type
+            await push_report_full_with_db(
+                db=db,
+                report_id=report_id,
+                report_data=report_data,
+                feishu_chat_id=push_row.feishu_chat_id,
+            )
+            # Re-fetch updated report
+            result = await db.execute(
+                text("""
+                    SELECT id, topic_id, report_type, title, summary, content, swot,
+                           risk_level, risk_items, opportunities, push_time,
+                           status, feishu_doc_token, feishu_msg_id,
+                           created_at, updated_at
+                    FROM reports WHERE id = :report_id
+                """),
+                {"report_id": str(report_id)},
+            )
+            row = result.fetchone()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Push after report generation failed (non-fatal): {e}")
+
     return await _row_to_report(row)
 
 

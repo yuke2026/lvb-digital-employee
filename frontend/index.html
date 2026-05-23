@@ -1353,6 +1353,10 @@
                             class="btn-gradient px-4 py-2 rounded-lg text-sm font-semibold text-white btn-ripple flex items-center gap-2">
                       <i class="fas fa-plus text-xs"></i>生成报告
                     </button>
+                    <button @click="showPushConfigModal = true; loadPushConfigs()"
+                            class="px-4 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 border border-white/10 transition flex items-center gap-2">
+                      <i class="fas fa-bell text-xs"></i>推送设置
+                    </button>
                   </div>
                 </div>
 
@@ -1518,6 +1522,77 @@
                   </div>
                 </div>
 
+                <!-- Push Config Modal -->
+                <div x-show="showPushConfigModal"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     class="fixed inset-0 z-50 flex items-center justify-center"
+                     @click.self="showPushConfigModal = false">
+                  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+                  <div class="relative glass rounded-2xl p-6 w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
+                    <div class="flex items-center justify-between mb-5">
+                      <h3 class="text-lg font-bold text-white">
+                        <i class="fas fa-bell mr-2 text-violet-400"></i>推送设置
+                      </h3>
+                      <button @click="showPushConfigModal = false" class="text-gray-400 hover:text-white transition">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+
+                    <div class="space-y-4">
+                      <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5">选择主题</label>
+                        <select x-model="selectedPushTopic"
+                                @change="applyPushConfigToForm"
+                                class="input-glow w-full px-3 py-2.5 rounded-lg text-sm bg-white/5 border border-white/10 text-gray-200 focus:border-violet-500/50">
+                          <option value="">-- 选择主题 --</option>
+                          <template x-for="topic in topics" :key="topic.id">
+                            <option :value="topic.id" x-text="topic.name"></option>
+                          </template>
+                        </select>
+                      </div>
+
+                      <template x-if="selectedPushTopic">
+                        <div class="space-y-3">
+                          <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-1.5">飞书群 Chat ID</label>
+                            <input type="text" x-model="pushConfigForm.feishu_chat_id"
+                                   placeholder="oc_xxxxxx 或 chat_xxxxxx"
+                                   class="input-glow w-full px-3 py-2.5 rounded-lg text-sm bg-white/5 border border-white/10 text-gray-200 focus:border-violet-500/50" />
+                            <p class="text-[10px] text-gray-500 mt-1">在飞书群设置中复制群 ID</p>
+                          </div>
+                          <div class="flex items-center gap-3">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                              <input type="checkbox" x-model="pushConfigForm.feishu_push_enabled"
+                                     class="w-4 h-4 rounded accent-violet-500" />
+                              <span class="text-sm text-gray-300">启用飞书推送</span>
+                            </label>
+                          </div>
+                        </div>
+                      </template>
+
+                      <template x-if="!selectedPushTopic">
+                        <div class="text-center py-6 text-gray-500 text-sm">
+                          请先选择一个主题
+                        </div>
+                      </template>
+                    </div>
+
+                    <div class="flex items-center gap-3 mt-6">
+                      <button @click="showPushConfigModal = false"
+                              class="flex-1 py-2.5 rounded-lg text-sm text-gray-400 border border-white/10 hover:bg-white/5 transition">
+                        取消
+                      </button>
+                      <button @click="savePushConfig"
+                              :disabled="!selectedPushTopic"
+                              class="flex-1 btn-gradient py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-40 btn-ripple">
+                        <i class="fas fa-save mr-1.5 text-xs"></i>保存设置
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </template>
 
@@ -1590,6 +1665,11 @@
         showGenerateReportModal: false,
         newReport: { topic_id: '', report_type: 'daily' },
         topics: [],
+        // ---- Push Config ----
+        pushConfigs: [],       // list of {topic_id, feishu_chat_id, feishu_push_enabled, ...}
+        showPushConfigModal: false,
+        selectedPushTopic: '',
+        pushConfigForm: { feishu_chat_id: '', feishu_push_enabled: false },
 
         // ---- Toast ----
         toast: { show: false, message: '', type: 'info' },
@@ -1984,6 +2064,74 @@
             }
           } catch (e) {
             this.showToast('删除失败', 'error');
+          }
+        },
+
+        // ================================================================
+        // PUSH CONFIG
+        // ================================================================
+        async loadPushConfigs() {
+          // Load push configs for all topics at once
+          const configs = {};
+          for (const topic of this.topics) {
+            try {
+              const res = await fetch(`/api/v1/push-configs/topic/${topic.id}`, {
+                headers: { 'Authorization': `Bearer ${this.token}` }
+              });
+              if (res.ok) {
+                const cfg = await res.json();
+                if (cfg.feishu_push_enabled || cfg.feishu_chat_id) {
+                  configs[topic.id] = cfg;
+                }
+              }
+            } catch (e) { /* skip */ }
+          }
+          this.pushConfigs = configs;
+        },
+
+        applyPushConfigToForm() {
+          if (!this.selectedPushTopic) return;
+          const cfg = this.pushConfigs[this.selectedPushTopic];
+          if (cfg) {
+            this.pushConfigForm = {
+              feishu_chat_id: cfg.feishu_chat_id || '',
+              feishu_push_enabled: cfg.feishu_push_enabled || false,
+            };
+          } else {
+            this.pushConfigForm = { feishu_chat_id: '', feishu_push_enabled: false };
+          }
+        },
+
+        async savePushConfig() {
+          if (!this.selectedPushTopic) return;
+          try {
+            const res = await fetch(`/api/v1/push-configs/topic/${this.selectedPushTopic}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+              },
+              body: JSON.stringify({
+                feishu_chat_id: this.pushConfigForm.feishu_chat_id,
+                feishu_push_enabled: this.pushConfigForm.feishu_push_enabled,
+                email_push_enabled: false,
+                email_recipients: [],
+              })
+            });
+            if (!res.ok) {
+              const err = await res.json();
+              throw new Error(err.detail || '保存失败');
+            }
+            this.showToast('推送设置已保存', 'success');
+            this.showPushConfigModal = false;
+            // Update local cache
+            this.pushConfigs[this.selectedPushTopic] = {
+              topic_id: this.selectedPushTopic,
+              feishu_chat_id: this.pushConfigForm.feishu_chat_id,
+              feishu_push_enabled: this.pushConfigForm.feishu_push_enabled,
+            };
+          } catch (e) {
+            this.showToast(e.message || '保存失败', 'error');
           }
         },
 

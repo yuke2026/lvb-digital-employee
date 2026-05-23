@@ -88,7 +88,23 @@ CREATE TABLE topic_sources (
     topic_id UUID REFERENCES topics(id) ON DELETE CASCADE,
     source_id UUID REFERENCES news_sources(id) ON DELETE CASCADE,
     weight FLOAT DEFAULT 1.0,
+    push_enabled BOOLEAN DEFAULT TRUE,
     UNIQUE(topic_id, source_id)
+);
+
+-- =====================================================
+-- 5b. topic_push_configs (飞书推送配置)
+-- =====================================================
+CREATE TABLE topic_push_configs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    topic_id UUID UNIQUE REFERENCES topics(id) ON DELETE CASCADE,
+    feishu_chat_id VARCHAR(100),
+    feishu_push_enabled BOOLEAN DEFAULT FALSE,
+    email_push_enabled BOOLEAN DEFAULT FALSE,
+    email_recipients TEXT[],
+    webhook_url TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 -- =====================================================
@@ -201,6 +217,26 @@ CREATE TABLE push_records (
 
 CREATE INDEX idx_push_records_report ON push_records(report_id);
 CREATE INDEX idx_push_records_status ON push_records(status);
+
+-- =====================================================
+-- 10b. scheduled_jobs (定时任务持久化)
+-- =====================================================
+CREATE TABLE scheduled_jobs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    topic_id UUID REFERENCES topics(id) ON DELETE CASCADE,
+    job_type VARCHAR(20) NOT NULL,  -- 'collect' | 'report_daily' | 'report_weekly' | 'report_monthly'
+    cron_expr VARCHAR(50),           -- cron expression
+    hour INTEGER DEFAULT 8,
+    minute INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    last_run_at TIMESTAMP,
+    next_run_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_scheduled_jobs_topic ON scheduled_jobs(topic_id);
+CREATE INDEX idx_scheduled_jobs_active ON scheduled_jobs(is_active) WHERE is_active = TRUE;
 
 -- =====================================================
 -- 11. user_prefs
