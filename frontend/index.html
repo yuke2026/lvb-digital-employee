@@ -1078,6 +1078,12 @@
                   <i class="fas fa-comments"></i>
                   <span class="hidden sm:inline">我的对话</span>
                 </a>
+                <a @click="switchPage('reports')"
+                   class="nav-link text-sm font-medium flex items-center gap-1.5"
+                   :class="currentPage === 'reports' ? 'active' : ''">
+                  <i class="fas fa-file-lines"></i>
+                  <span class="hidden sm:inline">分析报告</span>
+                </a>
               </div>
 
               <!-- Right: User -->
@@ -1326,6 +1332,195 @@
               </div>
             </template>
 
+            <!-- ==================== REPORTS PAGE ==================== -->
+            <template x-if="currentPage === 'reports'">
+              <div class="page-enter">
+
+                <!-- Header -->
+                <div class="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 class="text-xl font-bold text-white">
+                      <i class="fas fa-file-lines mr-2 text-violet-400"></i>分析报告
+                    </h2>
+                    <p class="text-sm text-gray-400 mt-1">查看和管理你的战略分析报告</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <button @click="loadReports"
+                            class="px-4 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 border border-white/10 transition flex items-center gap-2">
+                      <i class="fas fa-rotate-right text-xs"></i>刷新
+                    </button>
+                    <button @click="showGenerateReportModal = true"
+                            class="btn-gradient px-4 py-2 rounded-lg text-sm font-semibold text-white btn-ripple flex items-center gap-2">
+                      <i class="fas fa-plus text-xs"></i>生成报告
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Report Type Filter -->
+                <div class="flex items-center gap-2 mb-5">
+                  <template x-for="type in ['全部','日报','周报','月报']" :key="type">
+                    <button @click="reportFilter = type"
+                            class="px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200"
+                            :class="reportFilter === type
+                              ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
+                              : 'text-gray-400 hover:text-gray-200 border border-white/5 hover:border-white/10'">
+                      <span x-text="type"></span>
+                    </button>
+                  </template>
+                </div>
+
+                <!-- Loading -->
+                <div x-show="reportsLoading" class="flex justify-center py-20">
+                  <div class="text-center">
+                    <div class="spinner-ring mx-auto mb-4" style="width:40px;height:40px;border-width:3px;"></div>
+                    <p class="text-gray-400 text-sm">加载报告中...</p>
+                  </div>
+                </div>
+
+                <!-- Empty State -->
+                <div x-show="!reportsLoading && reports.filter(r => reportFilter === '全部' || {'日报':'daily','周报':'weekly','月报':'monthly'}[reportFilter] === r.report_type).length === 0" class="text-center py-20">
+                  <div class="text-5xl mb-4 opacity-20">
+                    <i class="fas fa-file-lines text-gradient"></i>
+                  </div>
+                  <p class="text-gray-400 text-sm mb-2">暂无报告</p>
+                  <p class="text-gray-500 text-xs">点击上方「生成报告」按钮，为你的主题生成第一份分析报告</p>
+                </div>
+
+                <!-- Reports Grid -->
+                <div x-show="!reportsLoading && reports.filter(r => reportFilter === '全部' || {'日报':'daily','周报':'weekly','月报':'monthly'}[reportFilter] === r.report_type).length > 0"
+                     class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  <template x-for="report in reports.filter(r => reportFilter === '全部' || {'日报':'daily','周报':'weekly','月报':'monthly'}[reportFilter] === r.report_type)" :key="report.id">
+                    <div class="glass rounded-xl p-5 hover:bg-white/[0.07] transition-all duration-300 group">
+                      <!-- Card Header -->
+                      <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                          <span class="w-8 h-8 rounded-lg flex items-center justify-center text-xs"
+                                :class="{
+                                  'bg-emerald-500/15 text-emerald-400': report.report_type === 'daily',
+                                  'bg-blue-500/15 text-blue-400': report.report_type === 'weekly',
+                                  'bg-violet-500/15 text-violet-400': report.report_type === 'monthly'
+                                }">
+                            <i class="fas fa-chart-line text-xs"></i>
+                          </span>
+                          <div>
+                            <span class="text-xs font-medium"
+                                  :class="{
+                                    'text-emerald-400': report.report_type === 'daily',
+                                    'text-blue-400': report.report_type === 'weekly',
+                                    'text-violet-400': report.report_type === 'monthly'
+                                  }"
+                                  x-text="{'daily':'日报','weekly':'周报','monthly':'月报'}[report.report_type] || report.report_type">
+                            </span>
+                            <p class="text-xs text-gray-500" x-text="report.created_at ? new Date(report.created_at).toLocaleDateString('zh-CN') : ''"></p>
+                          </div>
+                        </div>
+                        <!-- Risk Badge -->
+                        <span x-show="report.risk_level"
+                              class="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                              :class="{
+                                'bg-red-500/15 text-red-400': report.risk_level === 'high',
+                                'bg-yellow-500/15 text-yellow-400': report.risk_level === 'medium',
+                                'bg-emerald-500/15 text-emerald-400': report.risk_level === 'low'
+                              }"
+                              x-text="{'high':'高风险','medium':'中风险','low':'低风险'}[report.risk_level] || report.risk_level">
+                        </span>
+                      </div>
+
+                      <!-- Title -->
+                      <h3 class="text-sm font-semibold text-gray-200 mb-2 line-clamp-2 group-hover:text-white transition"
+                          x-text="report.title || '无标题报告'"></h3>
+
+                      <!-- Summary -->
+                      <p class="text-xs text-gray-400 line-clamp-3 mb-3 min-h-[3rem]"
+                         x-text="report.summary || '暂无摘要'"></p>
+
+                      <!-- Card Footer -->
+                      <div class="flex items-center justify-between pt-3 border-t border-white/5">
+                        <div class="flex items-center gap-1.5 text-xs text-gray-500">
+                          <i class="fas fa-clock text-[10px]"></i>
+                          <span x-text="report.created_at ? new Date(report.created_at).toLocaleString('zh-CN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : ''"></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <!-- Feishu Link -->
+                          <a x-show="report.feishu_doc_token"
+                             :href="'https://bytedance.feishu.cn/docx/' + report.feishu_doc_token"
+                             target="_blank"
+                             class="text-gray-500 hover:text-blue-400 transition text-xs px-2 py-1 rounded-lg hover:bg-blue-500/10">
+                            <i class="fas fa-external-link-alt text-[10px]"></i>
+                          </a>
+                          <!-- Delete -->
+                          <button @click="deleteReport(report.id)"
+                                  class="text-gray-500 hover:text-red-400 transition text-xs px-2 py-1 rounded-lg hover:bg-red-500/10">
+                            <i class="fas fa-trash text-[10px]"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+
+                <!-- Generate Report Modal -->
+                <div x-show="showGenerateReportModal"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     class="fixed inset-0 z-50 flex items-center justify-center"
+                     @click.self="showGenerateReportModal = false">
+                  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+                  <div class="relative glass rounded-2xl p-6 w-full max-w-md mx-4">
+                    <div class="flex items-center justify-between mb-5">
+                      <h3 class="text-lg font-bold text-white">
+                        <i class="fas fa-chart-pie mr-2 text-violet-400"></i>生成新报告
+                      </h3>
+                      <button @click="showGenerateReportModal = false" class="text-gray-400 hover:text-white transition">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+
+                    <div class="space-y-4">
+                      <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5">选择主题</label>
+                        <select x-model="newReport.topic_id"
+                                class="input-glow w-full px-3 py-2.5 rounded-lg text-sm bg-white/5 border border-white/10 text-gray-200 focus:border-violet-500/50">
+                          <option value="">-- 选择主题 --</option>
+                          <template x-for="topic in topics" :key="topic.id">
+                            <option :value="topic.id" x-text="topic.name"></option>
+                          </template>
+                        </select>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5">报告类型</label>
+                        <div class="grid grid-cols-3 gap-2">
+                          <template x-for="type in [{v:'daily',l:'日报'},{v:'weekly',l:'周报'},{v:'monthly',l:'月报'}]" :key="type.v">
+                            <button @click="newReport.report_type = type.v"
+                                    class="py-2 rounded-lg text-xs font-medium transition-all"
+                                    :class="newReport.report_type === type.v
+                                      ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
+                                      : 'text-gray-400 border border-white/5 hover:border-white/10'">
+                              <span x-text="type.l"></span>
+                            </button>
+                          </template>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 mt-6">
+                      <button @click="showGenerateReportModal = false"
+                              class="flex-1 py-2.5 rounded-lg text-sm text-gray-400 border border-white/10 hover:bg-white/5 transition">
+                        取消
+                      </button>
+                      <button @click="generateReport"
+                              :disabled="!newReport.topic_id || !newReport.report_type"
+                              class="flex-1 btn-gradient py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-40 btn-ripple">
+                        <i class="fas fa-rocket mr-1.5 text-xs"></i>开始生成
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </template>
+
           </div>
         </main>
       </div>
@@ -1387,6 +1582,14 @@
         isStreaming: false,
         streamingContent: '',
         currentConversationId: null,
+
+        // ---- Reports ----
+        reports: [],
+        reportsLoading: false,
+        reportFilter: '全部',
+        showGenerateReportModal: false,
+        newReport: { topic_id: '', report_type: 'daily' },
+        topics: [],
 
         // ---- Toast ----
         toast: { show: false, message: '', type: 'info' },
@@ -1717,12 +1920,84 @@
         },
 
         // ================================================================
+        // REPORTS
+        // ================================================================
+        async loadReports() {
+          this.reportsLoading = true;
+          try {
+            const res = await fetch('/api/v1/reports/', {
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) this.reports = await res.json();
+          } catch (e) {
+            console.error('Failed to load reports', e);
+          } finally {
+            this.reportsLoading = false;
+          }
+        },
+
+        async loadTopics() {
+          try {
+            const res = await fetch('/api/v1/topics/', {
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) this.topics = await res.json();
+          } catch (e) {
+            console.error('Failed to load topics', e);
+          }
+        },
+
+        async generateReport() {
+          if (!this.newReport.topic_id || !this.newReport.report_type) return;
+          try {
+            const res = await fetch('/api/v1/reports/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+              },
+              body: JSON.stringify(this.newReport)
+            });
+            if (!res.ok) {
+              const err = await res.json();
+              throw new Error(err.detail || '生成失败');
+            }
+            this.showToast('报告生成中，稍后刷新查看', 'success');
+            this.showGenerateReportModal = false;
+            this.newReport = { topic_id: '', report_type: 'daily' };
+            setTimeout(() => this.loadReports(), 3000);
+          } catch (e) {
+            this.showToast(e.message || '生成失败', 'error');
+          }
+        },
+
+        async deleteReport(reportId) {
+          if (!confirm('确定删除这份报告？')) return;
+          try {
+            const res = await fetch(`/api/v1/reports/${reportId}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok || res.status === 204) {
+              this.reports = this.reports.filter(r => r.id !== reportId);
+              this.showToast('报告已删除', 'success');
+            }
+          } catch (e) {
+            this.showToast('删除失败', 'error');
+          }
+        },
+
+        // ================================================================
         // NAVIGATION
         // ================================================================
         switchPage(page) {
           this.currentPage = page;
           if (page === 'chat' && !this.selectedEmployee && this.employees.length > 0) {
             // Optionally auto-select first employee
+          }
+          if (page === 'reports') {
+            this.loadReports();
+            this.loadTopics();
           }
         }
       }));

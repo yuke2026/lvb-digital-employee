@@ -12,6 +12,7 @@ openai>=1.55.0
 httpx>=0.28.0
 sse-starlette>=2.2.0
 redis>=5.2.0
+apscheduler>=3.11.0
 bcrypt<5.0.0
 feedparser>=6.0.11
 beautifulsoup4>=4.12.3
