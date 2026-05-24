@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>百应智星 - AI 数字员工平台</title>
 
   <!-- TailwindCSS -->
@@ -1491,7 +1491,15 @@
 
             <!-- ==================== CHAT PAGE (Fusion 003) ==================== -->
             <template x-if="currentPage === 'chat'">
-              <div class="flex gap-4 h-[calc(100vh-8rem)] page-enter">
+              <div class="flex gap-4 h-[calc(100vh-8rem)] page-enter flex-col md:flex-row">
+
+                <!-- Mobile: hamburger + drawer -->
+                <div class="md:hidden flex items-center gap-3 px-4 py-3" style="background: var(--fuse-surface); border-bottom: 1px solid var(--fuse-border);">
+                  <button @click="showMobileDrawer = true" class="text-lg" style="color: var(--fuse-muted);">
+                    <i class="fas fa-bars"></i>
+                  </button>
+                  <span class="text-sm font-semibold" style="color: var(--fuse-text);">专家对话</span>
+                </div>
 
                 <!-- === LEFT SIDEBAR (compact employee list) === -->
                 <div class="w-56 shrink-0 hidden md:flex flex-col rounded-xl overflow-hidden" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
@@ -1699,7 +1707,7 @@
                 </div>
 
                 <!-- === RIGHT PANEL (Automation + Reports) === -->
-                <div class="w-80 shrink-0 flex flex-col overflow-hidden rounded-xl" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
+                <div class="w-80 shrink-0 hidden lg:flex flex-col overflow-hidden rounded-xl" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
 
                   <!-- Tabs -->
                   <div class="flex border-b" style="border-color: var(--fuse-border);">
@@ -1822,6 +1830,68 @@
                   </div>
 
                 </div><!-- end right panel -->
+
+                <!-- Mobile Drawer Overlay -->
+                <div x-show="showMobileDrawer" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                     @click="showMobileDrawer = false" class="md:hidden fixed inset-0 z-50" style="background: rgba(0,0,0,0.5);">
+                </div>
+
+                <!-- Mobile Drawer Panel -->
+                <div x-show="showMobileDrawer"
+                     x-transition:enter="transition ease-out duration-300" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
+                     x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full"
+                     class="md:hidden fixed inset-y-0 left-0 z-50 w-64 flex flex-col overflow-hidden"
+                     style="background: var(--fuse-surface); border-right: 1px solid var(--fuse-border);">
+                  <!-- Drawer header -->
+                  <div class="px-4 py-4 border-b flex items-center gap-3" style="border-color: var(--fuse-border);">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2));">
+                      <i class="fas fa-brain text-white text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                      <div class="text-sm font-semibold" style="color: var(--fuse-text);">百应智星</div>
+                      <div class="text-[10px]" style="color: var(--fuse-muted);">AI 数字员工平台</div>
+                    </div>
+                    <button @click="showMobileDrawer = false" class="text-lg" style="color: var(--fuse-muted);">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                  <!-- Nav -->
+                  <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+                    <div class="text-[10px] uppercase tracking-wider mb-2 px-3" style="color: var(--fuse-muted); font-weight: 600;">核心功能</div>
+                    <div class="fuse-nav-item active" @click="switchPage('chat'); showMobileDrawer = false">
+                      <i class="fas fa-comment-dots w-4 text-center text-xs"></i>
+                      <span>专家对话</span>
+                    </div>
+                    <div class="fuse-nav-item" @click="switchPage('reports'); showMobileDrawer = false">
+                      <i class="fas fa-chart-pie w-4 text-center text-xs"></i>
+                      <span>分析报告</span>
+                    </div>
+                  </nav>
+                  <!-- Employee list -->
+                  <div class="border-t px-3 py-3" style="border-color: var(--fuse-border);">
+                    <div class="text-[10px] uppercase tracking-wider mb-2 px-3" style="color: var(--fuse-muted); font-weight: 600;">数字员工</div>
+                    <div class="space-y-0.5">
+                      <template x-for="emp in employees" :key="emp.id">
+                        <div @click="selectEmployee(emp); showMobileDrawer = false"
+                             class="fuse-nav-item"
+                             :class="selectedEmployee?.id === emp.id ? 'active' : ''">
+                          <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold" style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2)); color: white; font-size: 8px;">
+                            <span x-text="(emp.name || '智').charAt(0)"></span>
+                          </div>
+                          <span style="font-size: 12px;" x-text="emp.name || '未知员工'"></span>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                  <!-- Status -->
+                  <div class="px-4 py-3 border-t" style="border-color: var(--fuse-border);">
+                    <div class="flex items-center gap-2">
+                      <span class="status-pill">在线</span>
+                      <span class="text-[11px]" style="color: var(--fuse-muted);">全部服务正常</span>
+                    </div>
+                  </div>
+                </div>
 
               </div>
             </template>
@@ -2092,6 +2162,22 @@
 
           </div>
         </main>
+
+        <!-- Mobile Bottom Tab Bar -->
+        <nav class="md:hidden flex border-t" style="background: var(--fuse-surface); border-color: var(--fuse-border);">
+          <button @click="switchPage('chat')" class="flex-1 flex flex-col items-center gap-1 py-3 text-xs" :style="currentPage === 'chat' ? 'color: var(--fuse-accent2)' : 'color: var(--fuse-muted)'">
+            <i class="fas fa-comment-dots text-lg"></i>
+            <span>对话</span>
+          </button>
+          <button @click="switchPage('reports')" class="flex-1 flex flex-col items-center gap-1 py-3 text-xs" :style="currentPage === 'reports' ? 'color: var(--fuse-accent2)' : 'color: var(--fuse-muted)'">
+            <i class="fas fa-chart-line text-lg"></i>
+            <span>报告</span>
+          </button>
+          <button @click="switchPage('store')" class="flex-1 flex flex-col items-center gap-1 py-3 text-xs" :style="currentPage === 'store' ? 'color: var(--fuse-accent2)' : 'color: var(--fuse-muted)'">
+            <i class="fas fa-store text-lg"></i>
+            <span>商店</span>
+          </button>
+        </nav>
       </div>
     </template>
 
@@ -2462,6 +2548,9 @@
         // ---- New Topic ----
         showNewTopicModal: false,
         newTopicForm: { name: '', category: '', keywords: '', push_cycle: 'daily', push_time: '08:30' },
+
+        // ---- Mobile ----
+        showMobileDrawer: false,
 
         // ---- Fusion 003: Right Panel ----
         rightPanelTab: 'auto',  // 'auto' | 'reports'
