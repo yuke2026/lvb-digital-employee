@@ -1491,10 +1491,11 @@
 
             <!-- ==================== CHAT PAGE (Fusion 003) ==================== -->
             <template x-if="currentPage === 'chat'">
-              <div class="flex gap-4 h-[calc(100vh-8rem)] page-enter flex-col md:flex-row pb-[70px] md:pb-0">
+              <div class="relative flex gap-4 page-enter flex-col md:flex-row"
+                   style="height: calc(100vh - 7rem); pb-[70px] md:pb-0">
 
                 <!-- Mobile: hamburger + drawer -->
-                <div class="md:hidden flex items-center gap-3 px-4 py-3" style="background: var(--fuse-surface); border-bottom: 1px solid var(--fuse-border);">
+                <div class="md:hidden flex items-center gap-3 px-4 py-3 shrink-0" style="background: var(--fuse-surface); border-bottom: 1px solid var(--fuse-border);">
                   <button @click="showMobileDrawer = true" class="text-lg" style="color: var(--fuse-muted);">
                     <i class="fas fa-bars"></i>
                   </button>
@@ -3179,7 +3180,7 @@
                 category: topic.category,
                 keywords: topic.keywords,
                 push_cycle: topic.push_cycle,
-                push_time: { hours: h, minutes: m },
+                push_time: { hour: h, minute: m },
                 is_active: topic.is_active,
               })
             });
