@@ -1,5 +1,6 @@
 """对话路由：发送消息（SSE 流式）、获取历史"""
 import json
+import re
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from sse_starlette.sse import EventSourceResponse
@@ -10,20 +11,44 @@ from app.schemas.user import (
     MessageResponse,
 )
 from app.core.deps import get_current_user
+from app.models.user import User
 from app.services.db import db
 from app.services.ai import chat_with_deepseek_stream
+from app.services.ai import chat_with_deepseek
 
 router = APIRouter()
+
+# CEO 顾问 ID（用于路由联网搜索能力）
+CEO_ADVISOR_ID = "ceo-advisor"
+
+
+def _is_ceo_advisor_employee(employee_id: str) -> bool:
+    """判断是否为智闻CEO顾问"""
+    return employee_id == CEO_ADVISOR_ID
+
+
+def _should_search(keywords: list[str]) -> bool:
+    """判断消息是否表达了搜索/查询意图"""
+    search_intents = [
+        "搜索", "查询", "查找", "最新", "最近", "最新消息",
+        "行业动态", "市场动态", "竞品", "竞争对手", "市场趋势",
+        "行情", "数据", "新闻", "资讯", "动态", "报道",
+        "发生了什么", "有什么", "情况如何", "怎么样",
+        "分析", "研究", "调研", "报告", "生成报告",
+        "行业情报", "竞争格局", "市场份额",
+    ]
+    text = " ".join(keywords)
+    return any(intent in text for intent in search_intents)
 
 
 @router.post("/send")
 async def send_message(
     req: ChatSendRequest,
     request: Request,
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """发送消息，返回 AI 流式回复（SSE 打字机效果）"""
-    user_id = current_user.get("sub")
+    user_id = str(current_user.id)
 
     # 查找数字员工
     employee = db.get_employee(req.employee_id)
@@ -57,16 +82,52 @@ async def send_message(
     # 保存用户消息
     db.add_message(conversation.id, "user", req.message)
 
+    # 构建对话历史（用于AI调用）
+    chat_messages = [
+        {"role": m["role"], "content": m["content"]}
+        for m in conversation.messages
+    ]
+
     # 构建 SSE 流式响应
     async def event_generator():
         full_reply = ""
+
+        # 智闻CEO顾问：并行执行联网搜索，不阻塞首字输出
+        enriched_messages = chat_messages
+        if _is_ceo_advisor_employee(req.employee_id) and _should_search([req.message]):
+            try:
+                search_query = re.sub(r"[^\w\s\u4e00-\u9fff]", " ", req.message)
+                keywords = [kw.strip() for kw in search_query.split() if len(kw.strip()) >= 2][:5]
+                if keywords:
+                    from app.services.ceo_advisor import search_industry_intelligence
+                    search_result = await search_industry_intelligence(keywords=keywords, days_back=7)
+                    results = search_result.get("results", [])[:8]
+                    ai_summary = search_result.get("ai_summary", "")
+                    if results or ai_summary:
+                        search_inject = (
+                            f"\n\n【联网搜索结果】\n"
+                            f"关键词: {', '.join(keywords)}\n"
+                            f"找到 {len(results)} 条相关信息：\n"
+                        )
+                        for r in results:
+                            search_inject += f"- {r.get('title', '')} ({r.get('url', '')})\n"
+                        if ai_summary:
+                            search_inject += f"\nAI分析总结：\n{ai_summary}\n"
+                        enriched_messages = chat_messages + [{
+                            "role": "system",
+                            "content": (
+                                "【联网搜索已执行】以下是实时搜索获取的行业情报，请结合这些数据回答用户问题：\n"
+                                + search_inject
+                                + "\n请基于以上真实数据给出分析，如有数据请引用来源。"
+                            ),
+                        }]
+            except Exception:
+                enriched_messages = chat_messages
+
         try:
             async for chunk in chat_with_deepseek_stream(
                 system_prompt=employee.system_prompt,
-                messages=[
-                    {"role": m["role"], "content": m["content"]}
-                    for m in conversation.messages
-                ],
+                messages=enriched_messages,
             ):
                 if await request.is_disconnected():
                     break
@@ -97,15 +158,16 @@ async def send_message(
 
 @router.get("/history", response_model=list[ConversationResponse])
 async def get_chat_history(
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """获取当前用户的对话历史"""
-    user_id = current_user.get("sub")
+    user_id = str(current_user.id)
     conversations = db.list_conversations(user_id)
 
     return [
         ConversationResponse(
             id=conv.id,
+            user_id=conv.user_id,
             employee_id=conv.employee_id,
             messages=[
                 MessageResponse(

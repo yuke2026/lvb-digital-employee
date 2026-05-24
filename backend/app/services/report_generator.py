@@ -205,38 +205,38 @@ async def _create_report_items(
 
 
 async def generate_report(
-    db: AsyncSession,
     topic_id: uuid.UUID,
     report_type: str,
-) -> Report:
+    org_id=None,
+    user_id=None,
+    db: AsyncSession = None,
+) -> dict:
     """Generate a report (daily/weekly/monthly) for a given topic.
 
     Analyzes processed articles using DeepSeek to generate SWOT analysis,
-    risk assessment, and opportunities. Saves Report and ReportItem rows.
+    risk assessment, and opportunities. Saves Report and ReportItem rows
+    only when db is provided; otherwise returns dict only.
 
     Args:
-        db: AsyncSession - database session
         topic_id: uuid.UUID - the topic to generate report for
         report_type: str - one of "daily", "weekly", "monthly"
+        db: AsyncSession - database session (optional, uses own if not provided)
 
     Returns:
-        Report - the generated report with saved items
-
-    Raises:
-        ValueError: if report_type is not daily/weekly/monthly
+        dict with report fields (title/summary/swot/risk_level/etc.)
     """
     if report_type not in ("daily", "weekly", "monthly"):
         raise ValueError(
             f"Invalid report_type: {report_type}. Must be one of: daily, weekly, monthly"
         )
 
-    # Calculate date range
+    # Core report generation logic (always returns dict, never touches DB)
     start_date, end_date = await _get_date_range(report_type)
 
-    # Fetch processed articles for the topic
-    articles = await _fetch_articles_for_topic(db, topic_id, start_date, end_date)
+    articles = []
+    if db is not None:
+        articles = await _fetch_articles_for_topic(db, topic_id, start_date, end_date)
 
-    # Build SWOT analysis using DeepSeek
     swot_data = {
         "s": "",
         "w": "",
@@ -253,7 +253,6 @@ async def generate_report(
         response = await chat_with_deepseek(system_prompt, [{"role": "user", "content": user_prompt}])
         swot_data = await _parse_swot_response(response)
 
-        # Generate summary from articles
         summary_parts = [f"本{type_map.get(report_type, '日')}报共分析 {len(articles)} 篇相关文章"]
         if swot_data.get("s"):
             summary_parts.append(f"优势：{swot_data['s'][:50]}")
@@ -267,40 +266,49 @@ async def generate_report(
     else:
         summary = f"本{type_map.get(report_type, '日')}报时间范围内无已处理的文章数据"
 
-    # Determine report title
     type_label_map = {"daily": "日报", "weekly": "周报", "monthly": "月报"}
     type_label = type_label_map.get(report_type, "日报")
     report_title = f"{type_label} - {datetime.utcnow().strftime('%Y-%m-%d')}"
 
-    # Create Report record
-    report = Report(
-        topic_id=topic_id,
-        report_type=report_type,
-        title=report_title,
-        summary=summary,
-        swot={
+    result = {
+        "title": report_title,
+        "summary": summary,
+        "content": None,
+        "swot": {
             "s": swot_data.get("s", ""),
             "w": swot_data.get("w", ""),
             "o": swot_data.get("o", ""),
             "t": swot_data.get("t", ""),
         },
-        risk_level=swot_data.get("risk_level", "中"),
-        risk_items={"risks": swot_data.get("risks", [])},
-        opportunities={"opportunities": swot_data.get("opportunities", [])},
-        status="draft" if not articles else "generated",
-    )
+        "risk_level": swot_data.get("risk_level", "中"),
+        "risk_items": {"risks": swot_data.get("risks", [])},
+        "opportunities": {"opportunities": swot_data.get("opportunities", [])},
+        "push_time": datetime.utcnow(),
+        "status": "draft" if not articles else "generated",
+    }
 
-    db.add(report)
-    await db.flush()
+    # Save to DB only when session is explicitly provided
+    if db is not None:
+        report = Report(
+            topic_id=topic_id,
+            report_type=report_type,
+            title=report_title,
+            summary=summary,
+            swot=result["swot"],
+            risk_level=result["risk_level"],
+            risk_items=result["risk_items"],
+            opportunities=result["opportunities"],
+            status=result["status"],
+        )
+        db.add(report)
+        await db.flush()
+        if articles:
+            await _create_report_items(db, report, articles, swot_data)
+        await db.commit()
+        await db.refresh(report)
+        result["_report"] = report
 
-    # Create ReportItem records for each article
-    if articles:
-        await _create_report_items(db, report, articles, swot_data)
-
-    await db.commit()
-    await db.refresh(report)
-
-    return report
+    return result
 
 
 # Mapping for report type labels (used internally)

@@ -79,19 +79,53 @@ async def _run_report(
     user_id: uuid.UUID,
     report_type: str,
 ):
-    """执行指定主题的报告生成任务"""
+    """执行指定主题的报告生成任务（支持CEO顾问+飞书Webhook推送）"""
     from app.services.report_generator import generate_report
     from app.models.report import Report
     from sqlalchemy import text
     from app.core.database import async_session
     try:
         logger.info(f"[Scheduler] 开始生成报告 topic={topic_id} type={report_type}")
-        report_data = await generate_report(
-            topic_id=topic_id,
-            report_type=report_type,
-            org_id=org_id,
-            user_id=user_id,
-        )
+
+        # === 判断是否使用 CEO 顾问模式（从 topics 表读取 keywords）===
+        async with async_session() as db_check:
+            topic_result = await db_check.execute(
+                text("SELECT name, keywords FROM topics WHERE id = :topic_id"),
+                {"topic_id": str(topic_id)},
+            )
+            topic_row = topic_result.fetchone()
+            use_ceo_advisor = False
+            keywords = []
+            if topic_row and topic_row.keywords:
+                import json
+                try:
+                    kws = json.loads(topic_row.keywords) if isinstance(topic_row.keywords, str) else topic_row.keywords
+                    if isinstance(kws, list) and kws:
+                        keywords = kws
+                        use_ceo_advisor = True
+                except:
+                    pass
+
+        # 根据是否配置了 keywords 决定报告生成方式
+        if use_ceo_advisor:
+            logger.info(f"[Scheduler] 使用CEO顾问模式生成报告, keywords={keywords}")
+            from app.services.ceo_advisor import generate_ceo_digest_report
+            report_data = await generate_ceo_digest_report(
+                topic_id=topic_id,
+                org_id=org_id,
+                user_id=user_id,
+                keywords=keywords,
+                report_type=report_type,
+            )
+        else:
+            # 原有 RSS/文章库模式
+            report_data = await generate_report(
+                topic_id=topic_id,
+                report_type=report_type,
+                org_id=org_id,
+                user_id=user_id,
+            )
+
         now = datetime.utcnow()
         async with async_session() as db:
             result = await db.execute(
@@ -125,9 +159,47 @@ async def _run_report(
             report_id = row[0] if row else None
             logger.info(f"[Scheduler] 报告生成完成 report_id={report_id}")
 
-            # 推送到飞书（如已配置）
+            # === 推送飞书（Webhook优先，其次文档推送）===
+            # 1. 尝试从 topic_push_configs 读取 webhook_url
+            push_cfg_result = await db.execute(
+                text("""
+                    SELECT feishu_chat_id, feishu_push_enabled, webhook_url
+                    FROM topic_push_configs
+                    WHERE topic_id = :topic_id
+                """),
+                {"topic_id": str(topic_id)},
+            )
+            push_row = push_cfg_result.fetchone()
+
+            # 2. 优先使用 Webhook 推送（无需飞书应用权限）
+            if push_row and push_row.webhook_url:
+                from app.services.ceo_advisor import push_report_to_feishu
+                try:
+                    push_result = await push_report_to_feishu(report_data, push_row.webhook_url)
+                    if push_result.get("success"):
+                        logger.info(f"[Scheduler] 飞书Webhook推送成功 report_id={report_id}")
+                    else:
+                        logger.warning(f"[Scheduler] 飞书Webhook推送失败: {push_result.get('error')}")
+                except Exception as push_err:
+                    logger.warning(f"[Scheduler] 飞书Webhook推送异常: {push_err}")
+
+            # 3. 其次使用飞书文档+IM推送（需飞书应用权限）
             if report_data.get("feishu_doc_token"):
                 logger.info(f"[Scheduler] 飞书文档已存在: {report_data['feishu_doc_token']}")
+            elif push_row and push_row.feishu_push_enabled and push_row.feishu_chat_id:
+                # 调用标准飞书推送流程
+                from app.services.push_service import push_report_full_with_db
+                report_data["report_type"] = report_type
+                try:
+                    await push_report_full_with_db(
+                        db=db,
+                        report_id=report_id,
+                        report_data=report_data,
+                        feishu_chat_id=push_row.feishu_chat_id,
+                    )
+                except Exception as push_err:
+                    logger.warning(f"[Scheduler] 飞书文档推送失败（非致命）: {push_err}")
+
     except Exception as e:
         logger.error(f"[Scheduler] 报告生成任务失败 topic={topic_id}: {e}", exc_info=True)
 

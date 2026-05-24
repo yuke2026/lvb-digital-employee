@@ -132,6 +132,312 @@
     [data-theme="light"] .bg-white\/5,
     [data-theme="light"] .bg-white\/10 { background: rgba(255, 255, 255, 0.85) !important; }
 
+    /* ===== FUSION LAYOUT (003 sketch) ===== */
+    /* Surface palette */
+    [data-theme="dark"] {
+      --fuse-bg: #0c0f18;
+      --fuse-surface: #13172a;
+      --fuse-surface2: #1a1f35;
+      --fuse-surface3: #202640;
+      --fuse-border: rgba(255,255,255,0.07);
+      --fuse-border2: rgba(255,255,255,0.12);
+      --fuse-text: #e2e8f0;
+      --fuse-text2: #94a3b8;
+      --fuse-muted: #64748b;
+      --fuse-accent: #3b82f6;
+      --fuse-accent2: #60a5fa;
+      --fuse-accent-light: rgba(59,130,246,0.08);
+      --fuse-accent-glow: rgba(59,130,246,0.2);
+      --fuse-success: #34d399;
+      --fuse-warning: #fbbf24;
+      --fuse-danger: #f87171;
+    }
+    [data-theme="light"] {
+      --fuse-bg: #f0f2f5;
+      --fuse-surface: #ffffff;
+      --fuse-surface2: #e8eaed;
+      --fuse-surface3: #dde1e7;
+      --fuse-border: rgba(0,0,0,0.08);
+      --fuse-border2: rgba(0,0,0,0.12);
+      --fuse-text: #1a1a2e;
+      --fuse-text2: #475569;
+      --fuse-muted: #94a3b8;
+      --fuse-accent: #3b82f6;
+      --fuse-accent2: #60a5fa;
+      --fuse-accent-light: rgba(59,130,246,0.08);
+      --fuse-accent-glow: rgba(59,130,246,0.15);
+      --fuse-success: #10b981;
+      --fuse-warning: #f59e0b;
+      --fuse-danger: #ef4444;
+    }
+
+    /* Expert Card (horizontal Notion-style) */
+    .expert-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--fuse-border);
+      cursor: pointer;
+      transition: all 0.2s;
+      flex: 1;
+      background: var(--fuse-surface2);
+    }
+    .expert-card:hover {
+      border-color: rgba(59,130,246,0.3);
+      background: var(--fuse-accent-light);
+    }
+    .expert-card.selected {
+      border-color: var(--fuse-accent);
+      background: var(--fuse-accent-light);
+    }
+    .expert-avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .expert-info { flex: 1; min-width: 0; }
+    .expert-name { font-size: 13px; font-weight: 600; color: var(--fuse-text); }
+    .expert-desc { font-size: 10px; color: var(--fuse-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Input area (pill style) */
+    .input-area {
+      background: var(--fuse-surface3);
+      border: 1px solid var(--fuse-border2);
+      border-radius: 24px;
+      padding: 10px 16px;
+      color: var(--fuse-text);
+      font-size: 14px;
+      width: 100%;
+      resize: none;
+      outline: none;
+      transition: all 0.2s;
+      min-height: 44px;
+      max-height: 120px;
+      font-family: inherit;
+    }
+    .input-area:focus {
+      border-color: var(--fuse-accent);
+      box-shadow: 0 0 0 3px var(--fuse-accent-glow);
+    }
+    .input-area::placeholder { color: var(--fuse-muted); }
+
+    /* Circular send button */
+    .send-btn {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: var(--fuse-accent);
+      border: none;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      margin: 3px;
+    }
+    .send-btn:hover { background: var(--fuse-accent2); transform: scale(1.05); box-shadow: 0 4px 12px var(--fuse-accent-glow); }
+    .send-btn:active { transform: scale(0.95); }
+
+    /* Quick pill buttons */
+    .quick-pill {
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--fuse-border2);
+      color: var(--fuse-text2);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: transparent;
+    }
+    .quick-pill:hover {
+      border-color: var(--fuse-accent);
+      color: var(--fuse-accent2);
+      background: var(--fuse-accent-light);
+    }
+
+    /* Toggle switch */
+    .fuse-toggle {
+      width: 36px; height: 20px;
+      border-radius: 10px;
+      background: var(--fuse-surface3);
+      border: 1px solid var(--fuse-border2);
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .fuse-toggle.on { background: var(--fuse-accent); border-color: var(--fuse-accent); }
+    .fuse-toggle::after {
+      content: '';
+      position: absolute;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: white;
+      top: 2px; left: 2px;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .fuse-toggle.on::after { transform: translateX(16px); }
+
+    /* Task item */
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--fuse-border);
+    }
+    .task-item:last-child { border-bottom: none; }
+
+    /* Report card */
+    .report-card {
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--fuse-border);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .report-card:hover {
+      border-color: rgba(59,130,246,0.3);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    /* Panel card */
+    .panel-card {
+      background: var(--fuse-surface2);
+      border: 1px solid var(--fuse-border);
+      border-radius: 12px;
+      transition: all 0.2s;
+    }
+    .panel-card:hover {
+      border-color: rgba(59,130,246,0.25);
+      box-shadow: 0 0 0 3px var(--fuse-accent-light);
+    }
+
+    /* Fuse nav item */
+    .fuse-nav-item {
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--fuse-text2);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .fuse-nav-item:hover { background: var(--fuse-accent-light); color: var(--fuse-text); }
+    .fuse-nav-item.active {
+      background: var(--fuse-accent-light);
+      color: var(--fuse-accent2);
+      font-weight: 500;
+    }
+
+    /* Status pill */
+    .status-pill {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: rgba(52,211,153,0.1);
+      color: var(--fuse-success);
+    }
+    .status-pill::before {
+      content: '';
+      display: inline-block;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--fuse-success);
+      margin-right: 4px;
+      animation: blink 2s infinite;
+    }
+
+    /* Fuse badge */
+    .fuse-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    /* Skill tag */
+    .skill-tag {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(59,130,246,0.1);
+      color: var(--fuse-accent2);
+      border: 1px solid rgba(59,130,246,0.2);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .skill-tag:hover { background: rgba(59,130,246,0.18); border-color: var(--fuse-accent); }
+
+    /* Fuse button */
+    .fuse-btn-primary {
+      background: var(--fuse-accent);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .fuse-btn-primary:hover { background: var(--fuse-accent2); box-shadow: 0 4px 12px var(--fuse-accent-glow); transform: translateY(-1px); }
+    .fuse-btn-ghost {
+      background: transparent;
+      color: var(--fuse-text2);
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      border: 1px solid var(--fuse-border2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .fuse-btn-ghost:hover { border-color: var(--fuse-accent); color: var(--fuse-accent); background: var(--fuse-accent-light); }
+
+    /* Fuse msg bubbles */
+    .fuse-msg-user {
+      background: var(--fuse-accent);
+      color: white;
+      border-radius: 18px 18px 6px 18px;
+      padding: 10px 14px;
+      font-size: 14px;
+      max-width: 70%;
+      margin-left: auto;
+      line-height: 1.55;
+    }
+    .fuse-msg-ai {
+      background: var(--fuse-surface2);
+      border: 1px solid var(--fuse-border);
+      border-radius: 18px 18px 18px 6px;
+      padding: 10px 14px;
+      font-size: 14px;
+      max-width: 70%;
+      line-height: 1.6;
+    }
+    .fuse-msg-time { font-size: 10px; color: var(--fuse-muted); margin-top: 4px; }
+
     /* ===== RESET & BASE ===== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -1183,68 +1489,127 @@
               </div>
             </template>
 
-            <!-- ==================== CHAT PAGE ==================== -->
+            <!-- ==================== CHAT PAGE (Fusion 003) ==================== -->
             <template x-if="currentPage === 'chat'">
               <div class="flex gap-4 h-[calc(100vh-8rem)] page-enter">
 
-                <!-- Left: Employee List (compact) -->
-                <div class="w-56 shrink-0 hidden md:block">
-                  <div class="glass rounded-xl p-3 h-full overflow-y-auto">
-                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-2">
-                      <i class="fas fa-users mr-1.5"></i>数字员工
-                    </h3>
-                    <div class="space-y-1.5">
+                <!-- === LEFT SIDEBAR (compact employee list) === -->
+                <div class="w-56 shrink-0 hidden md:flex flex-col rounded-xl overflow-hidden" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
+                  <!-- Logo -->
+                  <div class="px-4 py-4 border-b flex items-center gap-3" style="border-color: var(--fuse-border);">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2));">
+                      <i class="fas fa-brain text-white text-sm"></i>
+                    </div>
+                    <div>
+                      <div class="text-sm font-semibold" style="color: var(--fuse-text);">百应智星</div>
+                      <div class="text-[10px]" style="color: var(--fuse-muted);">AI 数字员工平台</div>
+                    </div>
+                  </div>
+
+                  <!-- Nav -->
+                  <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+                    <div class="text-[10px] uppercase tracking-wider mb-2 px-3" style="color: var(--fuse-muted); font-weight: 600;">核心功能</div>
+                    <div class="fuse-nav-item active">
+                      <i class="fas fa-comment-dots w-4 text-center text-xs"></i>
+                      <span>专家对话</span>
+                    </div>
+                    <div class="fuse-nav-item" @click="switchPage('reports')">
+                      <i class="fas fa-chart-pie w-4 text-center text-xs"></i>
+                      <span>战略报告</span>
+                    </div>
+
+                    <div class="text-[10px] uppercase tracking-wider mb-2 mt-5 px-3" style="color: var(--fuse-muted); font-weight: 600;">数字员工</div>
+                    <div class="space-y-0.5">
                       <template x-for="emp in employees" :key="emp.id">
                         <div @click="selectEmployee(emp)"
-                             class="flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200"
-                             :class="selectedEmployee?.id === emp.id
-                               ? 'bg-violet-500/15 border border-violet-500/20'
-                               : 'hover:bg-white/5 border border-transparent'">
-                          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-violet-500/20 flex items-center justify-center shrink-0">
-                            <i class="fas fa-robot text-xs text-violet-400"></i>
+                             class="fuse-nav-item"
+                             :class="selectedEmployee?.id === emp.id ? 'active' : ''">
+                          <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold" style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2)); color: white; font-size: 8px;">
+                            <span x-text="(emp.name || '智').charAt(0)"></span>
                           </div>
-                          <div class="min-w-0">
-                            <p class="text-sm font-medium text-gray-200 truncate" x-text="emp.name"></p>
-                            <p class="text-xs text-gray-500 truncate" x-text="emp.category || '通用'"></p>
-                          </div>
+                          <span style="font-size: 12px;" x-text="emp.name || '未知员工'"></span>
                         </div>
                       </template>
+                    </div>
+                  </nav>
+
+                  <!-- Status -->
+                  <div class="px-4 py-3 border-t" style="border-color: var(--fuse-border);">
+                    <div class="flex items-center gap-2">
+                      <span class="status-pill">在线</span>
+                      <span class="text-[11px]" style="color: var(--fuse-muted);">全部服务正常</span>
                     </div>
                   </div>
                 </div>
 
-                <!-- Right: Chat Area -->
-                <div class="flex-1 flex flex-col glass rounded-xl overflow-hidden">
-                  <!-- Chat Header -->
-                  <div class="px-5 py-3 border-b border-white/5 flex items-center justify-between shrink-0">
+                <!-- === CENTER CHAT PANEL === -->
+                <div class="flex-1 flex flex-col rounded-xl overflow-hidden" style="background: var(--fuse-bg); border: 1px solid var(--fuse-border);">
+
+                  <!-- Top Bar -->
+                  <header class="h-13 flex items-center justify-between px-5 border-b shrink-0" style="background: var(--fuse-surface); border-color: var(--fuse-border);">
                     <div class="flex items-center gap-3">
-                      <template x-if="selectedEmployee">
-                        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500/20 to-violet-500/20 flex items-center justify-center">
-                          <i class="fas fa-robot text-sm text-violet-400"></i>
-                        </div>
-                      </template>
-                      <div>
-                        <p class="text-sm font-semibold text-gray-200" x-text="selectedEmployee?.name || '选择一位数字员工'"></p>
-                        <p class="text-xs text-gray-500">
-                          <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-1.5"></span>
-                          <span x-text="selectedEmployee ? '在线 · 准备就绪' : '请从左侧选择一个员工'"></span>
-                        </p>
+                      <h1 class="text-sm font-semibold" style="color: var(--fuse-text);">专家对话</h1>
+                      <span class="fuse-badge" style="background: rgba(59,130,246,0.12); color: var(--fuse-accent2);">
+                        <i class="fas fa-shield-check text-[10px] mr-1"></i>企业版
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button @click="showHistoryModal = true; loadChatHistory()" class="fuse-btn-ghost text-xs">
+                        <i class="fas fa-history text-xs"></i> 历史
+                      </button>
+                      <button @click="showZhiWenSettingsModal = true; zhiWenSettingsTab = 'topics'" class="fuse-btn-ghost text-xs">
+                        <i class="fas fa-gear text-xs"></i> 设置
+                      </button>
+                      <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold" style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2)); color: white;" x-text="(user?.username || 'U').charAt(0).toUpperCase()">
                       </div>
                     </div>
-                    <button @click="clearChat" class="text-gray-500 hover:text-gray-300 transition text-sm">
-                      <i class="fas fa-rotate-right"></i>
-                    </button>
+                  </header>
+
+                  <!-- Expert Selector -->
+                  <div class="px-5 py-3 border-b flex items-center gap-3" style="background: var(--fuse-surface); border-color: var(--fuse-border);">
+                    <span class="text-[11px]" style="color: var(--fuse-muted);">当前专家：</span>
+
+                    <!-- Horizontal expert cards -->
+                    <template x-if="expertCards.length > 0">
+                      <div class="flex items-center gap-2 flex-wrap flex-1">
+                        <template x-for="card in expertCards" :key="card.id">
+                          <div class="expert-card" :class="card.selected ? 'selected' : ''" @click="selectEmployee(employees.find(e => e.id === card.id))">
+                            <div class="expert-avatar" style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2));">
+                              <template x-if="card.avatar && card.avatar.startsWith('http')">
+                                <img :src="card.avatar" class="w-full h-full rounded-full object-cover" />
+                              </template>
+                              <template x-if="!card.avatar || !card.avatar.startsWith('http')">
+                                <i class="fas fa-brain text-white text-xs"></i>
+                              </template>
+                            </div>
+                            <div class="expert-info">
+                              <div class="expert-name" x-text="card.name"></div>
+                              <div class="expert-desc" x-text="card.desc"></div>
+                            </div>
+                            <i class="fas fa-chevron-down text-[10px]" style="color: var(--fuse-muted);"></i>
+                          </div>
+                        </template>
+                      </div>
+                    </template>
+                    <template x-if="expertCards.length === 0">
+                      <div class="text-xs" style="color: var(--fuse-muted);">加载中...</div>
+                    </template>
+
+                    <div class="flex items-center gap-2 ml-auto">
+                      <span class="status-pill">在线</span>
+                    </div>
                   </div>
 
                   <!-- Messages -->
                   <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4" x-ref="chatMessages">
+
                     <!-- Welcome message -->
                     <template x-if="!selectedEmployee">
                       <div class="flex flex-col items-center justify-center h-full text-center py-16">
                         <div class="text-5xl mb-4 opacity-30">
                           <i class="fas fa-comment-dots text-gradient"></i>
                         </div>
-                        <p class="text-gray-400 text-sm">请从左侧选择一个数字员工开始对话</p>
+                        <p class="text-sm" style="color: var(--fuse-muted);">请从左侧选择一个数字员工开始对话</p>
                       </div>
                     </template>
 
@@ -1252,7 +1617,7 @@
                       <div class="flex items-center justify-center h-full text-center py-16">
                         <div class="text-center">
                           <div class="spinner-ring mx-auto mb-4" style="width:30px;height:30px;border-width:2px;"></div>
-                          <p class="text-gray-400 text-sm">正在初始化与 <span x-text="selectedEmployee?.name" class="text-violet-400"></span> 的对话...</p>
+                          <p class="text-sm" style="color: var(--fuse-muted);">正在初始化与 <span x-text="selectedEmployee?.name" class="text-violet-400"></span> 的对话...</p>
                         </div>
                       </div>
                     </template>
@@ -1260,17 +1625,15 @@
                     <template x-for="(msg, idx) in messages" :key="idx">
                       <div>
                         <!-- User Message -->
-                        <div x-show="msg.role === 'user'"
-                             class="chat-user px-4 py-3 text-sm text-gray-100 leading-relaxed mb-3">
+                        <div x-show="msg.role === 'user'" class="fuse-msg-user px-4 py-3 text-sm text-white leading-relaxed mb-3">
                           <p x-text="msg.content"></p>
                         </div>
 
                         <!-- AI Message -->
-                        <div x-show="msg.role === 'assistant'"
-                             class="chat-ai px-4 py-3 text-sm text-gray-200 leading-relaxed mb-3">
+                        <div x-show="msg.role === 'assistant'" class="fuse-msg-ai px-4 py-3 text-sm leading-relaxed mb-3" style="color: var(--fuse-text);">
                           <div class="flex items-start gap-2">
-                            <div class="w-6 h-6 rounded-md bg-gradient-to-br from-blue-500/20 to-violet-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                              <i class="fas fa-robot text-[10px] text-violet-400"></i>
+                            <div class="w-6 h-6 rounded-md flex items-center justify-center shrink-0 mt-0.5" style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2));">
+                              <i class="fas fa-robot text-[10px] text-white"></i>
                             </div>
                             <div class="min-w-0 flex-1">
                               <!-- Streaming content with typing cursor -->
@@ -1283,9 +1646,9 @@
                               </div>
                               <!-- Skills used badge -->
                               <template x-if="msg.skills_used && msg.skills_used.length > 0">
-                                <div class="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-white/5">
+                                <div class="flex flex-wrap gap-1.5 mt-2 pt-2 border-t" style="border-color: var(--fuse-border);">
                                   <template x-for="skill in msg.skills_used" :key="skill">
-                                    <span class="skill-badge skill-badge-cyan">
+                                    <span class="skill-tag">
                                       <i class="fas fa-bolt text-[9px]"></i>
                                       <span x-text="skill"></span>
                                     </span>
@@ -1299,36 +1662,167 @@
                     </template>
 
                     <!-- Thinking indicator -->
-                    <div x-show="isStreaming && messages.length === 0" class="chat-ai px-4 py-3">
+                    <div x-show="isStreaming && messages.length === 0" class="fuse-msg-ai px-4 py-3">
                       <div class="flex items-center gap-3">
                         <div class="spinner-ring"></div>
-                        <span class="text-sm text-gray-400">正在思考...</span>
+                        <span class="text-sm" style="color: var(--fuse-muted);">正在思考...</span>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Input Area -->
-                  <div class="px-5 py-3 border-t border-white/5 shrink-0">
-                    <div class="flex items-center gap-3">
-                      <div class="flex-1 relative">
-                        <input type="text"
-                               x-model="chatInput"
-                               @keydown.enter.prevent="sendMessage"
-                               :disabled="!selectedEmployee || isStreaming"
-                               class="input-glow w-full px-4 py-2.5 pr-10 rounded-xl text-sm"
-                               :placeholder="selectedEmployee ? `向 ${selectedEmployee.name} 发送消息...` : '请先选择一位数字员工'" />
-                        <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">
-                          <i class="fas fa-arrow-up"></i>
-                        </div>
-                      </div>
-                      <button @click="sendMessage"
-                              :disabled="!selectedEmployee || isStreaming || !chatInput.trim()"
-                              class="btn-gradient w-10 h-10 rounded-xl flex items-center justify-center text-white disabled:opacity-30 btn-ripple shrink-0">
-                        <i class="fas fa-paper-plane text-sm"></i>
+                  <!-- Quick Pills + Input -->
+                  <div class="px-5 py-3 border-t" style="background: var(--fuse-surface); border-color: var(--fuse-border);">
+                    <!-- Quick pills -->
+                    <div class="flex flex-wrap gap-2 mb-3">
+                      <template x-for="pill in quickPills" :key="pill.action">
+                        <button class="quick-pill" @click="addQuickMsg(pill.action)">
+                          <i :class="'fas fa-' + pill.icon + ' text-[10px]'"></i>
+                          <span x-text="pill.label"></span>
+                        </button>
+                      </template>
+                    </div>
+                    <!-- Capsule input + circular send -->
+                    <div class="flex items-end gap-2">
+                      <textarea
+                        class="input-area flex-1"
+                        x-model="chatInput"
+                        @keydown.enter.prevent="sendMessage"
+                        :disabled="!selectedEmployee || isStreaming"
+                        :placeholder="selectedEmployee ? `向 ${selectedEmployee.name} 发送消息...` : '请先选择一位数字员工'"
+                        rows="1"
+                      ></textarea>
+                      <button class="send-btn" @click="sendMessage" :disabled="!selectedEmployee || isStreaming || !chatInput.trim()">
+                        <i class="fas fa-paper-plane text-xs"></i>
                       </button>
                     </div>
                   </div>
                 </div>
+
+                <!-- === RIGHT PANEL (Automation + Reports) === -->
+                <div class="w-80 shrink-0 flex flex-col overflow-hidden rounded-xl" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
+
+                  <!-- Tabs -->
+                  <div class="flex border-b" style="border-color: var(--fuse-border);">
+                    <button class="flex-1 py-3 text-xs font-medium border-b-2 transition-all"
+                            :style="rightPanelTab === 'auto' ? 'color: var(--fuse-accent2); border-color: var(--fuse-accent);' : 'color: var(--fuse-muted); border-color: transparent;'"
+                            @click="switchRightPanel('auto')">
+                      <i class="fas fa-sliders-h text-[10px] mr-1"></i>自动化
+                    </button>
+                    <button class="flex-1 py-3 text-xs font-medium border-b-2 transition-all"
+                            :style="rightPanelTab === 'reports' ? 'color: var(--fuse-accent2); border-color: var(--fuse-accent);' : 'color: var(--fuse-muted); border-color: transparent;'"
+                            @click="switchRightPanel('reports')">
+                      <i class="fas fa-file-alt text-[10px] mr-1"></i>报告
+                    </button>
+                  </div>
+
+                  <!-- === AUTO PANEL === -->
+                  <div class="flex-1 overflow-y-auto px-4 py-3" x-show="rightPanelTab === 'auto'">
+
+                    <!-- Group: 内容采集 -->
+                    <div class="mb-4">
+                      <div class="text-[10px] uppercase tracking-wider mb-2" style="color: var(--fuse-muted); font-weight: 600;">内容采集</div>
+                      <template x-for="task in automationTasks.filter(t => ['news','policy'].includes(t.id))" :key="task.id">
+                        <div class="task-item">
+                          <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                               :style="'background: ' + (task.color === 'blue' ? 'rgba(59,130,246,0.12)' : 'rgba(52,211,153,0.1)') + ';'">
+                            <i class="fas fa-rss text-xs" :style="'color: ' + (task.color === 'blue' ? 'var(--fuse-accent)' : 'var(--fuse-success)') + ';'"></i>
+                          </div>
+                          <div class="flex-1 min-w-0">
+                            <div class="text-[13px] font-medium" style="color: var(--fuse-text);" x-text="task.title"></div>
+                            <div class="text-[10px]" style="color: var(--fuse-muted);" x-text="task.desc"></div>
+                          </div>
+                          <div class="fuse-toggle" :class="task.enabled ? 'on' : ''" @click="toggleTask(task.id)"></div>
+                        </div>
+                      </template>
+                    </div>
+
+                    <!-- Group: 报告生成 -->
+                    <div class="mb-4">
+                      <div class="text-[10px] uppercase tracking-wider mb-2" style="color: var(--fuse-muted); font-weight: 600;">报告生成</div>
+                      <template x-for="task in automationTasks.filter(t => ['daily','weekly','monthly'].includes(t.id))" :key="task.id">
+                        <div class="task-item">
+                          <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                               :style="'background: ' + (task.color === 'amber' ? 'rgba(251,191,36,0.1)' : task.color === 'indigo' ? 'rgba(129,140,248,0.1)' : 'rgba(248,113,113,0.1)') + ';'">
+                            <i class="fas fa-file-alt text-xs" :style="'color: ' + (task.color === 'amber' ? 'var(--fuse-warning)' : task.color === 'indigo' ? '#818cf8' : 'var(--fuse-danger)') + ';'"></i>
+                          </div>
+                          <div class="flex-1 min-w-0">
+                            <div class="text-[13px] font-medium" style="color: var(--fuse-text);" x-text="task.title"></div>
+                            <div class="text-[10px]" style="color: var(--fuse-muted);" x-text="task.desc"></div>
+                          </div>
+                          <div class="fuse-toggle" :class="task.enabled ? 'on' : ''" @click="toggleTask(task.id)"></div>
+                        </div>
+                      </template>
+                    </div>
+
+                    <!-- Group: 推送渠道 -->
+                    <div class="mb-4">
+                      <div class="text-[10px] uppercase tracking-wider mb-2" style="color: var(--fuse-muted); font-weight: 600;">推送渠道</div>
+                      <template x-for="task in automationTasks.filter(t => ['feishu','email'].includes(t.id))" :key="task.id">
+                        <div class="task-item">
+                          <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                               :style="'background: ' + (task.color === 'blue' ? 'rgba(59,130,246,0.1)' : 'rgba(52,211,153,0.1)') + ';'">
+                            <i class="fas fa-envelope text-xs" :style="'color: ' + (task.color === 'blue' ? 'var(--fuse-accent)' : 'var(--fuse-success)') + ';'"></i>
+                          </div>
+                          <div class="flex-1 min-w-0">
+                            <div class="text-[13px] font-medium" style="color: var(--fuse-text);" x-text="task.title"></div>
+                            <div class="text-[10px]" style="color: var(--fuse-muted);" x-text="task.desc"></div>
+                          </div>
+                          <div class="fuse-toggle" :class="task.enabled ? 'on' : ''" @click="toggleTask(task.id)"></div>
+                        </div>
+                      </template>
+                    </div>
+
+                    <!-- Recent Runs -->
+                    <div>
+                      <div class="text-[10px] uppercase tracking-wider mb-2" style="color: var(--fuse-muted); font-weight: 600;">最近执行</div>
+                      <div class="space-y-2">
+                        <div class="flex items-center gap-2 text-[11px]" style="color: var(--fuse-muted);">
+                          <i class="fas fa-check-circle text-[10px]" style="color: var(--fuse-success);"></i>
+                          行业新闻采集 · 10分钟前
+                        </div>
+                        <div class="flex items-center gap-2 text-[11px]" style="color: var(--fuse-muted);">
+                          <i class="fas fa-check-circle text-[10px]" style="color: var(--fuse-success);"></i>
+                          每日简报生成 · 2小时前
+                        </div>
+                        <div class="flex items-center gap-2 text-[11px]" style="color: var(--fuse-muted);">
+                          <i class="fas fa-check-circle text-[10px]" style="color: var(--fuse-success);"></i>
+                          政策动态推送 · 今日 9:00
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- === REPORTS PANEL === -->
+                  <div class="flex-1 overflow-y-auto px-4 py-3" x-show="rightPanelTab === 'reports'">
+                    <div class="space-y-3">
+                      <template x-if="reports.length === 0">
+                        <div class="text-center py-8">
+                          <div class="text-3xl mb-3 opacity-30"><i class="fas fa-file-lines text-gradient"></i></div>
+                          <p class="text-xs" style="color: var(--fuse-muted);">暂无报告</p>
+                        </div>
+                      </template>
+                      <template x-for="report in reports.slice(0, 8)" :key="report.id">
+                        <div class="report-card" @click="switchPage('reports')">
+                          <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background: rgba(59,130,246,0.12);">
+                            <i class="fas fa-chart-pie text-xs" style="color: var(--fuse-accent);"></i>
+                          </div>
+                          <div class="flex-1 min-w-0">
+                            <div class="text-[13px] font-medium truncate" style="color: var(--fuse-text);" x-text="report.title || '无标题报告'"></div>
+                            <div class="text-[10px]" style="color: var(--fuse-muted);" x-text="report.created_at ? new Date(report.created_at).toLocaleDateString('zh-CN') : ''"></div>
+                          </div>
+                          <i class="fas fa-chevron-right text-[10px]" style="color: var(--fuse-muted);"></i>
+                        </div>
+                      </template>
+                      <div class="text-center pt-3">
+                        <button class="fuse-btn-primary text-xs" @click="switchPage('reports')">
+                          <i class="fas fa-plus text-[10px]"></i>查看全部报告
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                </div><!-- end right panel -->
+
               </div>
             </template>
 
@@ -1602,6 +2096,290 @@
     </template>
 
     <!-- ============================================================== -->
+    <!-- CHAT HISTORY MODAL                                              -->
+    <!-- ============================================================== -->
+    <div x-show="showHistoryModal"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed inset-0 z-50 flex items-center justify-center"
+         @click.self="showHistoryModal = false">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div class="relative glass rounded-2xl p-6 w-full max-w-md mx-4 max-h-[70vh] flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-white">
+            <i class="fas fa-history mr-2 text-violet-400"></i>对话历史
+          </h3>
+          <button @click="showHistoryModal = false" class="text-gray-400 hover:text-white transition">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Search -->
+        <div class="relative mb-4">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input type="text" x-model="chatHistorySearch" placeholder="搜索对话记录..."
+                 class="w-full pl-9 pr-4 py-2 rounded-lg text-sm bg-white/5 border border-white/10 text-gray-200 focus:border-violet-500/50 placeholder-gray-500" />
+        </div>
+
+        <!-- Conversation list -->
+        <div class="flex-1 overflow-y-auto space-y-2 min-h-0">
+          <template x-if="chatHistory.length === 0 && !chatHistoryLoading">
+            <div class="text-center py-10 text-gray-500 text-sm">
+              <i class="fas fa-inbox text-2xl mb-2 opacity-40"></i>
+              <p>暂无对话记录</p>
+            </div>
+          </template>
+          <template x-if="chatHistoryLoading">
+            <div class="text-center py-10">
+              <div class="spinner-ring mx-auto mb-3" style="width:28px;height:28px;border-width:2px;"></div>
+              <p class="text-gray-500 text-xs">加载中...</p>
+            </div>
+          </template>
+          <template x-for="conv in filteredChatHistory" :key="conv.id">
+            <div @click="openConversation(conv)"
+                 class="p-3 rounded-xl bg-white/5 border border-white/8 hover:bg-white/10 hover:border-violet-500/30 cursor-pointer transition group">
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs shrink-0"
+                     style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2));">
+                  <i class="fas fa-brain text-white text-[10px]"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs font-medium text-gray-200" x-text="getEmployeeName(conv.employee_id)"></span>
+                    <span class="text-[10px] text-gray-500" x-text="formatConvTime(conv.updated_at)"></span>
+                  </div>
+                  <p class="text-[11px] text-gray-400 truncate" x-text="getLastMessage(conv)"></p>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- ZHIWEN SETTINGS MODAL                                           -->
+    <!-- ============================================================== -->
+    <div x-show="showZhiWenSettingsModal"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed inset-0 z-50 flex items-center justify-center"
+         @click.self="showZhiWenSettingsModal = false">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div class="relative glass rounded-2xl p-6 w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-lg font-bold text-white">
+            <i class="fas fa-sliders mr-2 text-violet-400"></i>智闻设置
+          </h3>
+          <button @click="showZhiWenSettingsModal = false" class="text-gray-400 hover:text-white transition">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex items-center gap-1 mb-5 p-1 rounded-lg bg-white/5">
+          <button @click="zhiWenSettingsTab = 'topics'"
+                  class="flex-1 py-2 px-4 rounded-md text-xs font-medium transition"
+                  :class="zhiWenSettingsTab === 'topics' ? 'bg-violet-500/20 text-violet-400' : 'text-gray-400 hover:text-gray-200'">
+            <i class="fas fa-tag mr-1.5"></i>主题配置
+          </button>
+          <button @click="zhiWenSettingsTab = 'push'"
+                  class="flex-1 py-2 px-4 rounded-md text-xs font-medium transition"
+                  :class="zhiWenSettingsTab === 'push' ? 'bg-violet-500/20 text-violet-400' : 'text-gray-400 hover:text-gray-200'">
+            <i class="fas fa-bell mr-1.5"></i>推送设置
+          </button>
+        </div>
+
+        <!-- Topic Config Tab -->
+        <div x-show="zhiWenSettingsTab === 'topics'" class="flex-1 overflow-y-auto space-y-3 min-h-0">
+          <!-- Topic list -->
+          <template x-if="topics.length === 0">
+            <div class="text-center py-8 text-gray-500 text-sm">
+              <i class="fas fa-layer-group text-2xl mb-2 opacity-40"></i>
+              <p>暂无主题，请新建</p>
+            </div>
+          </template>
+          <template x-for="topic in topics" :key="topic.id">
+            <div class="p-4 rounded-xl bg-white/5 border border-white/8 hover:border-violet-500/20 transition">
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <h4 class="text-sm font-semibold text-gray-200" x-text="topic.name"></h4>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20" x-text="topic.category"></span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" x-text="topic.push_cycle"></span>
+                  </div>
+                </div>
+                <label class="flex items-center gap-2 cursor-pointer shrink-0">
+                  <input type="checkbox" x-model="topic.is_active" @change="saveTopic(topic)"
+                         class="w-4 h-4 rounded accent-violet-500" />
+                  <span class="text-[10px] text-gray-400">启用</span>
+                </label>
+              </div>
+
+              <!-- Cycle & Time row -->
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[10px] font-medium text-gray-500 mb-1">自动整理周期</label>
+                  <select x-model="topic.push_cycle" @change="saveTopic(topic)"
+                          class="w-full px-2 py-1.5 rounded-lg text-xs bg-white/5 border border-white/10 text-gray-300 focus:border-violet-500/50">
+                    <option value="daily">每日</option>
+                    <option value="weekly">每周</option>
+                    <option value="monthly">每月</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-medium text-gray-500 mb-1">推送时间</label>
+                  <input type="time" x-model="topic.push_time" @change="saveTopic(topic)"
+                         class="w-full px-2 py-1.5 rounded-lg text-xs bg-white/5 border border-white/10 text-gray-300 focus:border-violet-500/50" />
+                </div>
+              </div>
+
+              <!-- Keywords -->
+              <div class="mt-2">
+                <label class="block text-[10px] font-medium text-gray-500 mb-1">关键词</label>
+                <div class="flex flex-wrap gap-1">
+                  <template x-for="kw in (topic.keywords || []).slice(0, 5)" :key="kw">
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-gray-400" x-text="kw"></span>
+                  </template>
+                  <span x-show="(topic.keywords || []).length > 5" class="text-[10px] text-gray-500" x-text="'...' + (topic.keywords || []).length + '个'"></span>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- New Topic button -->
+          <button @click="showNewTopicModal = true"
+                  class="w-full py-3 rounded-xl border border-dashed border-white/15 text-gray-400 hover:text-gray-200 hover:border-violet-500/30 transition text-xs flex items-center justify-center gap-2">
+            <i class="fas fa-plus"></i>新建主题
+          </button>
+        </div>
+
+        <!-- Push Settings Tab (reuse existing form) -->
+        <div x-show="zhiWenSettingsTab === 'push'" class="flex-1 overflow-y-auto space-y-4 min-h-0">
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5">选择主题</label>
+            <select x-model="selectedPushTopic"
+                    @change="applyPushConfigToForm"
+                    class="input-glow w-full px-3 py-2.5 rounded-lg text-sm bg-white/5 border border-white/10 text-gray-200 focus:border-violet-500/50">
+              <option value="">-- 选择主题 --</option>
+              <template x-for="topic in topics" :key="topic.id">
+                <option :value="topic.id" x-text="topic.name"></option>
+              </template>
+            </select>
+          </div>
+
+          <template x-if="selectedPushTopic">
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1.5">飞书群 Chat ID</label>
+                <input type="text" x-model="pushConfigForm.feishu_chat_id"
+                       placeholder="oc_xxxxxx 或 chat_xxxxxx"
+                       class="input-glow w-full px-3 py-2.5 rounded-lg text-sm bg-white/5 border border-white/10 text-gray-200 focus:border-violet-500/50" />
+                <p class="text-[10px] text-gray-500 mt-1">在飞书群设置中复制群 ID</p>
+              </div>
+              <div class="flex items-center gap-3">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" x-model="pushConfigForm.feishu_push_enabled"
+                         class="w-4 h-4 rounded accent-violet-500" />
+                  <span class="text-sm text-gray-300">启用飞书推送</span>
+                </label>
+              </div>
+            </div>
+          </template>
+
+          <template x-if="!selectedPushTopic">
+            <div class="text-center py-6 text-gray-500 text-sm">
+              请先选择一个主题
+            </div>
+          </template>
+
+          <div class="flex items-center gap-3 mt-4 pt-3 border-t border-white/8">
+            <button @click="showZhiWenSettingsModal = false"
+                    class="flex-1 py-2.5 rounded-lg text-sm text-gray-400 border border-white/10 hover:bg-white/5 transition">
+              取消
+            </button>
+            <button @click="savePushConfig"
+                    :disabled="!selectedPushTopic"
+                    class="flex-1 btn-gradient py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-40 btn-ripple">
+              <i class="fas fa-save mr-1.5 text-xs"></i>保存设置
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- NEW TOPIC MODAL                                                 -->
+    <!-- ============================================================== -->
+    <div x-show="showNewTopicModal"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed inset-0 z-50 flex items-center justify-center"
+         @click.self="showNewTopicModal = false">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div class="relative glass rounded-2xl p-6 w-full max-w-md mx-4">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-lg font-bold text-white">
+            <i class="fas fa-plus mr-2 text-violet-400"></i>新建主题
+          </h3>
+          <button @click="showNewTopicModal = false" class="text-gray-400 hover:text-white transition">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5">主题名称</label>
+            <input type="text" x-model="newTopicForm.name"
+                   placeholder="如：新能源汽车行业动态"
+                   class="input-glow w-full px-3 py-2.5 rounded-lg text-sm bg-white/5 border border-white/10 text-gray-200 focus:border-violet-500/50" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5">分类</label>
+            <input type="text" x-model="newTopicForm.category"
+                   placeholder="如：新能源、科技、宏观经济"
+                   class="input-glow w-full px-3 py-2.5 rounded-lg text-sm bg-white/5 border border-white/10 text-gray-200 focus:border-violet-500/50" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-1.5">关键词（用英文逗号分隔）</label>
+            <input type="text" x-model="newTopicForm.keywords"
+                   placeholder="如：特斯拉, 比亚迪, 宁德时代, 锂电池"
+                   class="input-glow w-full px-3 py-2.5 rounded-lg text-sm bg-white/5 border border-white/10 text-gray-200 focus:border-violet-500/50" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-1.5">自动整理周期</label>
+              <select x-model="newTopicForm.push_cycle"
+                      class="input-glow w-full px-3 py-2.5 rounded-lg text-sm bg-white/5 border border-white/10 text-gray-200 focus:border-violet-500/50">
+                <option value="daily">每日</option>
+                <option value="weekly">每周</option>
+                <option value="monthly">每月</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-1.5">推送时间</label>
+              <input type="time" x-model="newTopicForm.push_time"
+                     class="input-glow w-full px-3 py-2.5 rounded-lg text-sm bg-white/5 border border-white/10 text-gray-200 focus:border-violet-500/50" />
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 mt-6">
+          <button @click="showNewTopicModal = false"
+                  class="flex-1 py-2.5 rounded-lg text-sm text-gray-400 border border-white/10 hover:bg-white/5 transition">
+            取消
+          </button>
+          <button @click="createTopic"
+                  :disabled="!newTopicForm.name || !newTopicForm.category || !newTopicForm.keywords"
+                  class="flex-1 btn-gradient py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-40 btn-ripple">
+            <i class="fas fa-check mr-1.5 text-xs"></i>创建
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
     <!-- TOAST NOTIFICATION                                              -->
     <!-- ============================================================== -->
     <div x-show="toast.show"
@@ -1670,6 +2448,70 @@
         showPushConfigModal: false,
         selectedPushTopic: '',
         pushConfigForm: { feishu_chat_id: '', feishu_push_enabled: false },
+
+        // ---- Chat History ----
+        showHistoryModal: false,
+        chatHistory: [],
+        chatHistoryLoading: false,
+        chatHistorySearch: '',
+
+        // ---- ZhiWen Settings ----
+        showZhiWenSettingsModal: false,
+        zhiWenSettingsTab: 'topics',  // 'topics' | 'push'
+
+        // ---- New Topic ----
+        showNewTopicModal: false,
+        newTopicForm: { name: '', category: '', keywords: '', push_cycle: 'daily', push_time: '08:30' },
+
+        // ---- Fusion 003: Right Panel ----
+        rightPanelTab: 'auto',  // 'auto' | 'reports'
+        automationTasks: [
+          { id: 'news', title: '行业新闻采集', desc: '每 2 小时 · 新能源赛道', icon: 'rss', color: 'blue', enabled: true },
+          { id: 'policy', title: '政策动态监控', desc: '每日 9:00 · 政府公告', icon: 'newspaper', color: 'emerald', enabled: true },
+          { id: 'daily', title: '每日行业简报', desc: '每日 8:30 · 自动推送', icon: 'file-alt', color: 'amber', enabled: true },
+          { id: 'weekly', title: '周度战略报告', desc: '每周一 9:00 · 深度分析', icon: 'chart-bar', color: 'indigo', enabled: false },
+          { id: 'monthly', title: '月度市场分析', desc: '每月最后一日 · 综合报告', icon: 'chart-line', color: 'red', enabled: false },
+          { id: 'feishu', title: '飞书群推送', desc: '报告生成后自动推送', icon: 'feishu', color: 'blue', enabled: true },
+          { id: 'email', title: '邮件通知', desc: '高管层 · 3 人', icon: 'envelope', color: 'emerald', enabled: false },
+        ],
+
+        // Expert cards for horizontal selector (derived from employees)
+        get expertCards() {
+          return this.employees.map(e => ({
+            id: e.id,
+            name: e.name || '未知专家',
+            desc: (e.skills || []).slice(0, 3).join(' · ') || e.category || '通用助手',
+            selected: this.selectedEmployee?.id === e.id,
+            avatar: e.avatar,
+          }));
+        },
+
+        // Quick pill actions
+        quickPills: [
+          { label: '生成报告', icon: 'chart-line', action: 'generate_report' },
+          { label: '竞品分析', icon: 'users', action: 'competitor_analysis' },
+          { label: '今日早报', icon: 'newspaper', action: 'morning_brief' },
+          { label: '任务状态', icon: 'list-check', action: 'task_status' },
+        ],
+
+        addQuickMsg(action) {
+          const map = {
+            generate_report: '帮我生成一份行业分析报告',
+            competitor_analysis: '帮我分析竞品动态',
+            morning_brief: '生成今日早报',
+            task_status: '查看任务执行状态',
+          };
+          this.chatInput = map[action] || '';
+        },
+
+        toggleTask(taskId) {
+          const task = this.automationTasks.find(t => t.id === taskId);
+          if (task) task.enabled = !task.enabled;
+        },
+
+        switchRightPanel(tab) {
+          this.rightPanelTab = tab;
+        },
 
         // ---- Toast ----
         toast: { show: false, message: '', type: 'info' },
@@ -2005,7 +2847,7 @@
         async loadReports() {
           this.reportsLoading = true;
           try {
-            const res = await fetch('/api/v1/reports/', {
+            const res = await fetch('/api/v1/reports', {
               headers: { 'Authorization': `Bearer ${this.token}` }
             });
             if (res.ok) this.reports = await res.json();
@@ -2018,7 +2860,7 @@
 
         async loadTopics() {
           try {
-            const res = await fetch('/api/v1/topics/', {
+            const res = await fetch('/api/v1/topics', {
               headers: { 'Authorization': `Bearer ${this.token}` }
             });
             if (res.ok) this.topics = await res.json();
@@ -2132,6 +2974,143 @@
             };
           } catch (e) {
             this.showToast(e.message || '保存失败', 'error');
+          }
+        },
+
+        // ================================================================
+        // CHAT HISTORY
+        // ================================================================
+        async loadChatHistory() {
+          this.chatHistoryLoading = true;
+          try {
+            const res = await fetch('/api/v1/chat/history', {
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) {
+              this.chatHistory = await res.json();
+            }
+          } catch (e) {
+            console.error('Failed to load chat history', e);
+          } finally {
+            this.chatHistoryLoading = false;
+          }
+        },
+
+        get filteredChatHistory() {
+          if (!this.chatHistorySearch) return this.chatHistory;
+          const q = this.chatHistorySearch.toLowerCase();
+          return this.chatHistory.filter(c => {
+            const empName = this.getEmployeeName(c.employee_id).toLowerCase();
+            const lastMsg = this.getLastMessage(c).toLowerCase();
+            return empName.includes(q) || lastMsg.includes(q);
+          });
+        },
+
+        getEmployeeName(employeeId) {
+          const emp = this.employees.find(e => e.id === employeeId);
+          return emp ? (emp.name || '未知专家') : '未知专家';
+        },
+
+        getLastMessage(conv) {
+          if (!conv.messages || conv.messages.length === 0) return '（空对话）';
+          const last = conv.messages[conv.messages.length - 1];
+          const prefix = last.role === 'user' ? '我：' : 'AI：';
+          return prefix + last.content.substring(0, 60);
+        },
+
+        formatConvTime(dateStr) {
+          if (!dateStr) return '';
+          const d = new Date(dateStr);
+          const now = new Date();
+          const diffMs = now - d;
+          const diffMin = Math.floor(diffMs / 60000);
+          const diffHr = Math.floor(diffMin / 60);
+          const diffDay = Math.floor(diffHr / 24);
+          if (diffMin < 1) return '刚刚';
+          if (diffMin < 60) return diffMin + '分钟前';
+          if (diffHr < 24) return diffHr + '小时前';
+          if (diffDay < 7) return diffDay + '天前';
+          return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+        },
+
+        openConversation(conv) {
+          // Find the employee
+          const emp = this.employees.find(e => e.id === conv.employee_id);
+          if (!emp) return;
+          this.selectedEmployee = emp;
+          this.currentConversationId = conv.id;
+          this.messages = (conv.messages || []).map(m => ({
+            role: m.role,
+            content: m.content,
+          }));
+          this.showHistoryModal = false;
+          this.switchPage('chat');
+        },
+
+        // ================================================================
+        // TOPIC MANAGEMENT
+        // ================================================================
+        async saveTopic(topic) {
+          try {
+            // push_time from HTML time input is "HH:MM" string, convert to time format
+            const pushTimeStr = typeof topic.push_time === 'string' && topic.push_time.includes(':')
+              ? topic.push_time
+              : (topic.push_time || '08:30');
+            const [h, m] = pushTimeStr.split(':').map(Number);
+            const res = await fetch(`/api/v1/topics/${topic.id}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+              },
+              body: JSON.stringify({
+                name: topic.name,
+                category: topic.category,
+                keywords: topic.keywords,
+                push_cycle: topic.push_cycle,
+                push_time: { hours: h, minutes: m },
+                is_active: topic.is_active,
+              })
+            });
+            if (!res.ok) {
+              const err = await res.json();
+              throw new Error(err.detail || '保存失败');
+            }
+            this.showToast('主题已保存', 'success');
+          } catch (e) {
+            this.showToast(e.message || '保存失败', 'error');
+          }
+        },
+
+        async createTopic() {
+          if (!this.newTopicForm.name || !this.newTopicForm.category || !this.newTopicForm.keywords) return;
+          try {
+            const kwList = this.newTopicForm.keywords.split(',').map(k => k.trim()).filter(k => k);
+            const [h, m] = this.newTopicForm.push_time.split(':').map(Number);
+            const res = await fetch('/api/v1/topics', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+              },
+              body: JSON.stringify({
+                name: this.newTopicForm.name,
+                category: this.newTopicForm.category,
+                keywords: kwList,
+                push_cycle: this.newTopicForm.push_cycle,
+                push_time: { hours: h, minutes: m },
+              })
+            });
+            if (!res.ok) {
+              const err = await res.json();
+              throw new Error(err.detail || '创建失败');
+            }
+            this.showToast('主题创建成功', 'success');
+            this.showNewTopicModal = false;
+            this.newTopicForm = { name: '', category: '', keywords: '', push_cycle: 'daily', push_time: '08:30' };
+            await this.loadTopics();
+          } catch (e) {
+            this.showToast(e.message || '创建失败', 'error');
           }
         },
 

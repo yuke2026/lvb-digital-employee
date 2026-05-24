@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>百应智星 - 专业工作台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f7f8fc;
+      --surface: #ffffff;
+      --surface2: #f4f5f8;
+      --border: #e5e7eb;
+      --text: #111827;
+      --text2: #374151;
+      --muted: #9ca3af;
+      --accent: #2563eb;
+      --accent2: #1d4ed8;
+      --accent-light: #eff6ff;
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .card-hover:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+    }
+    .nav-item {
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-item:hover { background: var(--surface2); }
+    .nav-item.active {
+      background: var(--accent-light);
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .emp-card {
+      padding: 14px;
+      border-radius: 12px;
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .emp-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(37,99,235,0.08); }
+    .emp-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+    }
+    .msg-user {
+      background: var(--accent);
+      color: white;
+      border-radius: 18px 18px 4px 18px;
+      padding: 10px 16px;
+      font-size: 14px;
+      max-width: 65%;
+      margin-left: auto;
+      line-height: 1.6;
+    }
+    .msg-ai {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px 18px 18px 4px;
+      padding: 12px 16px;
+      font-size: 14px;
+      max-width: 65%;
+      line-height: 1.7;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .input-area {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 24px;
+      padding: 12px 18px;
+      color: var(--text);
+      font-size: 14px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .input-area:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+    .pill {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 500;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pill.active {
+      background: var(--accent);
+      color: white;
+    }
+    .pill.default {
+      background: var(--surface);
+      color: var(--text2);
+      border-color: var(--border);
+    }
+    .pill.default:hover { border-color: var(--accent); color: var(--accent); }
+    .task-row {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .task-row:last-child { border-bottom: none; }
+    .switch {
+      width: 40px; height: 22px;
+      border-radius: 11px;
+      background: #d1d5db;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .switch.on { background: var(--success); }
+    .switch::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: white;
+      top: 3px; left: 3px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+      transition: transform 0.2s;
+    }
+    .switch.on::after { transform: translateX(18px); }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-in { animation: slideUp 0.25s ease forwards; }
+    .report-card {
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .report-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(37,99,235,0.08);
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+
+<div class="flex h-screen">
+
+  <!-- ==================== LEFT SIDEBAR ==================== -->
+  <aside class="w-56 flex-shrink-0 flex flex-col border-r" style="background: var(--surface); border-color: var(--border);">
+
+    <!-- Logo -->
+    <div class="px-4 py-4 border-b" style="border-color: var(--border);">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--accent);">
+          <i class="fas fa-brain text-white text-sm"></i>
+        </div>
+        <div>
+          <div class="text-sm font-bold" style="color: var(--text);">百应智星</div>
+          <div class="text-[10px]" style="color: var(--muted);">AI 数字员工</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 px-3 py-4 space-y-0.5">
+      <div class="text-[10px] uppercase tracking-wider mb-2 px-3" style="color: var(--muted);">工作区</div>
+      <div class="nav-item active">
+        <i class="fas fa-message-middle w-4 text-center text-sm"></i>
+        <span>对话</span>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-file-lines w-4 text-center text-sm"></i>
+        <span>报告</span>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-list-check w-4 text-center text-sm"></i>
+        <span>任务</span>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-folder w-4 text-center text-sm"></i>
+        <span>内容库</span>
+      </div>
+
+      <div class="text-[10px] uppercase tracking-wider mb-2 mt-5 px-3" style="color: var(--muted);">我的智能体</div>
+      <div class="space-y-0.5">
+        <div class="nav-item active">
+          <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style="background: var(--accent);">
+            <i class="fas fa-brain text-white text-[9px]"></i>
+          </div>
+          <span>智闻 · CEO顾问</span>
+        </div>
+        <div class="nav-item">
+          <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style="background: #f59e0b;">
+            <i class="fas fa-bullhorn text-white text-[9px]"></i>
+          </div>
+          <span>营销助手</span>
+        </div>
+        <div class="nav-item">
+          <div class="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style="background: #10b981;">
+            <i class="fas fa-headset text-white text-[9px]"></i>
+          </div>
+          <span>销售顾问</span>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <div class="text-[10px] uppercase tracking-wider mb-2 px-3" style="color: var(--muted);">设置</div>
+        <div class="nav-item">
+          <i class="fas fa-gear w-4 text-center text-sm"></i>
+          <span>偏好设置</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- User -->
+    <div class="px-4 py-3 border-t flex items-center gap-3" style="border-color: var(--border);">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white;">
+        陈
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-medium truncate" style="color: var(--text);">陈总</div>
+        <div class="text-[10px] truncate" style="color: var(--muted);">某科技公司</div>
+      </div>
+      <i class="fas fa-ellipsis-h text-xs" style="color: var(--muted);"></i>
+    </div>
+  </aside>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="flex-1 flex flex-col overflow-hidden" style="background: var(--bg);">
+
+    <!-- Top Bar -->
+    <header class="h-14 flex items-center justify-between px-6 border-b shrink-0" style="background: var(--surface); border-color: var(--border);">
+      <div class="flex items-center gap-3">
+        <h1 class="text-base font-semibold" style="color: var(--text);">专家对话</h1>
+        <span class="text-xs px-2 py-0.5 rounded-full font-medium" style="background: rgba(37,99,235,0.08); color: var(--accent);">
+          <i class="fas fa-shield-check text-[9px] mr-0.5"></i>企业版
+        </span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="text-xs px-3 py-1.5 rounded-lg border" style="border-color: var(--border); color: var(--text2);">
+          <i class="fas fa-arrow-up-right-from-square text-[10px] mr-1"></i>分享
+        </button>
+        <button class="text-xs px-3 py-1.5 rounded-lg border" style="border-color: var(--border); color: var(--text2);">
+          <i class="fas fa-gear text-[10px] mr-1"></i>配置
+        </button>
+      </div>
+    </header>
+
+    <!-- Body: Chat Area -->
+    <div class="flex-1 flex overflow-hidden">
+
+      <!-- Left: Expert Chat (65%) -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+
+        <!-- Expert Selector Bar -->
+        <div class="px-6 py-4 border-b flex items-center gap-4" style="background: var(--surface); border-color: var(--border);">
+          <span class="text-xs" style="color: var(--muted);">当前专家</span>
+          <div class="emp-card selected" style="padding: 8px 14px; border-radius: 10px;">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center mr-3" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+              <i class="fas fa-brain text-white text-xs"></i>
+            </div>
+            <div>
+              <div class="text-sm font-semibold" style="color: var(--text);">智闻 · CEO行业顾问</div>
+              <div class="text-[10px]" style="color: var(--muted);">擅长战略规划、行业洞察、竞争分析</div>
+            </div>
+            <div class="ml-4 flex items-center gap-1">
+              <div class="w-2 h-2 rounded-full" style="background: var(--success);"></div>
+              <span class="text-[11px]" style="color: var(--success);">在线</span>
+            </div>
+          </div>
+          <div class="ml-auto flex items-center gap-2">
+            <button class="text-xs px-3 py-1.5 rounded-lg border" style="border-color: var(--border); color: var(--text2);">
+              <i class="fas fa-clock-rotate-left text-[10px] mr-1"></i>历史会话
+            </button>
+            <button class="text-xs px-3 py-1.5 rounded-lg border" style="border-color: var(--border); color: var(--text2);">
+              <i class="fas fa-book-open text-[10px] mr-1"></i>使用指南
+            </button>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="flex-1 overflow-y-auto px-6 py-5 space-y-5" id="msgContainer">
+
+          <!-- AI Welcome -->
+          <div class="animate-in" style="animation-delay: 0.05s;">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+                <i class="fas fa-brain text-white text-xs"></i>
+              </div>
+              <div class="msg-ai">
+                <div class="text-[11px] mb-2" style="color: var(--muted);">智闻 · CEO行业顾问 · 刚刚</div>
+                <p>您好，陈总。我是智闻，您的AI战略顾问。我可以帮您：</p>
+                <div class="grid grid-cols-2 gap-2 mt-3">
+                  <div class="flex items-center gap-2 text-sm">
+                    <i class="fas fa-chart-line text-xs" style="color: var(--accent);"></i> 分析行业动态
+                  </div>
+                  <div class="flex items-center gap-2 text-sm">
+                    <i class="fas fa-chess text-xs" style="color: var(--accent);"></i> 制定战略决策
+                  </div>
+                  <div class="flex items-center gap-2 text-sm">
+                    <i class="fas fa-file-alt text-xs" style="color: var(--accent);"></i> 生成分析报告
+                  </div>
+                  <div class="flex items-center gap-2 text-sm">
+                    <i class="fas fa-bell text-xs" style="color: var(--accent);"></i> 监控风险机会
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- User -->
+          <div class="animate-in" style="animation-delay: 0.1s;">
+            <div class="msg-user">
+              最近新能源市场竞争格局有哪些变化？
+            </div>
+            <div class="text-right mt-1.5 text-[10px]" style="color: var(--muted);">刚刚</div>
+          </div>
+
+          <!-- AI Response -->
+          <div class="animate-in" style="animation-delay: 0.15s;">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+                <i class="fas fa-brain text-white text-xs"></i>
+              </div>
+              <div class="msg-ai">
+                <div class="text-[11px] mb-2" style="color: var(--muted);">智闻 · CEO行业顾问</div>
+                <p>根据最新数据，新能源市场竞争格局呈现以下变化：</p>
+                <div class="mt-3 p-3 rounded-xl" style="background: var(--bg); border: 1px solid var(--border);">
+                  <div class="text-xs font-semibold mb-2" style="color: var(--accent);">
+                    <i class="fas fa-bolt text-[10px] mr-1"></i>关键变化
+                  </div>
+                  <ul class="text-sm space-y-1.5" style="color: var(--text2);">
+                    <li>• <strong>比亚迪</strong>市占率突破35%，增速放缓至12%</li>
+                    <li>• <strong>宁德时代</strong>麒麟电池量产，成本下降18%</li>
+                    <li>• <strong>欧盟碳关税</strong>政策落地，出口欧洲成本增加约8%</li>
+                    <li>• <strong>新势力</strong>：理想月销破5万，蔚来换电获政策支持</li>
+                  </ul>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-3">
+                  <span class="text-xs px-2 py-1 rounded-md" style="background: rgba(37,99,235,0.06); color: var(--accent);">行业分析</span>
+                  <span class="text-xs px-2 py-1 rounded-md" style="background: rgba(37,99,235,0.06); color: var(--accent);">竞争格局</span>
+                  <span class="text-xs px-2 py-1 rounded-md" style="background: rgba(37,99,235,0.06); color: var(--accent);">数据洞察</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- User 2 -->
+          <div class="animate-in">
+            <div class="msg-user">
+              帮我生成一份本月的行业分析报告
+            </div>
+            <div class="text-right mt-1.5 text-[10px]" style="color: var(--muted);">刚刚</div>
+          </div>
+
+          <!-- AI: Will generate -->
+          <div class="animate-in">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+                <i class="fas fa-brain text-white text-xs"></i>
+              </div>
+              <div class="msg-ai">
+                <div class="text-[11px] mb-2" style="color: var(--muted);">智闻 · CEO行业顾问</div>
+                <p>好的，正在为您生成月度行业分析报告，预计需要 2-3 分钟。报告生成后将自动推送至您的飞书群和邮箱。</p>
+                <div class="mt-3 flex items-center gap-3">
+                  <div class="flex items-center gap-1.5 text-xs" style="color: var(--muted);">
+                    <i class="fas fa-spinner fa-spin text-xs" style="color: var(--accent);"></i>
+                    生成中...
+                  </div>
+                  <div class="flex-1 h-1 rounded-full" style="background: var(--border);">
+                    <div class="h-1 rounded-full" style="background: var(--accent); width: 35%;"></div>
+                  </div>
+                  <span class="text-[10px]" style="color: var(--muted);">35%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Input -->
+        <div class="px-6 py-4 border-t" style="background: var(--surface); border-color: var(--border);">
+          <!-- Quick Actions -->
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button class="pill default" onclick="this.classList.toggle('active')">
+              <i class="fas fa-file-alt text-[10px] mr-1"></i>生成报告
+            </button>
+            <button class="pill default" onclick="this.classList.toggle('active')">
+              <i class="fas fa-chart-pie text-[10px] mr-1"></i>竞争分析
+            </button>
+            <button class="pill default" onclick="this.classList.toggle('active')">
+              <i class="fas fa-lightbulb text-[10px] mr-1"></i>机会识别
+            </button>
+          </div>
+          <!-- Input Row -->
+          <div class="flex items-end gap-3">
+            <input type="text" class="input-area flex-1" placeholder="输入消息，或描述你想要完成的任务..." id="chatInput">
+            <button class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all" style="background: var(--accent);" onmouseover="this.style.background='var(--accent2)'" onmouseout="this.style.background='var(--accent)'" onclick="sendMessage()" id="sendBtn">
+              <i class="fas fa-paper-plane text-white text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Task Config Panel (35%) -->
+      <div class="w-96 border-l overflow-y-auto" style="background: var(--surface); border-color: var(--border);">
+
+        <div class="p-5 border-b" style="border-color: var(--border);">
+          <h3 class="text-base font-semibold" style="color: var(--text);">任务配置</h3>
+          <p class="text-xs mt-0.5" style="color: var(--muted);">管理自动化任务与推送规则</p>
+        </div>
+
+        <!-- Report Generation Tasks -->
+        <div class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h4 class="text-sm font-semibold" style="color: var(--text);">报告生成</h4>
+            <button class="text-xs px-3 py-1 rounded-lg" style="background: var(--accent); color: white;">
+              <i class="fas fa-plus text-[10px] mr-0.5"></i>新建
+            </button>
+          </div>
+
+          <div class="task-row">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background: var(--accent-light);">
+              <i class="fas fa-sun text-xs" style="color: var(--accent);"></i>
+            </div>
+            <div class="flex-1">
+              <div class="text-sm font-medium" style="color: var(--text);">每日行业简报</div>
+              <div class="text-[11px]" style="color: var(--muted);">每日 08:30 · 自动推送</div>
+            </div>
+            <div class="switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+
+          <div class="task-row">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background: #eff6ff;">
+              <i class="fas fa-chart-bar text-xs" style="color: #2563eb;"></i>
+            </div>
+            <div class="flex-1">
+              <div class="text-sm font-medium" style="color: var(--text);">周度战略报告</div>
+              <div class="text-[11px]" style="color: var(--muted);">每周一 09:00 · 深度分析</div>
+            </div>
+            <div class="switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+
+          <div class="task-row">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background: #fdf4ff;">
+              <i class="fas fa-chart-line text-xs" style="color: #9333ea;"></i>
+            </div>
+            <div class="flex-1">
+              <div class="text-sm font-medium" style="color: var(--text);">月度市场分析</div>
+              <div class="text-[11px]" style="color: var(--muted);">每月最后一日 · 综合报告</div>
+            </div>
+            <div class="switch" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+
+        <div class="px-5 py-4 border-t" style="border-color: var(--border);">
+          <h4 class="text-sm font-semibold mb-4" style="color: var(--text);">推送设置</h4>
+
+          <div class="task-row">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background: #eff6ff;">
+              <i class="fas fa-feishu text-xs" style="color: #2563eb;"></i>
+            </div>
+            <div class="flex-1">
+              <div class="text-sm font-medium" style="color: var(--text);">飞书群推送</div>
+              <div class="text-[11px]" style="color: var(--muted);">战略高管群 · 报告生成后即推送</div>
+            </div>
+            <div class="switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+
+          <div class="task-row">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background: #f0fdf4;">
+              <i class="fas fa-envelope text-xs" style="color: var(--success);"></i>
+            </div>
+            <div class="flex-1">
+              <div class="text-sm font-medium" style="color: var(--text);">邮件通知</div>
+              <div class="text-[11px]" style="color: var(--muted);">陈总、王副总、李总监</div>
+            </div>
+            <div class="switch" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+
+        <!-- Recent Reports -->
+        <div class="px-5 py-4 border-t" style="border-color: var(--border);">
+          <h4 class="text-sm font-semibold mb-3" style="color: var(--text);">最近报告</h4>
+          <div class="space-y-2">
+            <div class="report-card" style="padding: 10px 14px;">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-[10px] px-1.5 py-0.5 rounded font-medium" style="background: #dcfce7; color: #16a34a;">日报</span>
+                <span class="text-xs" style="color: var(--muted);">2026-05-22</span>
+              </div>
+              <div class="text-sm font-medium truncate" style="color: var(--text);">新能源行业每日动态简报</div>
+            </div>
+            <div class="report-card" style="padding: 10px 14px;">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-[10px] px-1.5 py-0.5 rounded font-medium" style="background: #dbeafe; color: #2563eb;">周报</span>
+                <span class="text-xs" style="color: var(--muted);">2026-05-19</span>
+              </div>
+              <div class="text-sm font-medium truncate" style="color: var(--text);">新能源汽车周度战略分析</div>
+            </div>
+            <div class="report-card" style="padding: 10px 14px;">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-[10px] px-1.5 py-0.5 rounded font-medium" style="background: #f3e8ff; color: #9333ea;">月报</span>
+                <span class="text-xs" style="color: var(--muted);">2026-04-30</span>
+              </div>
+              <div class="text-sm font-medium truncate" style="color: var(--text);">新能源市场月度综合分析报告</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const container = document.getElementById('msgContainer');
+    const userDiv = document.createElement('div');
+    userDiv.className = 'animate-in';
+    userDiv.innerHTML = `<div class="msg-user">${text}</div><div class="text-right mt-1.5 text-[10px]" style="color: var(--muted);">刚刚</div>`;
+    container.appendChild(userDiv);
+    input.value = '';
+    container.scrollTop = container.scrollHeight;
+  }
+
+  document.getElementById('chatInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+</script>
+</body>
+</html>
