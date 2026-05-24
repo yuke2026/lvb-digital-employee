@@ -1491,7 +1491,7 @@
 
             <!-- ==================== CHAT PAGE (Fusion 003) ==================== -->
             <template x-if="currentPage === 'chat'">
-              <div class="flex gap-4 h-[calc(100vh-8rem)] page-enter flex-col md:flex-row">
+              <div class="flex gap-4 h-[calc(100vh-8rem)] page-enter flex-col md:flex-row pb-[70px] md:pb-0">
 
                 <!-- Mobile: hamburger + drawer -->
                 <div class="md:hidden flex items-center gap-3 px-4 py-3" style="background: var(--fuse-surface); border-bottom: 1px solid var(--fuse-border);">
@@ -1831,6 +1831,21 @@
 
                 </div><!-- end right panel -->
 
+                <!-- ===== BOTTOM TAB BAR (mobile only) ===== -->
+                <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around"
+                     style="background: var(--fuse-surface); border-top: 1px solid var(--fuse-border); height: 60px;">
+                  <template x-for="tab in bottomTabs" :key="tab.id">
+                    <button @click="switchPage(tab.id)"
+                            class="flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors"
+                            :style="currentPage === tab.id
+                              ? 'color: var(--fuse-accent2);'
+                              : 'color: var(--fuse-muted);'">
+                      <i :class="'fas ' + tab.icon + ' text-sm'"></i>
+                      <span class="text-[10px] font-medium" x-text="tab.label"></span>
+                    </button>
+                  </template>
+                </nav>
+
                 <!-- Mobile Drawer Overlay -->
                 <div x-show="showMobileDrawer" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
                      x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
@@ -1841,7 +1856,7 @@
                 <div x-show="showMobileDrawer"
                      x-transition:enter="transition ease-out duration-300" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
                      x-transition:leave="transition ease-in duration-200" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full"
-                     class="md:hidden fixed inset-y-0 left-0 z-50 w-64 flex flex-col overflow-hidden"
+                     class="md:hidden fixed inset-y-0 left-0 z-50 w-64 flex flex-col overflow-hidden pb-[60px]"
                      style="background: var(--fuse-surface); border-right: 1px solid var(--fuse-border);">
                   <!-- Drawer header -->
                   <div class="px-4 py-4 border-b flex items-center gap-3" style="border-color: var(--fuse-border);">
@@ -2552,6 +2567,13 @@
         // ---- Mobile ----
         showMobileDrawer: false,
 
+        // ---- Bottom Tab Bar (mobile only) ----
+        bottomTabs: [
+          { id: 'store', label: '商店', icon: 'fa-store' },
+          { id: 'chat',  label: '对话', icon: 'fa-comment-dots' },
+          { id: 'reports', label: '报告', icon: 'fa-file-lines' },
+        ],
+
         // ---- Fusion 003: Right Panel ----
         rightPanelTab: 'auto',  // 'auto' | 'reports'
         automationTasks: [
@@ -3187,7 +3209,7 @@
                 category: this.newTopicForm.category,
                 keywords: kwList,
                 push_cycle: this.newTopicForm.push_cycle,
-                push_time: { hours: h, minutes: m },
+                push_time: { hour: h, minute: m },
               })
             });
             if (!res.ok) {
