@@ -3168,7 +3168,6 @@
             const pushTimeStr = typeof topic.push_time === 'string' && topic.push_time.includes(':')
               ? topic.push_time
               : (topic.push_time || '08:30');
-            const [h, m] = pushTimeStr.split(':').map(Number);
             const res = await fetch(`/api/v1/topics/${topic.id}`, {
               method: 'PUT',
               headers: {
@@ -3180,7 +3179,7 @@
                 category: topic.category,
                 keywords: topic.keywords,
                 push_cycle: topic.push_cycle,
-                push_time: { hour: h, minute: m },
+                push_time: pushTimeStr,
                 is_active: topic.is_active,
               })
             });
@@ -3198,7 +3197,6 @@
           if (!this.newTopicForm.name || !this.newTopicForm.category || !this.newTopicForm.keywords) return;
           try {
             const kwList = this.newTopicForm.keywords.split(',').map(k => k.trim()).filter(k => k);
-            const [h, m] = this.newTopicForm.push_time.split(':').map(Number);
             const res = await fetch('/api/v1/topics', {
               method: 'POST',
               headers: {
@@ -3210,7 +3208,7 @@
                 category: this.newTopicForm.category,
                 keywords: kwList,
                 push_cycle: this.newTopicForm.push_cycle,
-                push_time: { hour: h, minute: m },
+                push_time: this.newTopicForm.push_time,
               })
             });
             if (!res.ok) {
