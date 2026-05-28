@@ -1,5 +1,6 @@
 """Topic CRUD router + topic_sources M2M"""
-from uuid import UUID
+import json
+from uuid import UUID, uuid4
 from datetime import datetime, time
 from typing import Optional
 
@@ -11,6 +12,16 @@ from sqlalchemy import text
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
+
+
+def _serialize_list(val: list) -> str:
+    """Serialize a list to JSON string for SQLite/PostgreSQL compatibility."""
+    return json.dumps(val)
+
+
+def _serialize_time(val: time) -> str:
+    """Serialize a time object to string for SQLite/PostgreSQL compatibility."""
+    return val.strftime("%H:%M:%S")
 
 router = APIRouter(tags=["主题"])
 
@@ -67,14 +78,24 @@ class SourceResponse(BaseModel):
 # ===== Helpers =====
 
 async def _row_to_topic(row) -> TopicResponse:
+    import json
+    def _parse_kw(v):
+        if isinstance(v, list):
+            return v
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, TypeError):
+                return []
+        return []
     return TopicResponse(
         id=row.id,
         org_id=row.org_id,
         user_id=row.user_id,
         name=row.name,
         category=row.category,
-        keywords=row.keywords if isinstance(row.keywords, list) else [],
-        exclude_keywords=row.exclude_keywords if isinstance(row.exclude_keywords, list) else [],
+        keywords=_parse_kw(row.keywords),
+        exclude_keywords=_parse_kw(row.exclude_keywords),
         push_cycle=row.push_cycle,
         push_time=row.push_time,
         is_active=row.is_active,
@@ -113,27 +134,51 @@ async def create_topic(
 ):
     """Create a new topic for the current user's organization."""
     now = datetime.utcnow()
-    result = await db.execute(
+
+    # Duplicate name check within the same org
+    dup_result = await db.execute(
+        text("SELECT id FROM topics WHERE org_id = :org_id AND name = :name"),
+        {"org_id": str(current_user.org_id), "name": topic_in.name},
+    )
+    if dup_result.fetchone():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"主题「{topic_in.name}」已存在",
+        )
+
+    topic_id = uuid4()
+    await db.execute(
         text("""
-            INSERT INTO topics (org_id, user_id, name, category, keywords, exclude_keywords,
+            INSERT INTO topics (id, org_id, user_id, name, category, keywords, exclude_keywords,
                                 push_cycle, push_time, is_active, created_at, updated_at)
-            VALUES (:org_id, :user_id, :name, :category, :keywords, :exclude_keywords,
+            VALUES (:id, :org_id, :user_id, :name, :category, :keywords, :exclude_keywords,
                     :push_cycle, :push_time, true, :created_at, :updated_at)
-            RETURNING id, org_id, user_id, name, category, keywords, exclude_keywords,
-                      push_cycle, push_time, is_active, created_at, updated_at
         """),
         {
+            "id": str(topic_id),
             "org_id": str(current_user.org_id),
             "user_id": str(current_user.id),
             "name": topic_in.name,
             "category": topic_in.category,
-            "keywords": topic_in.keywords,
-            "exclude_keywords": topic_in.exclude_keywords,
+            "keywords": _serialize_list(topic_in.keywords),
+            "exclude_keywords": _serialize_list(topic_in.exclude_keywords),
             "push_cycle": topic_in.push_cycle,
-            "push_time": topic_in.push_time,
+            "push_time": _serialize_time(topic_in.push_time),
             "created_at": now,
             "updated_at": now,
         },
+    )
+    await db.commit()
+
+    # Re-fetch by the UUID we just generated
+    result = await db.execute(
+        text("""
+            SELECT id, org_id, user_id, name, category, keywords, exclude_keywords,
+                   push_cycle, push_time, is_active, created_at, updated_at
+            FROM topics
+            WHERE id = :id
+        """),
+        {"id": str(topic_id)},
     )
     row = result.fetchone()
     return await _row_to_topic(row)
@@ -180,16 +225,16 @@ async def update_topic(
         fields["category"] = topic_in.category
     if topic_in.keywords is not None:
         set_clauses.append("keywords = :keywords")
-        fields["keywords"] = topic_in.keywords
+        fields["keywords"] = _serialize_list(topic_in.keywords)
     if topic_in.exclude_keywords is not None:
         set_clauses.append("exclude_keywords = :exclude_keywords")
-        fields["exclude_keywords"] = topic_in.exclude_keywords
+        fields["exclude_keywords"] = _serialize_list(topic_in.exclude_keywords)
     if topic_in.push_cycle is not None:
         set_clauses.append("push_cycle = :push_cycle")
         fields["push_cycle"] = topic_in.push_cycle
     if topic_in.push_time is not None:
         set_clauses.append("push_time = :push_time")
-        fields["push_time"] = topic_in.push_time
+        fields["push_time"] = _serialize_time(topic_in.push_time)
     if topic_in.is_active is not None:
         set_clauses.append("is_active = :is_active")
         fields["is_active"] = topic_in.is_active
@@ -214,6 +259,7 @@ async def update_topic(
     row = result.fetchone()
     if not row:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
+    await db.commit()
     return await _row_to_topic(row)
 
 
@@ -235,6 +281,7 @@ async def delete_topic(
     )
     if result.rowcount == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
+    await db.commit()
 
 
 @router.post("/{topic_id}/sources", status_code=status.HTTP_201_CREATED)

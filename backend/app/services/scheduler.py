@@ -58,17 +58,138 @@ def _report_job_name(topic_id: uuid.UUID, report_type: str) -> str:
 # ===== 任务函数（被调度器调用）=====
 
 async def _run_collect(topic_id: uuid.UUID, org_id: uuid.UUID):
-    """执行指定主题的采集任务"""
-    from app.services.rss_collector import collect_for_topic
-    from app.services.article_processor import process_topic_articles
+    """执行指定主题的采集任务（使用 raw SQL + feedparser 直接采集处理）"""
+    from app.core.database import async_session
+    from sqlalchemy import text
+    import feedparser
+    from datetime import datetime
+    import json
     try:
         logger.info(f"[Scheduler] 开始采集 topic={topic_id}")
-        articles = await collect_for_topic(topic_id, org_id)
-        logger.info(f"[Scheduler] 采集完成，获得 {len(articles)} 篇文章")
+        async with async_session() as db:
+            # 1. 获取主题信息（关键词等）
+            topic_result = await db.execute(
+                text("SELECT keywords, exclude_keywords FROM topics WHERE id = :topic_id"),
+                {"topic_id": str(topic_id)},
+            )
+            topic_row = topic_result.fetchone()
+            if not topic_row:
+                logger.warning(f"[Scheduler] 主题不存在 topic={topic_id}")
+                return
 
-        if articles:
-            await process_topic_articles(topic_id, org_id)
-            logger.info(f"[Scheduler] 文章处理完成 topic={topic_id}")
+            keywords = json.loads(topic_row.keywords) if isinstance(topic_row.keywords, str) else (topic_row.keywords or [])
+            exclude_keywords = json.loads(topic_row.exclude_keywords) if isinstance(topic_row.exclude_keywords, str) else (topic_row.exclude_keywords or [])
+
+            # 2. 获取该主题关联的 RSS 源
+            sources_result = await db.execute(
+                text("""
+                    SELECT ns.id, ns.url
+                    FROM news_sources ns
+                    JOIN topic_sources ts ON ts.source_id = ns.id
+                    WHERE ts.topic_id = :topic_id
+                      AND ns.source_type = 'rss'
+                      AND ns.is_active = TRUE
+                """),
+                {"topic_id": str(topic_id)},
+            )
+            source_rows = sources_result.fetchall()
+
+            if not source_rows:
+                logger.info(f"[Scheduler] 主题 {topic_id} 没有关联的活跃 RSS 源")
+                return
+
+            # 3. 直接使用 feedparser 从各 RSS 源采集文章
+            now = datetime.utcnow()
+            total_articles = 0
+            for src in source_rows:
+                source_id, url = src
+                feed = feedparser.parse(url)
+                for entry in feed.entries:
+                    title = entry.get("title", "No title")
+                    article_url = entry.get("link") or entry.get("id", "")
+                    if not article_url:
+                        continue
+
+                    # 检查是否已存在（去重）
+                    existing = await db.execute(
+                        text("SELECT id FROM raw_articles WHERE source_id = :source_id AND url = :url"),
+                        {"source_id": str(source_id), "url": article_url},
+                    )
+                    if existing.fetchone():
+                        continue
+
+                    # 提取内容
+                    content = None
+                    if hasattr(entry, "content") and entry.content:
+                        content = entry.content[0].value
+                    elif hasattr(entry, "summary"):
+                        content = entry.summary
+
+                    # 解析发布时间
+                    published_at = None
+                    for date_field in ["published_parsed", "updated_parsed", "created_parsed"]:
+                        parsed = getattr(entry, date_field, None)
+                        if parsed:
+                            try:
+                                published_at = datetime(*parsed[:6])
+                                break
+                            except (ValueError, TypeError):
+                                continue
+
+                    article_id = uuid.uuid4()
+                    await db.execute(
+                        text("""
+                            INSERT INTO raw_articles
+                                (id, source_id, url, title, content, summary,
+                                 published_at, fetched_at, is_processed)
+                            VALUES
+                                (:id, :source_id, :url, :title, :content, :summary,
+                                 :published_at, :fetched_at, FALSE)
+                        """),
+                        {
+                            "id": str(article_id),
+                            "source_id": str(source_id),
+                            "url": article_url,
+                            "title": title,
+                            "content": content,
+                            "summary": None,
+                            "published_at": published_at,
+                            "fetched_at": now,
+                        },
+                    )
+                    total_articles += 1
+
+                # 更新新闻源的最后抓取时间
+                await db.execute(
+                    text("UPDATE news_sources SET last_fetch_at = :now, last_fetch_status = 'success' WHERE id = :source_id"),
+                    {"now": now, "source_id": str(source_id)},
+                )
+
+            await db.commit()
+            logger.info(f"[Scheduler] 采集完成，获得 {total_articles} 篇文章 topic={topic_id}")
+
+            # 4. 关键词匹配处理（标记已处理的文章）
+            if total_articles > 0:
+                from app.services.article_processor import process_unprocessed_articles
+                processed = await process_unprocessed_articles(
+                    db=db,
+                    topic_id=topic_id,
+                    keywords=keywords,
+                    exclude_keywords=exclude_keywords,
+                )
+                logger.info(f"[Scheduler] 文章处理完成，已处理 {processed} 篇 topic={topic_id}")
+            else:
+                # 即使没有新文章，也处理可能积压的未处理文章
+                from app.services.article_processor import process_unprocessed_articles
+                processed = await process_unprocessed_articles(
+                    db=db,
+                    topic_id=topic_id,
+                    keywords=keywords,
+                    exclude_keywords=exclude_keywords,
+                )
+                if processed > 0:
+                    logger.info(f"[Scheduler] 处理积压文章 {processed} 篇 topic={topic_id}")
+
     except Exception as e:
         logger.error(f"[Scheduler] 采集任务失败 topic={topic_id}: {e}", exc_info=True)
 
@@ -79,126 +200,49 @@ async def _run_report(
     user_id: uuid.UUID,
     report_type: str,
 ):
-    """执行指定主题的报告生成任务（支持CEO顾问+飞书Webhook推送）"""
-    from app.services.report_generator import generate_report
-    from app.models.report import Report
-    from sqlalchemy import text
+    """执行指定主题的报告生成任务（使用改进的 _run_report_generation 逻辑）"""
+    from app.api.v1.reports import _run_report_generation
     from app.core.database import async_session
+    from sqlalchemy import text
     try:
         logger.info(f"[Scheduler] 开始生成报告 topic={topic_id} type={report_type}")
 
-        # === 判断是否使用 CEO 顾问模式（从 topics 表读取 keywords）===
-        async with async_session() as db_check:
-            topic_result = await db_check.execute(
-                text("SELECT name, keywords FROM topics WHERE id = :topic_id"),
-                {"topic_id": str(topic_id)},
-            )
-            topic_row = topic_result.fetchone()
-            use_ceo_advisor = False
-            keywords = []
-            if topic_row and topic_row.keywords:
-                import json
-                try:
-                    kws = json.loads(topic_row.keywords) if isinstance(topic_row.keywords, str) else topic_row.keywords
-                    if isinstance(kws, list) and kws:
-                        keywords = kws
-                        use_ceo_advisor = True
-                except:
-                    pass
-
-        # 根据是否配置了 keywords 决定报告生成方式
-        if use_ceo_advisor:
-            logger.info(f"[Scheduler] 使用CEO顾问模式生成报告, keywords={keywords}")
-            from app.services.ceo_advisor import generate_ceo_digest_report
-            report_data = await generate_ceo_digest_report(
-                topic_id=topic_id,
-                org_id=org_id,
-                user_id=user_id,
-                keywords=keywords,
-                report_type=report_type,
-            )
-        else:
-            # 原有 RSS/文章库模式
-            report_data = await generate_report(
-                topic_id=topic_id,
-                report_type=report_type,
-                org_id=org_id,
-                user_id=user_id,
-            )
-
-        now = datetime.utcnow()
         async with async_session() as db:
-            result = await db.execute(
+            # Create a placeholder report record
+            from uuid import uuid4
+            from datetime import datetime
+            now = datetime.utcnow()
+            report_id = uuid4()
+
+            await db.execute(
                 text("""
-                    INSERT INTO reports (topic_id, report_type, title, summary, content,
-                                         swot, risk_level, risk_items, opportunities,
-                                         push_time, status, created_at, updated_at)
-                    VALUES (:topic_id, :report_type, :title, :summary, :content,
-                            :swot, :risk_level, :risk_items, :opportunities,
-                            :push_time, :status, :created_at, :updated_at)
-                    RETURNING id
+                    INSERT INTO reports (id, topic_id, report_type, title, summary, push_time, status, created_at, updated_at)
+                    VALUES (:id, :topic_id, :report_type, :title, :summary, :push_time, 'pending', :created_at, :updated_at)
                 """),
                 {
+                    "id": str(report_id),
                     "topic_id": str(topic_id),
                     "report_type": report_type,
-                    "title": report_data.get("title", ""),
-                    "summary": report_data.get("summary"),
-                    "content": report_data.get("content"),
-                    "swot": report_data.get("swot"),
-                    "risk_level": report_data.get("risk_level"),
-                    "risk_items": report_data.get("risk_items"),
-                    "opportunities": report_data.get("opportunities"),
-                    "push_time": report_data.get("push_time"),
-                    "status": report_data.get("status", "generated"),
+                    "title": f"{report_type}报告 - 生成中...",
+                    "summary": None,
+                    "push_time": now,
                     "created_at": now,
                     "updated_at": now,
                 },
             )
             await db.commit()
-            row = result.fetchone()
-            report_id = row[0] if row else None
-            logger.info(f"[Scheduler] 报告生成完成 report_id={report_id}")
 
-            # === 推送飞书（Webhook优先，其次文档推送）===
-            # 1. 尝试从 topic_push_configs 读取 webhook_url
-            push_cfg_result = await db.execute(
-                text("""
-                    SELECT feishu_chat_id, feishu_push_enabled, webhook_url
-                    FROM topic_push_configs
-                    WHERE topic_id = :topic_id
-                """),
-                {"topic_id": str(topic_id)},
+        # Use the improved report generation logic from reports.py
+        async with async_session() as db:
+            await _run_report_generation(
+                report_id=report_id,
+                topic_id=topic_id,
+                report_type=report_type,
+                org_id=org_id,
+                user_id=user_id,
+                db=db,
             )
-            push_row = push_cfg_result.fetchone()
-
-            # 2. 优先使用 Webhook 推送（无需飞书应用权限）
-            if push_row and push_row.webhook_url:
-                from app.services.ceo_advisor import push_report_to_feishu
-                try:
-                    push_result = await push_report_to_feishu(report_data, push_row.webhook_url)
-                    if push_result.get("success"):
-                        logger.info(f"[Scheduler] 飞书Webhook推送成功 report_id={report_id}")
-                    else:
-                        logger.warning(f"[Scheduler] 飞书Webhook推送失败: {push_result.get('error')}")
-                except Exception as push_err:
-                    logger.warning(f"[Scheduler] 飞书Webhook推送异常: {push_err}")
-
-            # 3. 其次使用飞书文档+IM推送（需飞书应用权限）
-            if report_data.get("feishu_doc_token"):
-                logger.info(f"[Scheduler] 飞书文档已存在: {report_data['feishu_doc_token']}")
-            elif push_row and push_row.feishu_push_enabled and push_row.feishu_chat_id:
-                # 调用标准飞书推送流程
-                from app.services.push_service import push_report_full_with_db
-                report_data["report_type"] = report_type
-                try:
-                    await push_report_full_with_db(
-                        db=db,
-                        report_id=report_id,
-                        report_data=report_data,
-                        feishu_chat_id=push_row.feishu_chat_id,
-                    )
-                except Exception as push_err:
-                    logger.warning(f"[Scheduler] 飞书文档推送失败（非致命）: {push_err}")
+        logger.info(f"[Scheduler] 报告生成完成 report_id={report_id} type={report_type}")
 
     except Exception as e:
         logger.error(f"[Scheduler] 报告生成任务失败 topic={topic_id}: {e}", exc_info=True)
@@ -284,7 +328,7 @@ def schedule_report(
     except JobLookupError:
         pass
 
-    # 日报：每天触发；周报：每周一；月报：每月1日
+    # 日报：每天触发；周报：每周一；月报：每月1日；季报：每季首月1日；年报：每年1月1日
     if report_type == "daily":
         trigger = CronTrigger(hour=hour, minute=minute, timezone="Asia/Shanghai")
     elif report_type == "weekly":
@@ -293,6 +337,12 @@ def schedule_report(
     elif report_type == "monthly":
         # day=1 = 每月1日
         trigger = CronTrigger(hour=hour, minute=minute, day=1, timezone="Asia/Shanghai")
+    elif report_type == "quarterly":
+        # month=1/4/7/10, day=1
+        trigger = CronTrigger(hour=hour, minute=minute, month="1,4,7,10", day=1, timezone="Asia/Shanghai")
+    elif report_type == "yearly":
+        # month=1, day=1
+        trigger = CronTrigger(hour=hour, minute=minute, month=1, day=1, timezone="Asia/Shanghai")
     else:
         raise ValueError(f"未知报告类型: {report_type}")
 
@@ -348,6 +398,8 @@ async def restore_jobs_from_db():
 
     if not rows:
         logger.info("[Scheduler] 数据库中无活跃定时任务，跳过恢复")
+        # 即使没有定时任务记录，也从 topics 表同步
+        await sync_topic_schedules_from_db()
         return
 
     sched = get_scheduler()
@@ -371,3 +423,94 @@ async def restore_jobs_from_db():
             logger.warning(f"[Scheduler] 恢复任务失败 topic={topic_id} type={job_type}: {e}")
 
     logger.info(f"[Scheduler] 已从数据库恢复 {restored} 个定时任务")
+
+    # 同步 topics 表中的 push_cycle / push_time 到调度器
+    await sync_topic_schedules_from_db()
+
+
+async def sync_topic_schedules_from_db():
+    """
+    从 topics 表读取所有活跃主题的 push_cycle / push_time，
+    自动注册对应的报告生成定时任务。
+    如果没有配置 scheduled_jobs 记录，此函数确保主题的自动报告仍能按时生成。
+    """
+    from app.core.database import async_session
+    from sqlalchemy import text
+    import json as _json
+
+    try:
+        async with async_session() as db:
+            result = await db.execute(
+                text("""
+                    SELECT id, org_id, push_cycle, push_time, is_active
+                    FROM topics
+                    WHERE is_active = TRUE
+                """)
+            )
+            rows = result.fetchall()
+
+        if not rows:
+            logger.info("[AutoSchedule] 没有活跃主题需要调度")
+            return
+
+        scheduled = 0
+        for row in rows:
+            topic_id = uuid.UUID(row.id)
+            org_id = uuid.UUID(row.org_id) if row.org_id else uuid.UUID("00000000-0000-0000-0000-000000000000")
+            push_cycle = row.push_cycle or "daily"
+            push_time = row.push_time or "08:30"
+            is_active = row.is_active
+
+            if not is_active:
+                continue
+
+            # Parse push_time "HH:MM"
+            try:
+                parts = push_time.split(":")
+                hour = int(parts[0])
+                minute = int(parts[1]) if len(parts) > 1 else 0
+            except (ValueError, IndexError):
+                hour, minute = 8, 30
+
+            # Register report job based on push_cycle
+            report_type = push_cycle  # push_cycle matches report type names
+            user_id = uuid.UUID("00000000-0000-0000-0000-000000000000")
+
+            # Also schedule higher-order periods
+            # e.g. weekly → also monthly, quarterly, yearly
+            #      monthly → also quarterly, yearly
+            # 原则：向上兼容，不向下兼容
+            hierarchy = ["daily", "weekly", "monthly", "quarterly", "yearly"]
+            cycle_idx = hierarchy.index(report_type) if report_type in hierarchy else 0
+
+            # Clean up stale lower-order jobs (e.g. daily jobs for weekly topics)
+            for lower_idx in range(cycle_idx):
+                stale_type = hierarchy[lower_idx]
+                try:
+                    sched = get_scheduler()
+                    stale_job_name = f"report_{stale_type}_{topic_id}"
+                    sched.remove_job(stale_job_name)
+                except Exception:
+                    pass
+
+            # Schedule the base period + all higher periods
+            for higher_type in hierarchy[cycle_idx:]:
+                h_hour, h_minute = hour, minute
+                # Stagger higher-period reports by 1 minute so they don't all fire at once
+                if higher_type != report_type:
+                    h_minute = (minute + hierarchy.index(higher_type)) % 60
+
+                schedule_report(
+                    topic_id=topic_id,
+                    org_id=org_id,
+                    user_id=user_id,
+                    report_type=higher_type,
+                    hour=h_hour,
+                    minute=h_minute,
+                )
+            scheduled += len(hierarchy) - cycle_idx
+
+        logger.info(f"[AutoSchedule] 已从 topics 同步 {scheduled} 个报告定时任务")
+
+    except Exception as e:
+        logger.error(f"[AutoSchedule] 同步失败: {e}", exc_info=True)

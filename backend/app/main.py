@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -14,6 +14,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from app.core.config import settings
+from app.core.database import get_db, AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,7 @@ app.add_middleware(
 
 # 注册路由
 from app.api.v1 import auth, employees, chat, news_sources, topics, reports, scheduler_api, push_configs, feishu_events, ceo_advisor
+from app.api.v1.topics import TopicCreate
 
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])
 app.include_router(employees.router, prefix="/api/v1/employees", tags=["数字员工"])
@@ -79,6 +81,13 @@ app.include_router(ceo_advisor.router, prefix="/api/v1", tags=["CEO顾问"])
 async def health_check():
     """健康检查"""
     return {"status": "ok", "version": settings.APP_VERSION, "app": "百应智星"}
+
+
+# TEMP DEBUG ENDPOINT
+@app.post("/api/v1/debug-topic", include_in_schema=False)
+async def debug_topic(topic_in: TopicCreate, db: AsyncSession = Depends(get_db)):
+    print(f"[DEBUG] push_time={topic_in.push_time!r} type={type(topic_in.push_time).__name__}")
+    return {"push_time": str(topic_in.push_time), "type": type(topic_in.push_time).__name__}
 
 
 # =====================================================

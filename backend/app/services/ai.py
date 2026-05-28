@@ -8,6 +8,7 @@ from app.core.config import settings
 async def chat_with_deepseek(
     system_prompt: str,
     messages: list[dict],
+    max_tokens: int = 2048,
 ) -> str:
     """调用 DeepSeek API 获取回复"""
     api_key = settings.DEEPSEEK_API_KEY
@@ -30,10 +31,10 @@ async def chat_with_deepseek(
         "messages": full_messages,
         "stream": False,
         "temperature": 0.7,
-        "max_tokens": 2048,
+        "max_tokens": max_tokens,
     }
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         try:
             resp = await client.post(url, headers=headers, json=payload)
             resp.raise_for_status()
@@ -48,6 +49,7 @@ async def chat_with_deepseek(
 async def chat_with_deepseek_stream(
     system_prompt: str,
     messages: list[dict],
+    max_tokens: int = 2048,
 ):
     """调用 DeepSeek API 获取流式回复（SSE）"""
     api_key = settings.DEEPSEEK_API_KEY
@@ -70,7 +72,7 @@ async def chat_with_deepseek_stream(
         "messages": full_messages,
         "stream": True,
         "temperature": 0.7,
-        "max_tokens": 2048,
+        "max_tokens": max_tokens,
     }
 
     async with httpx.AsyncClient(timeout=120.0) as client:

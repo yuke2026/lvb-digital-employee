@@ -100,7 +100,7 @@ async def create_news_source(
     query = text(
         """
         INSERT INTO news_sources (name, source_type, url, update_freq, config, org_id)
-        VALUES (:name, :source_type, :url, :update_freq, :config::jsonb, :org_id)
+        VALUES (:name, :source_type, :url, :update_freq, :config, :org_id)
         RETURNING id, name, source_type, url, update_freq, is_active,
                   last_fetch_at, last_fetch_status, config, created_at, org_id
         """
@@ -197,7 +197,7 @@ async def update_news_source(
         set_clauses.append("is_active = :is_active")
         updates["is_active"] = source_in.is_active
     if source_in.config is not None:
-        set_clauses.append("config = :config::jsonb")
+        set_clauses.append("config = :config")
         updates["config"] = json.dumps(source_in.config)
 
     if not set_clauses:

@@ -204,8 +204,21 @@ async def process_unprocessed_articles(
         try:
             embedding = await get_embedding(embed_text)
         except Exception as e:
-            # Log and skip on embedding failure
+            # Log and skip on embedding failure, but still mark as processed
             print(f"[article_processor] embedding failed for {article_id}: {e}")
+            # Still mark as processed so report generator can find it
+            await db.execute(
+                text(
+                    "UPDATE raw_articles SET summary = :summary, is_processed = TRUE "
+                    "WHERE id = :id"
+                ),
+                {
+                    "summary": summary,
+                    "id": str(article_id),
+                },
+            )
+            await db.commit()
+            processed_count += 1
             continue
 
         # --- Persist ---

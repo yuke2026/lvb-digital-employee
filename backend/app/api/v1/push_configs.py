@@ -1,5 +1,6 @@
 """推送配置 API - 管理主题的飞书推送设置"""
-from uuid import UUID
+import json
+from uuid import UUID, uuid4
 from datetime import datetime
 from typing import Optional
 
@@ -11,6 +12,11 @@ from sqlalchemy import text
 from app.core.database import get_db
 from app.core.deps import get_current_user
 from app.models.user import User
+
+
+def _serialize_list(val: list) -> str:
+    """Serialize a list to JSON string for SQLite/PostgreSQL compatibility."""
+    return json.dumps(val)
 
 router = APIRouter(tags=["推送配置"])
 
@@ -78,13 +84,19 @@ async def get_push_config(
             email_recipients=[],
             webhook_url=None,
         )
+    # Deserialize email_recipients from JSON string back to list
+    raw_recipients = row.email_recipients
+    if isinstance(raw_recipients, str):
+        recipients = json.loads(raw_recipients) if raw_recipients else []
+    else:
+        recipients = raw_recipients or []
     return PushConfigResponse(
         id=row.id,
         topic_id=row.topic_id,
         feishu_chat_id=row.feishu_chat_id,
         feishu_push_enabled=row.feishu_push_enabled,
         email_push_enabled=row.email_push_enabled,
-        email_recipients=row.email_recipients or [],
+        email_recipients=recipients,
         webhook_url=row.webhook_url,
     )
 
@@ -106,12 +118,13 @@ async def upsert_push_config(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Topic not found")
 
     now = datetime.utcnow()
+    config_id = uuid4()
     result = await db.execute(
         text("""
             INSERT INTO topic_push_configs
-                (topic_id, feishu_chat_id, feishu_push_enabled, email_push_enabled,
+                (id, topic_id, feishu_chat_id, feishu_push_enabled, email_push_enabled,
                  email_recipients, webhook_url, updated_at)
-            VALUES (:topic_id, :feishu_chat_id, :feishu_push_enabled, :email_push_enabled,
+            VALUES (:id, :topic_id, :feishu_chat_id, :feishu_push_enabled, :email_push_enabled,
                     :email_recipients, :webhook_url, :updated_at)
             ON CONFLICT (topic_id) DO UPDATE SET
                 feishu_chat_id = EXCLUDED.feishu_chat_id,
@@ -120,28 +133,45 @@ async def upsert_push_config(
                 email_recipients = EXCLUDED.email_recipients,
                 webhook_url = EXCLUDED.webhook_url,
                 updated_at = EXCLUDED.updated_at
-            RETURNING id, topic_id, feishu_chat_id, feishu_push_enabled,
-                       email_push_enabled, email_recipients, webhook_url
         """),
         {
+            "id": str(config_id),
             "topic_id": str(topic_id),
             "feishu_chat_id": cfg.feishu_chat_id,
             "feishu_push_enabled": cfg.feishu_push_enabled,
             "email_push_enabled": cfg.email_push_enabled,
-            "email_recipients": cfg.email_recipients,
+            "email_recipients": _serialize_list(cfg.email_recipients),
             "webhook_url": cfg.webhook_url,
             "updated_at": now,
         },
     )
-    row = result.fetchone()
     await db.commit()
+
+    # Re-fetch by topic_id
+    result = await db.execute(
+        text("""
+            SELECT id, topic_id, feishu_chat_id, feishu_push_enabled,
+                   email_push_enabled, email_recipients, webhook_url
+            FROM topic_push_configs
+            WHERE topic_id = :topic_id
+        """),
+        {"topic_id": str(topic_id)},
+    )
+    row = result.fetchone()
+    # Deserialize email_recipients from JSON string back to list
+    import json as _json
+    raw_recipients = row.email_recipients
+    if isinstance(raw_recipients, str):
+        recipients = _json.loads(raw_recipients) if raw_recipients else []
+    else:
+        recipients = raw_recipients or []
     return PushConfigResponse(
         id=row.id,
         topic_id=row.topic_id,
         feishu_chat_id=row.feishu_chat_id,
         feishu_push_enabled=row.feishu_push_enabled,
         email_push_enabled=row.email_push_enabled,
-        email_recipients=row.email_recipients or [],
+        email_recipients=recipients,
         webhook_url=row.webhook_url,
     )
 
