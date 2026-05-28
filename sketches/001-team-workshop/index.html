@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>团队工坊 · 产研团队数字员工</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #0f0f17;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 2px; }
+
+    .glass { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(12px); }
+    .glass-strong { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); backdrop-filter: blur(12px); }
+    .btn-gradient { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+    .btn-gradient:hover { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+
+    .chat-msg { max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.6; }
+    .chat-msg.user { background: rgba(59,130,246,0.15); border: 1px solid rgba(139,92,246,0.15); margin-left: auto; border-bottom-right-radius: 4px; }
+    .chat-msg.assistant { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-bottom-left-radius: 4px; }
+
+    .member-tab {
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .member-tab:hover { background: rgba(255,255,255,0.05); }
+    .member-tab.active { background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.2); }
+
+    .output-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 12px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .output-card:hover {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(167,139,250,0.2);
+    }
+
+    .typing-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #a78bfa;
+      display: inline-block;
+      animation: typing 1.4s infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing {
+      0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+      30% { opacity: 1; transform: translateY(-4px); }
+    }
+
+    .timeline-item { position: relative; padding-left: 28px; padding-bottom: 16px; }
+    .timeline-item::before {
+      content: ''; position: absolute; left: 8px; top: 10px; bottom: 0;
+      width: 1.5px; background: rgba(255,255,255,0.06);
+    }
+    .timeline-item:last-child::before { display: none; }
+    .tl-dot {
+      position: absolute; left: 3px; top: 4px;
+      width: 12px; height: 12px; border-radius: 50%;
+      border: 2px solid; background: #0f0f17;
+    }
+  </style>
+</head>
+<body>
+
+<div class="min-h-screen flex flex-col">
+
+  <!-- ===== HEADER ===== -->
+  <header class="glass" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+    <div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <span class="text-sm font-semibold">百应智星 · 产研团队</span>
+      </div>
+      <div class="flex items-center gap-3 text-xs text-gray-500">
+        <span>🏗️ 3个进行中 · 0阻塞</span>
+        <span class="w-px h-4 bg-white/10"></span>
+        <span class="text-gray-400">在线 4/4</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <div class="flex-1 flex">
+
+    <!-- ===== LEFT: 员工列表 ===== -->
+    <aside class="w-56 shrink-0 glass m-4 rounded-xl flex flex-col overflow-hidden" style="border: 1px solid rgba(255,255,255,0.06);">
+      <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color: rgba(255,255,255,0.06);">
+        <span class="text-xs font-semibold text-gray-300">数字员工</span>
+        <button class="text-[10px] text-violet-400 hover:text-violet-300 transition">+ 添加</button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-3 space-y-1" id="memberList">
+        <!-- 由JS动态渲染 -->
+      </div>
+      <div class="p-3 border-t" style="border-color: rgba(255,255,255,0.06);">
+        <button class="w-full text-[10px] text-gray-400 hover:text-white transition py-1.5 rounded-lg glass-strong flex items-center justify-center gap-1" onclick="addSampleTask()">
+          <span>+</span> 快速派活
+        </button>
+      </div>
+    </aside>
+
+    <!-- ===== CENTER: 对话区域 ===== -->
+    <main class="flex-1 flex flex-col m-4 ml-0 glass rounded-xl overflow-hidden" style="border: 1px solid rgba(255,255,255,0.06);">
+      <!-- Chat header -->
+      <div class="px-5 py-3 border-b flex items-center justify-between shrink-0" style="border-color: rgba(255,255,255,0.06);">
+        <div class="flex items-center gap-3" id="chatHeader">
+          <!-- 由JS动态渲染 -->
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="text-xs text-gray-500 hover:text-gray-300 transition px-2 py-1 rounded-lg glass-strong">📋 历史</button>
+          <button class="text-xs text-gray-500 hover:text-gray-300 transition px-2 py-1 rounded-lg glass-strong">⚙️</button>
+        </div>
+      </div>
+      <!-- Messages -->
+      <div class="flex-1 overflow-y-auto px-5 py-4 space-y-3" id="chatMessages">
+        <!-- 由JS动态渲染 -->
+      </div>
+      <!-- Input -->
+      <div class="px-5 py-3 border-t shrink-0" style="border-color: rgba(255,255,255,0.06);">
+        <div class="flex items-end gap-2">
+          <textarea id="chatInput" class="flex-1 rounded-xl px-4 py-2.5 text-sm text-gray-200 resize-none" style="background: rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); min-height:40px; max-height:100px;" rows="1" placeholder="输入需求或指令..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea>
+          <button class="w-9 h-9 rounded-xl btn-gradient flex items-center justify-center shrink-0" onclick="sendChat()">
+            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ===== RIGHT: 产出物面板 ===== -->
+    <aside class="w-72 shrink-0 glass m-4 ml-0 rounded-xl flex flex-col overflow-hidden" style="border: 1px solid rgba(255,255,255,0.06);">
+      <div class="px-4 py-3 border-b flex items-center justify-between" style="border-color: rgba(255,255,255,0.06);">
+        <span class="text-xs font-semibold text-gray-300">📦 产出物</span>
+        <span class="text-[10px] text-gray-500">3个</span>
+      </div>
+      <div class="flex-1 overflow-y-auto p-3 space-y-2" id="outputPanel">
+        <!-- 由JS动态渲染 -->
+      </div>
+      <div class="p-3 border-t" style="border-color: rgba(255,255,255,0.06);">
+        <div class="flex items-center gap-2 text-[10px] text-gray-500">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          团队协作中 · 2个任务待审核
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const employees = [
+  { id: 'lead', name: '团队主管', title: 'Team Lead', icon: '🧠', color: '#7c3aed', status: '在线', desc: '协调整个产研团队' },
+  { id: 'PM', name: '产品经理', title: 'Product Manager', icon: '📋', color: '#8b5cf6', status: '在线', desc: '需求分析、PRD、竞品分析' },
+  { id: 'RD', name: '研发工程师', title: 'R&D Engineer', icon: '💻', color: '#3b82f6', status: '忙碌', desc: '架构设计、编码、Code Review' },
+  { id: 'QA', name: '测试工程师', title: 'QA Engineer', icon: '🧪', color: '#10b981', status: '空闲', desc: '测试用例、自动化测试、Bug报告' },
+  { id: 'UI', name: 'UI设计师', title: 'UI Designer', icon: '🎨', color: '#f59e0b', status: '在线', desc: 'UI设计、交互原型、设计规范' },
+];
+
+const outputs = [
+  { id: 1, title: 'PRD-用户登录模块', author: 'PM', status: '已完成', type: '📄', time: '10分钟前' },
+  { id: 2, title: '登录页HTML原型', author: 'UI', status: '审核中', type: '🎨', time: '15分钟前' },
+  { id: 3, title: '登录API接口代码', author: 'RD', status: '开发中', type: '💻', time: '5分钟前' },
+];
+
+let selectedEmployee = 'lead';
+let messages = {
+  lead: [
+    { role: 'assistant', content: '👋 你好！我是产研团队主管，可以帮你协调整个开发流程。\n\n**我能做什么：**\n• 📋 派发任务给团队成员\n• 📊 查看团队进度\n• 🚀 启动完整开发流程（需求→设计→开发→测试→验收）\n• 🔍 检查各成员工作状态\n\n现在需要我做什么？' },
+  ],
+  PM: [
+    { role: 'assistant', content: '📋 我是产品经理，你的需求分析师。\n\n**告诉我需求，我可以：**\n• ✍️ 帮你写 PRD（产品需求文档）\n• 🔄 把需求拆解成可执行的任务\n• 📊 做竞品分析报告\n• 📈 输出需求优先级排序\n\n请描述你的需求：' },
+  ],
+  RD: [
+    { role: 'assistant', content: '💻 我是研发工程师。给我需求或PRD，我可以：\n\n• 🏗️ 生成功能代码（直接提PR到GitHub）\n• 👀 Code Review 别人的代码\n• 🐛 根据错误日志诊断Bug\n• 📐 输出技术方案文档\n\n请把需求或任务发给我：' },
+  ],
+  QA: [
+    { role: 'assistant', content: '🧪 我是测试工程师，质量守护者。\n\n**我可以：**\n• 📝 根据PRD生成测试用例\n• 🤖 执行自动化测试\n• 📊 输出测试报告\n• 🐞 生成结构化Bug报告\n\n需要我测试什么？' },
+  ],
+  UI: [
+    { role: 'assistant', content: '🎨 我是UI设计师。给我需求描述或PRD，我可以：\n\n• 🖌️ 生成UI设计稿（HTML/CSS交互原型）\n• 🧩 维护设计系统规范\n• ✅ 做设计一致性检查\n• 📱 输出多端适配方案\n\n想设计什么？' },
+  ],
+};
+
+// ===== RENDER =====
+function renderMembers() {
+  const el = document.getElementById('memberList');
+  el.innerHTML = employees.map(e => `
+    <div class="member-tab ${selectedEmployee === e.id ? 'active' : ''}" onclick="selectEmployee('${e.id}')">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0" style="background: ${e.color};">${e.icon}</div>
+      <div class="flex-1 min-w-0">
+        <div class="text-xs font-medium text-gray-200 truncate">${e.name}</div>
+        <div class="flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full ${e.status === '在线' ? 'bg-emerald-400' : e.status === '忙碌' ? 'bg-amber-400' : 'bg-gray-500'}"></span>
+          <span class="text-[10px] text-gray-500">${e.status}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderChat() {
+  const header = document.getElementById('chatHeader');
+  const e = employees.find(x => x.id === selectedEmployee);
+  header.innerHTML = `
+    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0" style="background: ${e.color};">${e.icon}</div>
+    <div>
+      <div class="text-sm font-semibold text-gray-200">${e.name}</div>
+      <div class="text-[10px] text-gray-500">${e.desc}</div>
+    </div>
+  `;
+
+  const msgsEl = document.getElementById('chatMessages');
+  const msgs = messages[selectedEmployee] || [];
+  msgsEl.innerHTML = msgs.map(m => `
+    <div class="chat-msg ${m.role}" style="${m.role === 'user' ? '' : ''}">
+      ${m.content.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong style="color:#e2e8f0;">$1</strong>')}
+    </div>
+  `).join('');
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+function renderOutputs() {
+  const el = document.getElementById('outputPanel');
+  el.innerHTML = outputs.map(o => {
+    const author = employees.find(e => e.id === o.author);
+    return `
+      <div class="output-card" onclick="showOutputDetail('${o.title}')">
+        <div class="flex items-start gap-2.5">
+          <span class="text-lg">${o.type}</span>
+          <div class="flex-1 min-w-0">
+            <div class="text-xs font-medium text-gray-200 truncate">${o.title}</div>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[10px]" style="color:${author?.color || '#666'}">${author?.icon || '?'} ${author?.name || o.author}</span>
+              <span class="text-[10px] text-gray-600">·</span>
+              <span class="text-[10px] ${o.status === '已完成' ? 'text-emerald-400' : o.status === '审核中' ? 'text-amber-400' : 'text-blue-400'}">${o.status}</span>
+            </div>
+            <div class="text-[9px] text-gray-600 mt-0.5">${o.time}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== INTERACTIONS =====
+function selectEmployee(id) {
+  selectedEmployee = id;
+  renderMembers();
+  renderChat();
+  if (!messages[id] || messages[id].length <= 1) {
+    // First message auto-added by init data
+  }
+}
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  // Add user message
+  if (!messages[selectedEmployee]) messages[selectedEmployee] = [];
+  messages[selectedEmployee].push({ role: 'user', content: text });
+  renderChat();
+
+  // Show typing indicator
+  const msgsEl = document.getElementById('chatMessages');
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'chat-msg assistant flex items-center gap-1.5';
+  typingDiv.id = 'typingIndicator';
+  typingDiv.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+  msgsEl.appendChild(typingDiv);
+
+  // Simulate response
+  setTimeout(() => {
+    const typing = document.getElementById('typingIndicator');
+    if (typing) typing.remove();
+
+    const response = generateResponse(selectedEmployee, text);
+    messages[selectedEmployee].push({ role: 'assistant', content: response });
+    renderChat();
+
+    // Add to outputs panel
+    if (selectedEmployee !== 'lead' && Math.random() > 0.5) {
+      const typeMap = { PM: '📄', RD: '💻', QA: '🧪', UI: '🎨' };
+      const statusMap = { PM: '已完成', RD: '开发中', QA: '测试中', UI: '审核中' };
+      outputs.unshift({
+        id: Date.now(),
+        title: text.slice(0, 20) + '...',
+        author: selectedEmployee,
+        status: statusMap[selectedEmployee] || '进行中',
+        type: typeMap[selectedEmployee] || '📦',
+        time: '刚刚',
+      });
+      renderOutputs();
+    }
+  }, 1500);
+}
+
+function generateResponse(employeeId, text) {
+  const responses = {
+    lead: `好的，我来处理这个需求。\n\n**分析结果：**\n1. 📋 已通知 PM 评估需求\n2. 💻 等待PM输出PRD后分配给研发\n3. 🧪 测试用例将同步准备\n\n需要我立即启动完整流程吗？`,
+    PM: `收到需求，我来帮你分析。\n\n**📋 初步PRD框架：**\n\n**背景**：用户反馈${text}相关问题\n**目标**：提升用户体验\n\n**功能列表：**\n1. ${text} 核心功能\n2. 配套后台管理\n3. 数据统计看板\n\n**下一步**：需要我输出完整PRD文档并拆分任务吗？`,
+    RD: `收到任务！\n\n**💻 技术方案：**\n\n1. **架构选型**：沿用当前 FastAPI + SQLite 架构\n2. **核心逻辑**：\n   \`\`\`python\n   async def handle_${text.replace(/\\s/g,'_').slice(0,10)}():\n       # 实现${text}\n       pass\n   \`\`\`\n3. **API设计**：\n   - \`POST /api/v1/${text.replace(/\\s/g,'-').slice(0,15)}\`\n   - \`GET /api/v1/${text.replace(/\\s/g,'-').slice(0,15)}/list\`\n\n需要我直接生成完整代码并提PR吗？`,
+    QA: `好的，我来制定测试方案。\n\n**🧪 测试计划：**\n\n| 测试类型 | 用例数 | 优先级 |\n|---------|:-----:|:-----:|\n| 功能测试 | 8 | P0 |\n| 边界测试 | 5 | P1 |\n| 异常测试 | 4 | P1 |\n\n**示例用例：**\n1. ✅ 正常流程：输入正确参数 → 返回预期结果\n2. ⚠️ 异常流程：传入空值 → 返回400错误\n3. 🔒 安全测试：注入攻击 → 拒绝请求\n\n需要我执行测试并输出报告吗？`,
+    UI: `收到设计需求！\n\n**🎨 初步设计方案：**\n\n根据你的需求「${text}」，我推荐以下设计方向：\n\n1. **布局**：顶部导航 + 左侧菜单 + 主内容区\n2. **组件**：卡片式信息展示、渐变色强调按钮\n3. **交互**：平滑过渡动画、悬浮反馈\n\n需要我先生成HTML交互原型看看效果吗？`,
+  };
+  return responses[employeeId] || `好的，收到「${text}」。我已经开始处理，请稍等。`;
+}
+
+function addSampleTask() {
+  const input = document.getElementById('chatInput');
+  const samples = [
+    '帮我做一个用户反馈收集功能',
+    '优化商品列表页加载速度',
+    '做一个数据看板的PRD',
+    '实现Excel导入导出功能',
+  ];
+  input.value = samples[Math.floor(Math.random() * samples.length)];
+  input.focus();
+}
+
+function showOutputDetail(title) {
+  // Simple detail view
+  const msg = `📦 **${title}**\n\n已生成完毕，可以查看详情或下载。\n\n操作：\n• 👀 查看详情\n• 💾 下载文件\n• 🔄 重新生成\n• 📤 分享给团队成员`;
+  if (!messages[selectedEmployee]) messages[selectedEmployee] = [];
+  messages[selectedEmployee].push({ role: 'assistant', content: msg });
+  renderChat();
+}
+
+// ===== INIT =====
+renderMembers();
+renderChat();
+renderOutputs();
+</script>
+</body>
+</html>

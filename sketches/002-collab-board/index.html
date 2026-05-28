@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>协作看板 · 产研团队数字员工</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #0f0f17;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 2px; }
+
+    .glass {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+    }
+    .glass-strong {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(12px);
+    }
+    .btn-gradient {
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    }
+    .btn-gradient:hover {
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    }
+    .accent { color: #a78bfa; }
+    .accent-bg { background: #a78bfa; }
+    .accent-border { border-color: rgba(167,139,250,0.3); }
+
+    .kanban-column {
+      min-width: 260px;
+      max-width: 300px;
+      flex: 1;
+    }
+    .task-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 12px;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .task-card:hover {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(167,139,250,0.2);
+      transform: translateY(-1px);
+    }
+    .member-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .timeline-node {
+      position: relative;
+      padding-left: 28px;
+      padding-bottom: 20px;
+    }
+    .timeline-node::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      bottom: 0;
+      width: 2px;
+      background: rgba(255,255,255,0.08);
+    }
+    .timeline-node:last-child::before { display: none; }
+    .timeline-dot {
+      position: absolute;
+      left: 4px;
+      top: 4px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid;
+      background: #0f0f17;
+    }
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(167,139,250,0.4); }
+      70% { box-shadow: 0 0 0 6px rgba(167,139,250,0); }
+      100% { box-shadow: 0 0 0 0 rgba(167,139,250,0); }
+    }
+    .pulse-accent { animation: pulse-ring 2s infinite; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 50;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      background: #1a1a2e;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 520px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+<div class="min-h-screen flex flex-col">
+
+  <!-- ===== HEADER ===== -->
+  <header class="glass" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+    <div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <span class="text-sm font-semibold">百应智星 · 产研团队</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <button class="text-xs text-gray-400 hover:text-white transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+          团队设置
+        </button>
+        <div class="flex -space-x-2">
+          <div class="member-avatar text-[10px]" style="background: linear-gradient(135deg, #7c3aed, #5b21b6);">PM</div>
+          <div class="member-avatar text-[10px]" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">RD</div>
+          <div class="member-avatar text-[10px]" style="background: linear-gradient(135deg, #10b981, #059669);">QA</div>
+          <div class="member-avatar text-[10px]" style="background: linear-gradient(135deg, #f59e0b, #d97706);">UI</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <div class="flex-1 flex">
+
+    <!-- ===== LEFT: 团队状态栏 ===== -->
+    <aside class="w-56 shrink-0 glass m-4 rounded-xl hidden lg:flex flex-col overflow-hidden" style="border: 1px solid rgba(255,255,255,0.06);">
+      <div class="px-4 py-3 border-b" style="border-color: rgba(255,255,255,0.06);">
+        <span class="text-xs font-semibold text-gray-300">团队成员</span>
+      </div>
+      <div class="flex-1 overflow-y-auto p-3 space-y-2" id="memberList">
+        <!-- 团队成员由JS动态渲染 -->
+      </div>
+      <div class="p-3 border-t" style="border-color: rgba(255,255,255,0.06);">
+        <button class="w-full btn-gradient text-xs text-white py-2 rounded-lg font-medium flex items-center justify-center gap-1.5" onclick="showAddTask()">
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          新任务
+        </button>
+      </div>
+    </aside>
+
+    <!-- ===== CENTER: 看板 ===== -->
+    <main class="flex-1 p-4 overflow-x-auto">
+      <div class="flex gap-4 h-full" id="kanbanBoard">
+        <!-- 看板列由JS动态渲染 -->
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<!-- ===== TASK DETAIL MODAL ===== -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal-content">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-sm font-bold flex items-center gap-2">
+        <span id="modalIcon" class="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold text-white" style="background: linear-gradient(135deg, #7c3aed, #5b21b6);">PM</span>
+        <span id="modalTitle" class="text-white">任务标题</span>
+      </h3>
+      <button onclick="closeModal()" class="text-gray-500 hover:text-white transition">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="modalBody" class="space-y-4 text-xs text-gray-400"></div>
+    <div class="flex gap-2 mt-5 pt-4 border-t" style="border-color: rgba(255,255,255,0.06);">
+      <button class="flex-1 py-2 rounded-lg text-xs font-medium text-gray-300 glass-strong hover:bg-white/10 transition">评论</button>
+      <button class="flex-1 py-2 rounded-lg text-xs font-medium text-white btn-gradient" onclick="closeModal()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== NEW TASK MODAL ===== -->
+<div class="modal-overlay" id="newTaskModal">
+  <div class="modal-content">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-sm font-bold text-white">新建任务</h3>
+      <button onclick="document.getElementById('newTaskModal').classList.remove('active')" class="text-gray-500 hover:text-white transition">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs text-gray-400 mb-1.5">任务描述</label>
+        <textarea class="w-full rounded-lg px-3 py-2 text-xs text-gray-200" style="background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); min-height:80px; resize:vertical;" placeholder="输入需求描述，例如：实现用户登录模块..."></textarea>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-400 mb-1.5">负责人</label>
+        <select class="w-full rounded-lg px-3 py-2 text-xs text-gray-200" style="background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);">
+          <option value="PM">产品经理 (PM)</option>
+          <option value="RD">研发工程师 (RD)</option>
+          <option value="QA">测试工程师 (QA)</option>
+          <option value="UI">UI设计师 (UI)</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-400 mb-1.5">优先级</label>
+        <div class="flex gap-2">
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="priority" checked class="accent-violet-500"> <span class="text-xs text-gray-400">P0 紧急</span></label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="priority" class="accent-violet-500"> <span class="text-xs text-gray-400">P1 重要</span></label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="priority" class="accent-violet-500"> <span class="text-xs text-gray-400">P2 常规</span></label>
+        </div>
+      </div>
+    </div>
+    <button class="w-full mt-5 btn-gradient py-2.5 rounded-lg text-sm font-semibold text-white" onclick="addNewTask()">
+      创建任务 → 自动分配
+    </button>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const teamMembers = [
+  { id: 'PM', name: '产品经理', title: 'Product Manager', color: '#7c3aed', icon: '📋', status: '在线', taskCount: 2 },
+  { id: 'RD', name: '研发工程师', title: 'R&D Engineer', color: '#3b82f6', icon: '💻', status: '忙碌', taskCount: 3 },
+  { id: 'QA', name: '测试工程师', title: 'QA Engineer', color: '#10b981', icon: '🧪', status: '空闲', taskCount: 1 },
+  { id: 'UI', name: 'UI设计师', title: 'UI Designer', color: '#f59e0b', icon: '🎨', status: '审核中', taskCount: 1 },
+];
+
+const columns = [
+  { id: 'backlog', title: '📥 待办', limit: '∞' },
+  { id: 'design', title: '🎨 设计', limit: '∞' },
+  { id: 'dev', title: '⚡ 开发', limit: '∞' },
+  { id: 'review', title: '👀 审核', limit: '∞' },
+  { id: 'qa', title: '🧪 测试', limit: '∞' },
+  { id: 'done', title: '✅ 完成', limit: '∞' },
+];
+
+const colorMap = { PM: '#7c3aed', RD: '#3b82f6', QA: '#10b981', UI: '#f59e0b' };
+
+let tasks = [
+  { id: 1, title: '用户登录模块', desc: '实现邮箱/微信登录、JWT鉴权、密码找回', member: 'PM', column: 'backlog', priority: 'P1', comments: 3 },
+  { id: 2, title: '首页导航重构', desc: '响应式导航栏 + 面包屑组件', member: 'UI', column: 'design', priority: 'P2', comments: 1 },
+  { id: 3, title: 'API接口联调', desc: '用户信息、订单列表、商品详情接口', member: 'RD', column: 'dev', priority: 'P0', comments: 5 },
+  { id: 4, title: '支付流程测试', desc: '支付宝/微信支付全链路测试用例', member: 'QA', column: 'qa', priority: 'P1', comments: 2 },
+  { id: 5, title: 'PRD: 商品详情页', desc: '规格选择、价格计算、库存展示逻辑', member: 'PM', column: 'done', priority: 'P1', comments: 4 },
+  { id: 6, title: '设计稿评审-个人中心', desc: '个人资料、订单列表、设置页', member: 'UI', column: 'review', priority: 'P2', comments: 0 },
+  { id: 7, title: '购物车逻辑开发', desc: '增删改查、优惠券计算、库存校验', member: 'RD', column: 'backlog', priority: 'P1', comments: 1 },
+];
+
+// ===== RENDER =====
+function renderMembers() {
+  const el = document.getElementById('memberList');
+  el.innerHTML = teamMembers.map(m => {
+    const t = tasks.filter(t => t.member === m.id);
+    return `
+      <div class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-white/[0.04] transition cursor-pointer" onclick="filterByMember('${m.id}')">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0" style="background: ${m.color};">${m.icon}</div>
+        <div class="flex-1 min-w-0">
+          <div class="text-xs font-medium text-gray-200 truncate">${m.name}</div>
+          <div class="text-[10px] flex items-center gap-1.5">
+            <span class="status-dot" style="background: ${m.status === '在线' ? '#4ade80' : m.status === '忙碌' ? '#f59e0b' : '#9ca3af'};"></span>
+            <span class="text-gray-500">${m.status}</span>
+            <span class="text-gray-600">·</span>
+            <span class="text-gray-500">${t.length} 任务</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderBoard(filter) {
+  const el = document.getElementById('kanbanBoard');
+  const filteredTasks = filter ? tasks.filter(t => t.member === filter) : tasks;
+
+  el.innerHTML = columns.map(col => {
+    const colTasks = filteredTasks.filter(t => t.column === col.id);
+    return `
+      <div class="kanban-column glass rounded-xl flex flex-col overflow-hidden" style="border:1px solid rgba(255,255,255,0.06);">
+        <div class="px-3 py-2.5 border-b flex items-center justify-between" style="border-color:rgba(255,255,255,0.06);">
+          <span class="text-xs font-semibold text-gray-300">${col.title}</span>
+          <span class="text-[10px] text-gray-500 bg-white/5 px-1.5 py-0.5 rounded-full">${colTasks.length}</span>
+        </div>
+        <div class="flex-1 overflow-y-auto p-2 space-y-2 min-h-[200px]">
+          ${colTasks.length === 0 ? `
+            <div class="text-center py-8">
+              <div class="text-2xl mb-2 opacity-20">📭</div>
+              <p class="text-[10px] text-gray-600">暂无任务</p>
+            </div>
+          ` : colTasks.map(t => `
+            <div class="task-card" onclick="showTask(${t.id})">
+              <div class="flex items-start justify-between mb-2">
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full ${t.priority === 'P0' ? 'text-red-400 bg-red-500/10' : t.priority === 'P1' ? 'text-yellow-400 bg-yellow-500/10' : 'text-gray-400 bg-white/5'}">${t.priority}</span>
+                <div class="w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold text-white shrink-0" style="background: ${colorMap[t.member]};">${teamMembers.find(m=>m.id===t.member)?.icon || '?'}</div>
+              </div>
+              <div class="text-xs font-medium text-gray-200 mb-1.5 truncate">${t.title}</div>
+              <div class="text-[10px] text-gray-500 line-clamp-2 mb-2">${t.desc}</div>
+              <div class="flex items-center gap-2 text-[10px] text-gray-600">
+                ${t.comments > 0 ? `<span>💬 ${t.comments}</span>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== INTERACTIONS =====
+function showTask(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  const m = teamMembers.find(m => m.id === t.member);
+  document.getElementById('modalIcon').textContent = m?.icon || '?';
+  document.getElementById('modalTitle').textContent = t.title;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="flex items-center gap-3">
+      <span class="text-[10px] px-2 py-0.5 rounded-full ${t.priority === 'P0' ? 'bg-red-500/10 text-red-400' : t.priority === 'P1' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-white/5 text-gray-400'}">${t.priority}</span>
+      <span class="text-gray-500">负责人: <span style="color:${colorMap[t.member]}">${m?.name || t.member}</span></span>
+      <span class="text-gray-500">状态: ${columns.find(c=>c.id===t.column)?.title || t.column}</span>
+    </div>
+    <div class="glass-strong rounded-xl p-3">
+      <p class="text-xs text-gray-300 leading-relaxed">${t.desc}</p>
+    </div>
+    <div>
+      <div class="text-[11px] font-medium text-gray-300 mb-2">⏱ 操作记录</div>
+      <div class="timeline-node">
+        <div class="timeline-dot" style="border-color: #4ade80;"></div>
+        <div class="text-[11px] text-gray-300">分配给 ${m?.name}</div>
+        <div class="text-[10px] text-gray-500">2分钟前</div>
+      </div>
+      <div class="timeline-node">
+        <div class="timeline-dot" style="border-color: #a78bfa;"></div>
+        <div class="text-[11px] text-gray-300">从「待办」移入「${columns.find(c=>c.id===t.column)?.title || t.column}」</div>
+        <div class="text-[10px] text-gray-500">5分钟前</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('taskModal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('taskModal').classList.remove('active');
+}
+
+function showAddTask() {
+  document.getElementById('newTaskModal').classList.add('active');
+}
+
+function addNewTask() {
+  const textarea = document.querySelector('#newTaskModal textarea');
+  const select = document.querySelector('#newTaskModal select');
+  const priorityRadio = document.querySelector('input[name="priority"]:checked');
+  if (!textarea.value.trim()) { textarea.style.borderColor = '#ef4444'; return; }
+  const newTask = {
+    id: Date.now(),
+    title: textarea.value.trim().slice(0, 30) + (textarea.value.trim().length > 30 ? '...' : ''),
+    desc: textarea.value.trim(),
+    member: select.value,
+    column: 'backlog',
+    priority: priorityRadio ? priorityRadio.parentElement.textContent.trim().split(' ')[0] : 'P2',
+    comments: 0,
+  };
+  tasks.unshift(newTask);
+  renderBoard();
+  renderMembers();
+  document.getElementById('newTaskModal').classList.remove('active');
+  textarea.value = '';
+  textarea.style.borderColor = '';
+}
+
+let currentFilter = null;
+function filterByMember(id) {
+  currentFilter = currentFilter === id ? null : id;
+  renderBoard(currentFilter);
+  // Highlight in member list
+  document.querySelectorAll('#memberList > div').forEach(el => el.style.background = 'transparent');
+  if (currentFilter) {
+    const idx = teamMembers.findIndex(m => m.id === id);
+    if (idx >= 0) document.querySelectorAll('#memberList > div')[idx].style.background = 'rgba(167,139,250,0.08)';
+  }
+}
+
+// Click outside modal to close
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', (e) => {
+    if (e.target === el) el.classList.remove('active');
+  });
+});
+
+// ===== INIT =====
+renderMembers();
+renderBoard();
+</script>
+</body>
+</html>
