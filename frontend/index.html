@@ -1835,13 +1835,13 @@ ${r?'Expression: "'+r+`"
                   <!-- === REPORTS PANEL === -->
                   <div class="flex-1 overflow-y-auto px-4 py-3" x-show="rightPanelTab === 'reports'">
                     <div class="space-y-3">
-                      <template x-if="reports.length === 0">
+                      <template x-if="getSidebarReports().length === 0">
                         <div class="text-center py-8">
                           <div class="text-3xl mb-3 opacity-30"><i class="fas fa-file-lines text-gradient"></i></div>
                           <p class="text-xs" style="color: var(--fuse-muted);">暂无报告</p>
                         </div>
                       </template>
-                      <template x-for="report in reports.slice(0, 8)" :key="report.id">
+                      <template x-for="report in getSidebarReports()" :key="report.id">
                         <div class="report-card" @click="showReportDetailModal = true; selectedReport = report">
                           <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style="background: rgba(59,130,246,0.12);">
                             <i class="fas fa-chart-pie text-xs" style="color: var(--fuse-accent);"></i>
@@ -3304,6 +3304,21 @@ ${r?'Expression: "'+r+`"
         newTopicTab: 'topics',       // for report page: 'topics' | 'reports'
 
         // ---- Report tree methods ----
+        getSidebarReports() {
+          // Same filtering as getReportTree() but returns flat list (no tree grouping)
+          const seen = new Set();
+          return this.reports
+            .filter(r => r.status !== 'pending')
+            .filter(r => r.swot && r.swot.s)
+            .filter(r => {
+              const key = r.topic_id + '|' + r.report_type;
+              if (seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            })
+            .slice(0, 8);
+        },
+
         getReportTree() {
           // Returns [{category, topics: [{topic, reports}]}]
           // Only show latest report per topic+type (deduplicate by topic_id+report_type)
