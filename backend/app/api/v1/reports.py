@@ -467,17 +467,26 @@ async def _run_report_generation(
             key_trends = data.get("key_trends", "")
             action_items = data.get("action_items", [])
 
-            summary_parts = [f"「{topic_name}」{type_label}报共分析 {len(article_rows)} 篇相关文章（{time_str}）"]
-            if fallback_suffix:
-                summary_parts.append(f"（本周期无最新数据，已补充最近{report_type}度数据）")
-            if data.get("key_trends"):
-                summary_parts.append(f"趋势：{data['key_trends'][:80]}")
-            if data.get("risks"):
-                summary_parts.append(f"识别到 {len(data['risks'])} 项风险")
-            if data.get("opportunities"):
-                summary_parts.append(f"发现 {len(data['opportunities'])} 项机会")
-            summary = "；".join(summary_parts)
-            status = "generated"
+            # Guard: if all SWOT fields and risks/opps are empty, mark as draft (AI failed)
+            has_substance = any(swot.get(k, "") for k in ["s", "w", "o", "t"]) or \
+                           risk_items.get("risks") or \
+                           opportunities.get("opportunities")
+            if not has_substance:
+                status = "draft"
+                summary = f"「{topic_name}」{type_label}报生成失败：AI分析未返回有效内容，请稍后重试"
+            else:
+                status = "generated"
+
+                summary_parts = [f"「{topic_name}」{type_label}报共分析 {len(article_rows)} 篇相关文章（{time_str}）"]
+                if fallback_suffix:
+                    summary_parts.append(f"（本周期无最新数据，已补充最近{report_type}度数据）")
+                if data.get("key_trends"):
+                    summary_parts.append(f"趋势：{data['key_trends'][:80]}")
+                if data.get("risks"):
+                    summary_parts.append(f"识别到 {len(data['risks'])} 项风险")
+                if data.get("opportunities"):
+                    summary_parts.append(f"发现 {len(data['opportunities'])} 项机会")
+                summary = "；".join(summary_parts)
         else:
             swot = {"s": "", "w": "", "o": "", "t": ""}
             risk_items = {"risks": []}
@@ -539,94 +548,95 @@ async def _run_report_generation(
         )
         await db.commit()
 
-        # === Auto-push: fetch topic's push config and push to Feishu ===
-        try:
-            push_cfg_result = await db.execute(
-                text("""
-                    SELECT feishu_chat_id, feishu_push_enabled, webhook_url
-                    FROM topic_push_configs
-                    WHERE topic_id = :topic_id
-                """),
-                {"topic_id": str(topic_id)},
-            )
-            push_row = push_cfg_result.fetchone()
-            has_webhook = push_row and bool(push_row.webhook_url)
-            has_oauth = push_row and push_row.feishu_push_enabled and bool(push_row.feishu_chat_id)
-
-            # Try OAuth-based push
-            if has_oauth:
-                from app.services.push_service import push_report_full_with_db
-                push_data = {
-                    "feishu_doc_token": None,
-                    "report_type": report_type,
-                    "title": report_title,
-                    "summary": summary,
-                    "swot": swot,
-                    "risk_level": risk_level,
-                    "risk_items": risk_items,
-                    "opportunities": opportunities,
-                }
-                await push_report_full_with_db(
-                    db=db,
-                    report_id=report_id,
-                    report_data=push_data,
-                    feishu_chat_id=push_row.feishu_chat_id,
+        # === Auto-push: only push if generation succeeded ===
+        if status != "generated":
+            logger.info(f"[ReportGen] Skipping push for {report_id}: status is {status} (SWOT empty)")
+        else:
+            try:
+                push_cfg_result = await db.execute(
+                    text("""
+                        SELECT feishu_chat_id, feishu_push_enabled, webhook_url
+                        FROM topic_push_configs
+                        WHERE topic_id = :topic_id
+                    """),
+                    {"topic_id": str(topic_id)},
                 )
+                push_row = push_cfg_result.fetchone()
+                has_webhook = push_row and bool(push_row.webhook_url)
+                has_oauth = push_row and push_row.feishu_push_enabled and bool(push_row.feishu_chat_id)
 
-            # Try webhook-based push (fallback or primary)
-            if has_webhook:
-                import httpx as _httpx_wh
-                # Build article links from content_snapshot
-                articles = content_snapshot.get("articles", []) if content_snapshot else []
-                article_links = ""
-                for i, art in enumerate(articles[:10], 1):
-                    url = art.get("url", "")
-                    title_text = (art.get("title", "") or "")[:50]
-                    if url:
-                        article_links += f"[{i}. {title_text}]({url})\n"
-                    else:
-                        article_links += f"{i}. {title_text}\n"
+                # Try OAuth-based push
+                if has_oauth:
+                    from app.services.push_service import push_report_full_with_db
+                    push_data = {
+                        "feishu_doc_token": None,
+                        "report_type": report_type,
+                        "title": report_title,
+                        "summary": summary,
+                        "swot": swot,
+                        "risk_level": risk_level,
+                        "risk_items": risk_items,
+                        "opportunities": opportunities,
+                    }
+                    await push_report_full_with_db(
+                        db=db,
+                        report_id=report_id,
+                        report_data=push_data,
+                        feishu_chat_id=push_row.feishu_chat_id,
+                    )
 
-                # Build SWOT text for card
-                s_text = (swot.get("s", "") or "")[:300]
-                w_text = (swot.get("w", "") or "")[:300]
-                o_text = (swot.get("o", "") or "")[:300]
-                t_text = (swot.get("t", "") or "")[:300]
+                # Try webhook-based push (fallback or primary)
+                if has_webhook:
+                    import httpx as _httpx_wh
+                    articles = content_snapshot.get("articles", []) if content_snapshot else []
+                    article_links = ""
+                    for i, art in enumerate(articles[:10], 1):
+                        url = art.get("url", "")
+                        title_text = (art.get("title", "") or "")[:50]
+                        if url:
+                            article_links += f"[{i}. {title_text}]({url})\n"
+                        else:
+                            article_links += f"{i}. {title_text}\n"
 
-                risk_count = len(risk_items.get("risks", [])) if risk_items else 0
-                opp_count = len(opportunities.get("opportunities", [])) if opportunities else 0
+                    s_text = (swot.get("s", "") or "")[:300]
+                    w_text = (swot.get("w", "") or "")[:300]
+                    o_text = (swot.get("o", "") or "")[:300]
+                    t_text = (swot.get("t", "") or "")[:300]
 
-                level_color_wh = {"高": "red", "中": "yellow", "低": "green"}
-                color_wh = level_color_wh.get(risk_level, "blue")
+                    risk_count = len(risk_items.get("risks", [])) if risk_items else 0
+                    opp_count = len(opportunities.get("opportunities", [])) if opportunities else 0
 
-                elements_wh = [
-                    {"tag": "markdown", "content": f"**📋 摘要**\n{summary[:400]}"},
-                    {"tag": "hr"},
-                    {"tag": "markdown", "content": f"**💪 优势**\n{s_text}\n\n**⚠️ 劣势**\n{w_text}\n\n**🚀 机会**\n{o_text}\n\n**🔻 威胁**\n{t_text}"},
-                    {"tag": "hr"},
-                    {"tag": "markdown", "content": f"**整体风险等级：{risk_level}**"},
-                ]
-    
-                if article_links:
-                    elements_wh.append({"tag": "hr"})
-                    elements_wh.append({"tag": "markdown", "content": f"**📰 源文章快照（{len(articles)}篇）**\n\n{article_links[:1500]}"})
+                    level_color_wh = {"高": "red", "中": "yellow", "低": "green"}
+                    color_wh = level_color_wh.get(risk_level, "blue")
 
-                card_wh = {
-                    "config": {"wide_screen_mode": True},
-                    "header": {"title": {"tag": "plain_text", "content": f"📊 {report_title}"}, "template": color_wh},
-                    "elements": elements_wh,
-                }
-                wh_payload = {"msg_type": "interactive", "card": card_wh}
-                async with _httpx_wh.AsyncClient(timeout=30.0) as client:
-                    wh_resp = await client.post(push_row.webhook_url, json=wh_payload)
-                    wh_resp.raise_for_status()
-                    wh_result = wh_resp.json()
-                    if wh_result.get("code") == 0:
-                        logger.info(f"[AutoPush] Webhook push OK for {report_id}")
-                    else:
-                        logger.warning(f"[AutoPush] Webhook push returned code={wh_result.get('code')}")
-        except Exception as e:
-            logger.warning(f"Push after report generation failed (non-fatal): {e}")
+                    elements_wh = [
+                        {"tag": "markdown", "content": f"**📋 摘要**\n{summary[:400]}"},
+                        {"tag": "hr"},
+                        {"tag": "markdown", "content": f"**💪 优势**\n{s_text}\n\n**⚠️ 劣势**\n{w_text}\n\n**🚀 机会**\n{o_text}\n\n**🔻 威胁**\n{t_text}"},
+                        {"tag": "hr"},
+                        {"tag": "markdown", "content": f"**整体风险等级：{risk_level}**"},
+                    ]
+
+                    if article_links:
+                        elements_wh.append({"tag": "hr"})
+                        elements_wh.append({"tag": "markdown", "content": f"**📰 源文章快照（{len(articles)}篇）**\n\n{article_links[:1500]}"})
+
+                    card_wh = {
+                        "config": {"wide_screen_mode": True},
+                        "header": {"title": {"tag": "plain_text", "content": f"📊 {report_title}"}, "template": color_wh},
+                        "elements": elements_wh,
+                    }
+                    wh_payload = {"msg_type": "interactive", "card": card_wh}
+                    async with _httpx_wh.AsyncClient(timeout=30.0) as client:
+                        wh_resp = await client.post(push_row.webhook_url, json=wh_payload)
+                        wh_resp.raise_for_status()
+                        wh_result = wh_resp.json()
+                        if wh_result.get("code") == 0:
+                            logger.info(f"[AutoPush] Webhook push OK for {report_id}")
+                        else:
+                            logger.warning(f"[AutoPush] Webhook push returned code={wh_result.get('code')}")
+            except Exception as e:
+                logger.warning(f"Push after report generation failed (non-fatal): {e}")
 
     except Exception as e:
         logger.error(f"Background report generation failed for {report_id}: {e}")
