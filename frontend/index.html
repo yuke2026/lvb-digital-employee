@@ -3306,34 +3306,21 @@ ${r?'Expression: "'+r+`"
         // ---- Report tree methods ----
         getSidebarReports() {
           // Same filtering as getReportTree() but returns flat list (no tree grouping)
-          const seen = new Set();
           return this.reports
             .filter(r => r.status !== 'pending')
             .filter(r => r.swot && r.swot.s)
-            .filter(r => {
-              const key = r.topic_id + '|' + r.report_type;
-              if (seen.has(key)) return false;
-              seen.add(key);
-              return true;
-            })
             .slice(0, 8);
         },
 
         getReportTree() {
           // Returns [{category, topics: [{topic, reports}]}]
-          // Only show latest report per topic+type (deduplicate by topic_id+report_type)
-          const seen = new Set();
           const filtered = this.reports
             .filter(r => this.reportFilter === '全部' ||
               ({'日报':'daily','周报':'weekly','月报':'monthly','季报':'quarterly','年报':'yearly'}[this.reportFilter] === r.report_type))
             .filter(r => {
-              // Filter out empty/worthless reports
-              if (r.status === 'pending') return false;
+              // Filter out pending/failed/worthless reports
+              if (r.status === 'pending' || r.status === 'failed') return false;
               if (!r.swot || !r.swot.s) return false;
-              // Deduplicate: keep only the latest per topic+type
-              const key = r.topic_id + '|' + r.report_type;
-              if (seen.has(key)) return false;
-              seen.add(key);
               return true;
             });
           const tree = {};
@@ -3479,6 +3466,9 @@ ${r?'Expression: "'+r+`"
                 this.user = await res.json();
                 this.isLoggedIn = true;
                 await this.loadEmployees();
+                // Preload reports and topics so right panel shows data on first load
+                this.loadReports();
+                this.loadTopics();
                 return;
               } else {
                 // Token expired
