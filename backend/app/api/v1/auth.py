@@ -31,11 +31,18 @@ async def register(req: UserRegister, db: AsyncSession = Depends(get_db)):
         )
 
     # 创建用户
+    # Auto-assign to default organization
+    from sqlalchemy import text as _text
+    org_result = await db.execute(_text("SELECT id FROM organizations LIMIT 1"))
+    org_row = org_result.fetchone()
+    default_org_id = org_row[0] if org_row else None
+
     user = User(
         username=req.username,
         email=req.email,
         password_hash=hash_password(req.password),
         role="user",
+        org_id=default_org_id,
     )
     db.add(user)
     await db.commit()
