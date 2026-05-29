@@ -30,19 +30,19 @@ async def register(req: UserRegister, db: AsyncSession = Depends(get_db)):
             detail="用户名已被使用",
         )
 
-    # 创建用户
-    # Auto-assign to default organization
-    from sqlalchemy import text as _text
-    org_result = await db.execute(_text("SELECT id FROM organizations LIMIT 1"))
-    org_row = org_result.fetchone()
-    default_org_id = org_row[0] if org_row else None
+    # 创建用户 + 独立组织（每个用户一个组织，数据隔离）
+    import uuid as _uuid
+    from app.models.organization import Organization as _OrgModel
+    new_org = _OrgModel(name=f"{req.username}的组织")
+    db.add(new_org)
+    await db.flush()
 
     user = User(
         username=req.username,
         email=req.email,
         password_hash=hash_password(req.password),
         role="user",
-        org_id=default_org_id,
+        org_id=new_org.id,
     )
     db.add(user)
     await db.commit()
