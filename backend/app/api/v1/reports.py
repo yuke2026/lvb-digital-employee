@@ -382,11 +382,15 @@ async def _run_report_generation(
 
             # Use higher max_tokens for comprehensive report types
             if report_type in ("monthly", "quarterly", "yearly"):
-                ai_max_tokens = 4096
+                ai_max_tokens = 8192
             elif report_type == "weekly":
-                ai_max_tokens = 3072
+                ai_max_tokens = 6144
             else:
-                ai_max_tokens = 3072
+                ai_max_tokens = 4096
+
+            # For reasoning models, increase budget further to account for thinking tokens
+            # deepseek-v4-flash is a reasoning model that spends tokens on chain-of-thought
+            ai_max_tokens = ai_max_tokens * 2  # Double budget for reasoning models
 
             response = await chat_with_deepseek(system_prompt, [{"role": "user", "content": user_prompt}], max_tokens=ai_max_tokens)
 
@@ -434,7 +438,7 @@ async def _run_report_generation(
                         ],
                         "stream": False,
                         "temperature": 0.7 + (attempt * 0.1),  # Increase temperature on each retry
-                        "max_tokens": ai_max_tokens,
+                        "max_tokens": ai_max_tokens * 2,
                     }
                     try:
                         async with _httpx.AsyncClient(timeout=180.0) as client:
@@ -444,6 +448,7 @@ async def _run_report_generation(
                             response = data_json["choices"][0]["message"]["content"]
                     except Exception as retry_err:
                         _lg2.getLogger(__name__).warning(f"[ReportGen] Retry #{attempt+2} failed: {retry_err}")
+                        response = f"（重试异常）{str(retry_err)}"
 
             # 5. Parse response
             content = response.strip()

@@ -5157,6 +5157,7 @@ ${r?'Expression: "'+r+`"
         },
 
         async restoreReport(reportId) {
+          if (!confirm('确定恢复这份报告吗？恢复后它将重新出现在报告列表中。')) return;
           try {
             const res = await fetch(`/api/v1/reports/trash/${reportId}/restore`, {
               method: 'POST',
