@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>团队模块增强 - UI 预览</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        'fuse-bg': '#0f0f17',
+        'fuse-card': 'rgba(255,255,255,0.04)',
+        'fuse-border': 'rgba(255,255,255,0.08)',
+        'fuse-surface': 'rgba(255,255,255,0.05)',
+        'fuse-muted': '#8b8fa3',
+        'fuse-text': '#e2e8f0',
+        'fuse-accent': '#a78bfa',
+        'fuse-accent2': '#7c3aed',
+      }
+    }
+  }
+}
+</script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .glass {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+  }
+  .glass-thick {
+    background: rgba(20,20,35,0.92);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(20px);
+  }
+  .btn-gradient {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  }
+  .btn-gradient:hover {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  }
+</style>
+</head>
+<body class="min-h-screen" style="background: #0f0f17; color: #e2e8f0;">
+
+<div class="max-w-5xl mx-auto py-10 px-4">
+  <h1 class="text-2xl font-bold mb-2">团队模块增强方案</h1>
+  <p class="text-sm mb-8" style="color: #8b8fa3;">以下为创建的UI预览</p>
+
+  <!-- ============ 预览1: 创建任务弹窗 ============ -->
+  <div class="mb-12">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="w-6 h-6 rounded-full bg-violet-500/20 flex items-center justify-center text-xs text-violet-400 font-bold">1</span>
+      <span class="text-sm font-semibold">创建任务弹窗</span>
+      <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">新</span>
+    </div>
+
+    <div class="glass rounded-2xl p-8 flex items-center justify-center relative" style="min-height: 400px;">
+      <!-- Backdrop -->
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-2xl"></div>
+      <!-- Modal -->
+      <div class="relative glass-thick rounded-2xl p-6 w-full max-w-md mx-4" style="z-index: 10;">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-lg font-bold" style="color: #e2e8f0;">
+            <i class="fas fa-plus-circle mr-2" style="color: #a78bfa;"></i>创建任务
+          </h3>
+          <button class="text-gray-500 hover:text-white transition text-xl">&times;</button>
+        </div>
+        <div class="space-y-4">
+          <!-- Title -->
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color: #8b8fa3;">任务标题 *</label>
+            <input type="text" value="智能客服对话历史查询功能开发"
+                   class="w-full px-3 py-2.5 rounded-xl text-sm outline-none transition"
+                   style="background: rgba(255,255,255,0.05); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.10);"
+                   placeholder="输入任务标题">
+          </div>
+          <!-- Description -->
+          <div>
+            <label class="text-xs font-medium mb-1.5 block" style="color: #8b8fa3;">描述</label>
+            <textarea rows="3"
+                      class="w-full px-3 py-2.5 rounded-xl text-sm outline-none resize-none transition"
+                      style="background: rgba(255,255,255,0.05); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.10);"
+                      placeholder="描述任务目标和交付标准">为管理员提供按用户、时间、关键字查询历史对话的功能，支持导出</textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Assignee -->
+            <div>
+              <label class="text-xs font-medium mb-1.5 block" style="color: #8b8fa3;">负责人</label>
+              <div class="relative">
+                <select class="w-full px-3 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer transition"
+                        style="background: rgba(255,255,255,0.05); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.10);">
+                  <option class="bg-gray-800">产品经理</option>
+                  <option class="bg-gray-800" selected>研发工程师</option>
+                  <option class="bg-gray-800">测试工程师</option>
+                  <option class="bg-gray-800">UI设计师</option>
+                </select>
+              </div>
+            </div>
+            <!-- Priority -->
+            <div>
+              <label class="text-xs font-medium mb-1.5 block" style="color: #8b8fa3;">优先级</label>
+              <div class="flex gap-1.5">
+                <button class="flex-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all" style="background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3);">P0</button>
+                <button class="flex-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all" style="background: rgba(245,158,11,0.15); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3);">P1</button>
+                <button class="flex-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all" style="background: rgba(96,165,250,0.15); color: #93c5fd; border: 2px solid #60a5fa;">P2</button>
+                <button class="flex-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all" style="background: rgba(107,114,128,0.15); color: #9ca3af; border: 1px solid rgba(107,114,128,0.3);">P3</button>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 pt-1">
+            <input type="text" value="对话 #19_20250523"
+                   class="flex-1 px-3 py-2 rounded-xl text-xs outline-none"
+                   style="background: rgba(255,255,255,0.03); color: #8b8fa3; border: 1px solid rgba(255,255,255,0.06);"
+                   placeholder="关联对话ID（可选）" disabled>
+            <span class="text-[10px]" style="color: #6b7280;">自动关联</span>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button class="px-4 py-2 rounded-xl text-sm" style="background: rgba(255,255,255,0.05); color: #8b8fa3; border: 1px solid rgba(255,255,255,0.08);">取消</button>
+            <button class="btn-gradient px-5 py-2 rounded-xl text-sm font-semibold text-white">创建任务</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 预览2: 任务详情弹窗增强 ============ -->
+  <div class="mb-12">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="w-6 h-6 rounded-full bg-violet-500/20 flex items-center justify-center text-xs text-violet-400 font-bold">2</span>
+      <span class="text-sm font-semibold">任务详情弹窗（增强）</span>
+      <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400">增强</span>
+    </div>
+
+    <div class="glass rounded-2xl p-8 flex items-center justify-center relative" style="min-height: 520px;">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-2xl"></div>
+      <div class="relative glass-thick rounded-2xl p-6 w-full max-w-lg mx-4" style="z-index: 10;">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold" style="color: #e2e8f0;">
+            <i class="fas fa-tasks mr-2" style="color: #a78bfa;"></i>
+            <span>对话历史查询功能</span>
+          </h3>
+          <button class="text-gray-500 hover:text-white transition text-xl">&times;</button>
+        </div>
+
+        <!-- Status & Priority badges -->
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-xs px-2.5 py-1 rounded-full font-medium" style="background: rgba(59,130,246,0.15); color: #60a5fa;">开发中</span>
+          <span class="text-xs px-2.5 py-1 rounded-full font-medium" style="background: rgba(245,158,11,0.15); color: #fbbf24;">P1</span>
+        </div>
+
+        <!-- Details grid -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div class="px-3 py-2.5 rounded-lg" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);">
+            <div class="text-[10px] font-medium" style="color: #8b8fa3;">负责人</div>
+            <div class="text-sm mt-0.5" style="color: #e2e8f0;">💻 研发工程师</div>
+          </div>
+          <div class="px-3 py-2.5 rounded-lg" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);">
+            <div class="text-[10px] font-medium" style="color: #8b8fa3;">创建时间</div>
+            <div class="text-sm mt-0.5" style="color: #e2e8f0;">2025-05-23 14:30</div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="px-3 py-2.5 rounded-lg mb-4" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);">
+          <div class="text-[10px] font-medium mb-1" style="color: #8b8fa3;">描述</div>
+          <div class="text-sm" style="color: #d1d5db;">为管理员提供按用户、时间、关键字查询历史对话的功能，支持导出为CSV</div>
+        </div>
+
+        <!-- Action buttons: Move Status + Delete -->
+        <div class="flex items-center justify-between border-t pt-4" style="border-color: rgba(255,255,255,0.06);">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px]" style="color: #8b8fa3;">移动至：</span>
+            <div class="flex gap-1">
+              <button class="px-2.5 py-1 rounded-lg text-[10px] font-medium transition" style="background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25);">
+                🧪 测试
+              </button>
+              <button class="px-2.5 py-1 rounded-lg text-[10px] font-medium transition" style="background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25);">
+                📋 审核
+              </button>
+            </div>
+          </div>
+          <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition"
+                  style="background: rgba(239,68,68,0.12); color: #fca5a5;">
+            <i class="fas fa-trash-alt text-[10px]"></i> 删除
+          </button>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="mt-4 pt-3 border-t" style="border-color: rgba(255,255,255,0.06);">
+          <div class="text-[10px] font-semibold mb-2 flex items-center gap-1.5" style="color: #8b8fa3;">
+            <i class="fas fa-history"></i> 操作日志
+          </div>
+          <div class="space-y-2 max-h-24 overflow-y-auto">
+            <div class="flex items-start gap-2 text-[11px]">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0"></span>
+              <div>
+                <span style="color: #d1d5db;">从「待办」移动到「开发中」</span>
+                <span style="color: #6b7280;"> · 5分钟前 · by 产研主管</span>
+              </div>
+            </div>
+            <div class="flex items-start gap-2 text-[11px]">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5 shrink-0"></span>
+              <div>
+                <span style="color: #d1d5db;">任务创建</span>
+                <span style="color: #6b7280;"> · 30分钟前 · by user</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 预览3: 看板快捷操作 ============ -->
+  <div class="mb-8">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="w-6 h-6 rounded-full bg-violet-500/20 flex items-center justify-center text-xs text-violet-400 font-bold">3</span>
+      <span class="text-sm font-semibold">看板快捷移动</span>
+      <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400">快捷</span>
+    </div>
+
+    <div class="glass rounded-2xl p-6">
+      <div class="flex gap-4">
+        <!-- A single kanban column with expanded card -->
+        <div class="w-52 shrink-0">
+          <div class="flex items-center gap-2 text-xs font-semibold mb-2" style="color: #e2e8f0;">
+            <span class="w-2 h-2 rounded-full" style="background: #3b82f6;"></span>
+            开发
+            <span class="ml-auto text-[10px]" style="color: #8b8fa3;">3 个任务</span>
+          </div>
+          <div class="flex flex-col gap-2">
+            <!-- Card with quick move -->
+            <div class="glass rounded-lg p-3 cursor-pointer transition-all hover:scale-[1.02]">
+              <div class="text-xs font-medium" style="color: #e2e8f0;">对话历史查询功能</div>
+              <div class="flex items-center gap-2 mt-1.5">
+                <span class="text-[10px] px-1.5 py-0.5 rounded" style="background: rgba(245,158,11,0.15); color: #fbbf24;">P1</span>
+                <span class="text-[10px]" style="color: #8b8fa3;">💻 研发</span>
+              </div>
+              <!-- Quick move buttons (visible on hover) -->
+              <div class="flex gap-1 mt-2 pt-2 border-t border-white/5 opacity-0 hover:opacity-100 transition-opacity">
+                <button class="flex-1 py-1 rounded text-[10px] font-medium" style="background: rgba(16,185,129,0.15); color: #34d399;">
+                  审核
+                </button>
+                <button class="flex-1 py-1 rounded text-[10px] font-medium" style="background: rgba(245,158,11,0.15); color: #fbbf24;">
+                  测试
+                </button>
+              </div>
+            </div>
+            <!-- Regular card -->
+            <div class="glass rounded-lg p-3 cursor-pointer">
+              <div class="text-xs font-medium" style="color: #e2e8f0;">智能客服接口对接</div>
+              <div class="flex items-center gap-2 mt-1.5">
+                <span class="text-[10px] px-1.5 py-0.5 rounded" style="background: rgba(239,68,68,0.15); color: #fca5a5;">P0</span>
+                <span class="text-[10px]" style="color: #8b8fa3;">💻 研发</span>
+              </div>
+            </div>
+            <div class="glass rounded-lg p-3 cursor-pointer">
+              <div class="text-xs font-medium" style="color: #e2e8f0;">数据同步任务优化</div>
+              <div class="flex items-center gap-2 mt-1.5">
+                <span class="text-[10px] px-1.5 py-0.5 rounded" style="background: rgba(107,114,128,0.15); color: #9ca3af;">P3</span>
+                <span class="text-[10px]" style="color: #8b8fa3;">💻 研发</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="text-xs mt-4" style="color: #8b8fa3;">💡 悬停任务卡片底部显示可移动的状态按钮，点击一键移动</p>
+    </div>
+  </div>
+</div>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</body>
+</html>

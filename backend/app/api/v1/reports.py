@@ -369,7 +369,7 @@ async def _run_report_generation(
             "timeline": "时间窗口（30字以内）"
         }}
     ],
-    "risk_level": "整体风险等级：高/中/低",
+    "risk_level": "高/中/低",
     "key_trends": "关键趋势总结（{summary_length}，概括本期最重要的3-5个趋势方向）",
     "action_items": [
         "建议1（50字以内）",
@@ -386,7 +386,7 @@ async def _run_report_generation(
             elif report_type == "weekly":
                 ai_max_tokens = 3072
             else:
-                ai_max_tokens = 2048
+                ai_max_tokens = 3072
 
             response = await chat_with_deepseek(system_prompt, [{"role": "user", "content": user_prompt}], max_tokens=ai_max_tokens)
 
@@ -464,6 +464,17 @@ async def _run_report_generation(
             risk_items = {"risks": data.get("risks", [])}
             opportunities = {"opportunities": data.get("opportunities", [])}
             risk_level = data.get("risk_level", "中")
+            # Normalize risk_level - strip common prefixes from AI output
+            if risk_level:
+                rl = str(risk_level).strip()
+                for prefix in ["整体风险等级：", "整体风险等级:", "整体风险：", "风险等级：", "风险等级:"]:
+                    if rl.startswith(prefix):
+                        rl = rl[len(prefix):]
+                        break
+                risk_map = {"高": "高", "高风险": "高", "high": "高",
+                           "中": "中", "中风险": "中", "medium": "中",
+                           "低": "低", "低风险": "低", "low": "低"}
+                risk_level = risk_map.get(rl.strip(), "中")
             key_trends = data.get("key_trends", "")
             action_items = data.get("action_items", [])
 
@@ -606,6 +617,34 @@ async def _run_report_generation(
                     risk_count = len(risk_items.get("risks", [])) if risk_items else 0
                     opp_count = len(opportunities.get("opportunities", [])) if opportunities else 0
 
+                    # Build risk items text for card
+                    risk_section = ""
+                    if risk_items:
+                        risks_list = risk_items.get("risks", [])
+                        if risks_list:
+                            risk_lines = []
+                            for r in risks_list[:3]:
+                                r_title = r.get("title", "")
+                                r_level = r.get("level", "")
+                                rl_icon = {"高": "🔴", "中": "🟡", "低": "🟢", "high": "🔴", "medium": "🟡", "low": "🟢"}
+                                icon = rl_icon.get(r_level, "▪️")
+                                risk_lines.append(f"{icon} [{r_level}] {r_title}")
+                            if risk_lines:
+                                risk_section = "\n".join(risk_lines)
+
+                    # Build opportunities text for card
+                    opp_section = ""
+                    if opportunities:
+                        opps_list = opportunities.get("opportunities", [])
+                        if opps_list:
+                            opp_lines = []
+                            for o in opps_list[:3]:
+                                o_title = o.get("title", "")
+                                if o_title:
+                                    opp_lines.append(f"✨ {o_title}")
+                            if opp_lines:
+                                opp_section = "\n".join(opp_lines)
+
                     level_color_wh = {"高": "red", "中": "yellow", "低": "green"}
                     color_wh = level_color_wh.get(risk_level, "blue")
 
@@ -616,6 +655,16 @@ async def _run_report_generation(
                         {"tag": "hr"},
                         {"tag": "markdown", "content": f"**整体风险等级：{risk_level}**"},
                     ]
+
+                    # Add risk items section
+                    if risk_section:
+                        elements_wh.append({"tag": "hr"})
+                        elements_wh.append({"tag": "markdown", "content": f"**🔍 风险识别（{risk_count}项）**\n\n{risk_section}"})
+
+                    # Add opportunities section
+                    if opp_section:
+                        elements_wh.append({"tag": "hr"})
+                        elements_wh.append({"tag": "markdown", "content": f"**🌟 机会发现（{opp_count}项）**\n\n{opp_section}"})
 
                     if article_links:
                         elements_wh.append({"tag": "hr"})
@@ -778,18 +827,7 @@ async def _run_refresh_pipeline(org_id: UUID, user_id: UUID, db: AsyncSession):
 
         logger.info("[Refresh] 关键词匹配完成")
 
-        # ---- Step 3: 删除该组织下的所有旧报告 ----
-        await db.execute(
-            text("""
-                DELETE FROM reports
-                WHERE topic_id IN (SELECT id FROM topics WHERE org_id = :org_id)
-            """),
-            {"org_id": str(org_id)},
-        )
-        await db.commit()
-        logger.info("[Refresh] 旧报告已删除")
-
-        # ---- Step 4: 为每个主题生成 AI 报告 ----
+        # ---- Step 3: 为每个主题生成新报告（保留旧报告不删除）----
         for topic_row in topic_rows:
             topic_id = topic_row.id
             report_id = uuid4()
@@ -846,7 +884,7 @@ async def list_reports(
 ):
     """List reports for the current user's organization, optionally filtered by topic_id."""
     params = {"org_id": str(current_user.org_id)}
-    where_clauses = ["t.org_id = :org_id"]
+    where_clauses = ["t.org_id = :org_id", "r.is_deleted = 0"]
 
     if topic_id is not None:
         where_clauses.append("r.topic_id = :topic_id")
@@ -891,7 +929,7 @@ async def refresh_all_reports(
     asyncio.create_task(_bg_refresh())
 
     return {
-        "message": "一键刷新已启动，后台正在执行：采集RSS → 关键词匹配 → 删除旧报告 → 生成AI报告",
+        "message": "一键刷新已启动，后台正在执行：采集RSS → 关键词匹配 → 生成AI报告（保留旧报告）",
         "status": "accepted",
     }
 
@@ -1021,21 +1059,108 @@ async def get_report(
     return await _row_to_report(row)
 
 
-@router.delete("/{report_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{report_id}", status_code=status.HTTP_200_OK)
 async def delete_report(
     report_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Delete a report."""
+    """Soft-delete a report (move to trash)."""
+    now = datetime.utcnow()
+    result = await db.execute(
+        text("""
+            UPDATE reports SET is_deleted = 1, deleted_at = :now
+            WHERE id = :report_id
+              AND topic_id IN (SELECT id FROM topics WHERE org_id = :org_id)
+        """),
+        {"report_id": str(report_id), "org_id": str(current_user.org_id), "now": now},
+    )
+    if result.rowcount == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
+    await db.commit()
+    return {"success": True, "message": "报告已移至回收站"}
+
+
+@router.get("/trash/list", response_model=list[ReportResponse])
+async def list_trash_reports(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List soft-deleted reports (trash)."""
+    result = await db.execute(
+        text("""
+            SELECT r.id, r.topic_id, r.report_type, r.title, r.summary,
+                   r.content, r.swot, r.risk_level, r.risk_items, r.opportunities,
+                   r.push_time, r.status, r.feishu_doc_token, r.feishu_msg_id,
+                   r.created_at, r.updated_at
+            FROM reports r
+            JOIN topics t ON r.topic_id = t.id
+            WHERE t.org_id = :org_id AND r.is_deleted = 1
+            ORDER BY r.deleted_at DESC
+        """),
+        {"org_id": str(current_user.org_id)},
+    )
+    rows = result.fetchall()
+    return [await _row_to_report(row) for row in rows]
+
+
+@router.post("/trash/{report_id}/restore", status_code=status.HTTP_200_OK)
+async def restore_report(
+    report_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Restore a report from trash."""
+    result = await db.execute(
+        text("""
+            UPDATE reports SET is_deleted = 0, deleted_at = NULL
+            WHERE id = :report_id
+              AND topic_id IN (SELECT id FROM topics WHERE org_id = :org_id)
+              AND is_deleted = 1
+        """),
+        {"report_id": str(report_id), "org_id": str(current_user.org_id)},
+    )
+    if result.rowcount == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found in trash")
+    await db.commit()
+    return {"success": True, "message": "报告已恢复"}
+
+
+@router.delete("/trash/{report_id}/permanent", status_code=status.HTTP_200_OK)
+async def permanent_delete_report(
+    report_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Permanently delete a report from trash."""
     result = await db.execute(
         text("""
             DELETE FROM reports
             WHERE id = :report_id
               AND topic_id IN (SELECT id FROM topics WHERE org_id = :org_id)
+              AND is_deleted = 1
         """),
         {"report_id": str(report_id), "org_id": str(current_user.org_id)},
     )
     if result.rowcount == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found in trash")
     await db.commit()
+    return {"success": True, "message": "报告已永久删除"}
+
+
+@router.delete("/trash/clear", status_code=status.HTTP_200_OK)
+async def clear_all_trash(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Permanently delete all trashed reports for the current org."""
+    await db.execute(
+        text("""
+            DELETE FROM reports
+            WHERE topic_id IN (SELECT id FROM topics WHERE org_id = :org_id)
+              AND is_deleted = 1
+        """),
+        {"org_id": str(current_user.org_id)},
+    )
+    await db.commit()
+    return {"success": True, "message": "回收站已清空"}

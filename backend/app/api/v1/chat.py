@@ -1,9 +1,10 @@
-"""对话路由：发送消息（SSE 流式）、获取历史"""
+"""对话路由：发送消息（SSE 流式）、获取历史、删除对话"""
 import json
 import re
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from sse_starlette.sse import EventSourceResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.user import (
     ChatSendRequest,
@@ -11,10 +12,12 @@ from app.schemas.user import (
     MessageResponse,
 )
 from app.core.deps import get_current_user
+from app.core.database import get_db
 from app.models.user import User
 from app.services.db import db
 from app.services.ai import chat_with_deepseek_stream
 from app.services.ai import chat_with_deepseek
+from app.services import conversation_store
 
 router = APIRouter()
 
@@ -46,9 +49,13 @@ async def send_message(
     req: ChatSendRequest,
     request: Request,
     current_user: User = Depends(get_current_user),
+    db_session: AsyncSession = Depends(get_db),
 ):
     """发送消息，返回 AI 流式回复（SSE 打字机效果）"""
     user_id = str(current_user.id)
+
+    # 确保 conversations 表存在
+    await conversation_store.ensure_conversations_table(db_session)
 
     # 查找数字员工
     employee = db.get_employee(req.employee_id)
@@ -63,29 +70,30 @@ async def send_message(
             detail="该数字员工已停用",
         )
 
-    # 获取或创建会话
+    # 获取或创建会话（持久化）
     conversation = None
     if req.conversation_id:
-        conversation = db.get_conversation(req.conversation_id)
-        if not conversation or conversation.user_id != user_id:
+        conversation = await conversation_store.get_conversation(db_session, req.conversation_id)
+        if not conversation or conversation["user_id"] != user_id:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="对话不存在",
             )
 
     if not conversation:
-        conversation = db.create_conversation(
+        conversation = await conversation_store.create_conversation(
+            db_session,
             user_id=user_id,
             employee_id=req.employee_id,
         )
 
     # 保存用户消息
-    db.add_message(conversation.id, "user", req.message)
+    await conversation_store.add_message(db_session, conversation["id"], "user", req.message)
 
     # 构建对话历史（用于AI调用）
     chat_messages = [
         {"role": m["role"], "content": m["content"]}
-        for m in conversation.messages
+        for m in conversation["messages"]
     ]
 
     # 构建 SSE 流式响应
@@ -134,15 +142,15 @@ async def send_message(
                 full_reply += chunk
                 yield {"event": "chunk", "data": json.dumps({"content": chunk})}
 
-            # 保存 AI 回复
+            # 保存 AI 回复（持久化）
             if full_reply:
-                db.add_message(conversation.id, "assistant", full_reply)
+                await conversation_store.add_message(db_session, conversation["id"], "assistant", full_reply)
 
             # 发送完成事件
             yield {
                 "event": "done",
                 "data": json.dumps({
-                    "conversation_id": conversation.id,
+                    "conversation_id": conversation["id"],
                     "skills_used": employee.skills,
                     "full_reply": full_reply,
                 }),
@@ -159,26 +167,58 @@ async def send_message(
 @router.get("/history", response_model=list[ConversationResponse])
 async def get_chat_history(
     current_user: User = Depends(get_current_user),
+    db_session: AsyncSession = Depends(get_db),
 ):
-    """获取当前用户的对话历史"""
+    """获取当前用户的对话历史（持久化数据）"""
+    await conversation_store.ensure_conversations_table(db_session)
     user_id = str(current_user.id)
-    conversations = db.list_conversations(user_id)
+    conversations = await conversation_store.list_conversations(db_session, user_id)
 
     return [
         ConversationResponse(
-            id=conv.id,
-            user_id=conv.user_id,
-            employee_id=conv.employee_id,
+            id=conv["id"],
+            user_id=conv["user_id"],
+            employee_id=conv["employee_id"],
             messages=[
                 MessageResponse(
                     role=m["role"],
                     content=m["content"],
                     timestamp=m["timestamp"],
                 )
-                for m in conv.messages
+                for m in conv["messages"]
             ],
-            created_at=conv.created_at,
-            updated_at=conv.updated_at,
+            created_at=conv["created_at"],
+            updated_at=conv["updated_at"],
         )
         for conv in conversations
     ]
+
+
+@router.delete("/conversation/{conversation_id}")
+async def delete_conversation(
+    conversation_id: str,
+    current_user: User = Depends(get_current_user),
+    db_session: AsyncSession = Depends(get_db),
+):
+    """删除单条对话"""
+    await conversation_store.ensure_conversations_table(db_session)
+    user_id = str(current_user.id)
+    deleted = await conversation_store.delete_conversation(db_session, conversation_id, user_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="对话不存在或无权限删除",
+        )
+    return {"message": "对话已删除"}
+
+
+@router.delete("/conversations")
+async def clear_conversations(
+    current_user: User = Depends(get_current_user),
+    db_session: AsyncSession = Depends(get_db),
+):
+    """清空当前用户的所有对话"""
+    await conversation_store.ensure_conversations_table(db_session)
+    user_id = str(current_user.id)
+    count = await conversation_store.clear_conversations(db_session, user_id)
+    return {"message": f"已清空 {count} 条对话记录"}

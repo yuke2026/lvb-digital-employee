@@ -62,7 +62,7 @@ app.add_middleware(
 )
 
 # 注册路由
-from app.api.v1 import auth, employees, chat, news_sources, topics, reports, scheduler_api, push_configs, feishu_events, ceo_advisor, team, report_push
+from app.api.v1 import auth, employees, chat, news_sources, topics, reports, scheduler_api, push_configs, feishu_events, ceo_advisor, team, report_push, automation
 from app.api.v1.topics import TopicCreate
 
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])
@@ -77,6 +77,7 @@ app.include_router(feishu_events.router, prefix="/api/v1", tags=["飞书事件"]
 app.include_router(ceo_advisor.router, prefix="/api/v1", tags=["CEO顾问"])
 app.include_router(team.router, tags=["产研团队"])
 app.include_router(report_push.router, tags=["报告推送"])
+app.include_router(automation.router, tags=["自动化配置"])
 
 
 @app.get("/api/health", include_in_schema=False)
@@ -193,6 +194,35 @@ async def serve_root():
     if os.path.isfile(INDEX_HTML):
         return FileResponse(INDEX_HTML, media_type="text/html")
     return HTMLResponse("<h1>前端未构建</h1><p>请先构建前端文件</p>", status_code=200)
+
+
+@app.get("/tailwind.css")
+async def serve_tailwind():
+    """Tailwind CSS 静态文件（自托管，替代 CDN）"""
+    css_path = os.path.join(FRONTEND_DIR, "tailwind.css")
+    if os.path.isfile(css_path):
+        return FileResponse(css_path, media_type="text/css")
+    return HTMLResponse("/* tailwind.css not found */", status_code=200, media_type="text/css")
+
+
+@app.get("/fontawesome.min.css")
+async def serve_fontawesome():
+    """Font Awesome CSS 静态文件（自托管，替代 CDN）"""
+    css_path = os.path.join(FRONTEND_DIR, "fontawesome.min.css")
+    if os.path.isfile(css_path):
+        return FileResponse(css_path, media_type="text/css")
+    return HTMLResponse("/* fontawesome.min.css not found */", status_code=200, media_type="text/css")
+
+
+@app.get("/webfonts/{filename:path}")
+async def serve_webfonts(filename: str):
+    """Font Awesome 字体文件（自托管，替代 CDN）"""
+    font_path = os.path.join(FRONTEND_DIR, "webfonts", filename)
+    if os.path.isfile(font_path):
+        ext = filename.rsplit(".", 1)[-1]
+        media_map = {"woff2": "font/woff2", "woff": "font/woff", "ttf": "font/ttf"}
+        return FileResponse(font_path, media_type=media_map.get(ext, "application/octet-stream"))
+    return HTMLResponse("/* font not found */", status_code=404)
 
 
 @app.exception_handler(404)

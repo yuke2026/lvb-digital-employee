@@ -149,6 +149,41 @@ class FeishuChatClient:
                 if top:
                     content_parts.append([{"tag": "text", "text": f"🚨 首要威胁: {top}"}])
 
+        # 添加风险识别（如果有）
+        risk_items_data = report.get("risk_items", None) or report.get("risks", None)
+        if risk_items_data:
+            if isinstance(risk_items_data, dict):
+                risks_list = risk_items_data.get("risks", [])
+            elif isinstance(risk_items_data, list):
+                risks_list = risk_items_data
+            else:
+                risks_list = []
+            if risks_list:
+                content_parts.append([{"tag": "text", "text": "🔍 风险识别:"}])
+                for i, r in enumerate(risks_list[:3]):  # 最多展示3条
+                    title = r.get("title", r.get("name", "")) if isinstance(r, dict) else str(r)
+                    level = r.get("level", "") if isinstance(r, dict) else ""
+                    level_icon = {"高": "🔴", "中": "🟡", "低": "🟢", "high": "🔴", "medium": "🟡", "low": "🟢"}
+                    icon = level_icon.get(level, "▪️")
+                    if title:
+                        content_parts.append([{"tag": "text", "text": f"  {icon} {title}"}])
+
+        # 添加机会发现（如果有）
+        opps = report.get("opportunities", None)
+        if opps:
+            if isinstance(opps, dict):
+                opps_list = opps.get("opportunities", [])
+            elif isinstance(opps, list):
+                opps_list = opps
+            else:
+                opps_list = []
+            if opps_list:
+                content_parts.append([{"tag": "text", "text": "🌟 机会发现:"}])
+                for i, o in enumerate(opps_list[:3]):  # 最多展示3条
+                    title = o.get("title", o.get("name", "")) if isinstance(o, dict) else str(o)
+                    if title:
+                        content_parts.append([{"tag": "text", "text": f"  ✨ {title}"}])
+
         content = {"zh_cn": {"title": title, "content": content_parts}}
 
         payload = {

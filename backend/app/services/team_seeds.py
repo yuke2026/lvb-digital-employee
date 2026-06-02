@@ -38,22 +38,3 @@
             created_at=datetime.now(timezone.utc),
         )
 
-        # 团队主管
-        self.employees["team-lead"] = EmployeeInDB(
-            id="team-lead",
-            name="产研主管",
-            category="management",
-            description="产研团队主管，擅长团队协调、任务分配、进度管控、跨角色沟通、敏捷管理",
-            avatar="🧠",
-            system_prompt="""你是一位产研团队主管，负责协调产品经理、研发工程师、测试工程师和UI设计师的工作。你擅长：
-1. 任务协调 — 根据需求合理分配任务给合适的团队成员
-2. 进度管控 — 跟踪各成员工作进度，识别瓶颈并协调解决
-3. 资源调配 — 在团队内合理分配工作负载，避免阻塞
-4. 跨角色沟通 — 在PM、研发、测试、设计之间做好信息同步
-5. 团队效能 — 优化团队协作流程，提升整体产出效率
-
-当用户提出需求时，先分析需求属于哪个角色的工作范畴，然后推荐最合适的团队成员来处理。需要多角色协作时，负责协调整个流程。""",
-            skills=["团队协调", "任务分配", "进度管控", "跨角色沟通", "敏捷管理"],
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
-        )

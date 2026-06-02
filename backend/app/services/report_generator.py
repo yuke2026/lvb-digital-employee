@@ -14,6 +14,22 @@ from app.models.raw_article import RawArticle
 from app.services.ai import chat_with_deepseek
 
 
+def _normalize_risk_level(val: str) -> str:
+    """标准化风险等级字段，去掉"整体风险等级："前缀"""
+    if not val:
+        return "中"
+    val = str(val).strip()
+    # Strip prefixes
+    for prefix in ["整体风险等级：", "整体风险等级:", "整体风险：", "风险等级："]:
+        if val.startswith(prefix):
+            val = val[len(prefix):]
+            break
+    # Map variants
+    mapping = {"高": "高", "高风险": "高", "high": "高",
+               "中": "中", "中风险": "中", "medium": "中",
+               "低": "低", "低风险": "低", "low": "低"}
+    return mapping.get(val.strip(), "中")
+
 async def _get_date_range(report_type: str) -> tuple[datetime, datetime]:
     """Calculate start and end datetime based on report type."""
     end_date = datetime.utcnow()
@@ -104,7 +120,7 @@ async def _build_swot_prompt(articles: list[RawArticle], report_type: str) -> tu
             "timeline": "时间窗口（20字以内）"
         }}
     ],
-    "risk_level": "整体风险等级：高/中/低"
+    "risk_level": "高/中/低"
 }}
 
 请直接返回JSON，不要添加任何解释或说明。"""
@@ -134,7 +150,7 @@ async def _parse_swot_response(content: str) -> dict:
             "t": data.get("t", ""),
             "risks": data.get("risks", []),
             "opportunities": data.get("opportunities", []),
-            "risk_level": data.get("risk_level", "中"),
+            risk_level: _normalize_risk_level(data.get("risk_level", "中")),
         }
     except json.JSONDecodeError:
         # Return default structure if parsing fails

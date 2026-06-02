@@ -204,7 +204,24 @@ async def _run_report(
     from app.api.v1.reports import _run_report_generation
     from app.core.database import async_session
     from sqlalchemy import text
+    from datetime import datetime, timezone
     try:
+        # ===== 重叠检查：同一日期内高周期报告覆盖低周期 =====
+        now = datetime.now(timezone.utc)
+        try:
+            from zoneinfo import ZoneInfo
+            tz = ZoneInfo("Asia/Shanghai")
+            local = now.astimezone(tz)
+        except Exception:
+            local = now
+        is_first_of_month = local.day == 1
+        is_monday = local.weekday() == 0  # 0 = Monday
+        if is_first_of_month and report_type in ("daily", "weekly"):
+            logger.info(f"[Scheduler] Skip {report_type} topic={topic_id}: covered by monthly on 1st")
+            return
+        if is_monday and not is_first_of_month and report_type == "daily":
+            logger.info(f"[Scheduler] Skip daily topic={topic_id}: covered by weekly on Monday")
+            return
         logger.info(f"[Scheduler] 开始生成报告 topic={topic_id} type={report_type}")
 
         async with async_session() as db:

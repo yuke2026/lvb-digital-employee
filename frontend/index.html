@@ -1470,7 +1470,7 @@ ${r?'Expression: "'+r+`"
                   </p>
                 </div>
 
-                <!-- Employee Grid -->
+                <!-- Employee Grid - Grouped by Category -->
                 <div x-show="employees.length === 0" class="flex justify-center py-20">
                   <div class="text-center">
                     <div class="spinner-ring mx-auto mb-4" style="width:40px;height:40px;border-width:3px;"></div>
@@ -1478,47 +1478,142 @@ ${r?'Expression: "'+r+`"
                   </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                  <template x-for="emp in employees" :key="emp.id">
-                    <div class="glass rounded-2xl p-6 card-float glow-border-hover cursor-pointer group"
-                         @click="selectEmployee(emp)">
-                      <!-- Avatar -->
-                      <div class="flex items-start gap-4 mb-4">
-                        <div class="emp-avatar shrink-0">
-                          <template x-if="emp.avatar && emp.avatar.startsWith('http')">
-                            <img :src="emp.avatar" :alt="emp.name" class="w-full h-full rounded-[17px] object-cover" />
-                          </template>
-                          <template x-if="!emp.avatar || !emp.avatar.startsWith('http')">
-                            <i class="fas fa-robot text-gradient-primary text-2xl"></i>
-                          </template>
-                        </div>
-                        <div class="min-w-0 flex-1">
-                          <h3 class="text-lg font-semibold text-white truncate" x-text="emp.name"></h3>
-                          <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20"
-                                x-text="emp.category || '通用'"></span>
-                        </div>
-                      </div>
-
-                      <!-- Description -->
-                      <p class="text-sm text-gray-400 line-clamp-2 mb-4 min-h-[2.5rem]" x-text="emp.description || '暂无描述'"></p>
-
-                      <!-- Skills -->
-                      <div class="flex flex-wrap gap-1.5 mb-4 min-h-[1.5rem]">
-                        <template x-for="skill in (emp.skills || [])" :key="skill">
-                          <span class="skill-badge" :class="'skill-badge-' + ['cyan','emerald','amber','rose'][Math.floor(Math.random()*4)]">
-                            <i class="fas fa-microchip text-[9px]"></i>
-                            <span x-text="skill"></span>
-                          </span>
-                        </template>
-                      </div>
-
-                      <!-- Button -->
-                      <button class="btn-gradient w-full py-2 rounded-lg text-sm font-semibold text-white btn-ripple flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <i class="fas fa-comment-dots text-xs"></i>
-                        开始对话
-                      </button>
+                <!-- Group: 核心大脑 -->
+                <div x-show="employees.length > 0" class="mb-10">
+                  <div class="flex items-center gap-2 mb-5">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #a78bfa, #7c3aed);">
+                      <i class="fas fa-brain text-white text-sm"></i>
                     </div>
-                  </template>
+                    <div>
+                      <h2 class="text-lg font-bold text-white">核心大脑</h2>
+                      <p class="text-xs text-gray-500">战略决策与行业洞察</p>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                    <template x-for="emp in employees.filter(e => e.category === 'core' || e.category === 'intelligence')" :key="emp.id">
+                      <div class="glass rounded-2xl p-6 card-float glow-border-hover cursor-pointer group"
+                           @click="selectEmployee(emp)">
+                        <div class="flex items-start gap-4 mb-4">
+                          <div class="emp-avatar shrink-0" style="background: linear-gradient(135deg, #a78bfa, #7c3aed);">
+                            <template x-if="emp.avatar && emp.avatar.startsWith('http')">
+                              <img :src="emp.avatar" :alt="emp.name" class="w-full h-full rounded-[17px] object-cover" />
+                            </template>
+                            <template x-if="!emp.avatar || !emp.avatar.startsWith('http')">
+                              <i class="fas fa-brain text-white text-2xl"></i>
+                            </template>
+                          </div>
+                          <div class="min-w-0 flex-1">
+                            <h3 class="text-lg font-semibold text-white truncate" x-text="emp.name"></h3>
+                            <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium" style="background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.25);"
+                                  x-text="emp.category === 'core' ? '战略大脑' : '行业顾问'"></span>
+                          </div>
+                        </div>
+                        <p class="text-sm text-gray-400 line-clamp-2 mb-4 min-h-[2.5rem]" x-text="emp.description || '暂无描述'"></p>
+                        <div class="flex flex-wrap gap-1.5 mb-4 min-h-[1.5rem]">
+                          <template x-for="skill in (emp.skills || []).slice(0, 3)" :key="skill">
+                            <span class="skill-badge" style="background: rgba(167,139,250,0.1); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.15);">
+                              <span x-text="skill"></span>
+                            </span>
+                          </template>
+                        </div>
+                        <button class="btn-gradient w-full py-2 rounded-lg text-sm font-semibold text-white btn-ripple flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <i class="fas fa-comment-dots text-xs"></i>开始对话
+                        </button>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+
+                <!-- Group: 产研团队 -->
+                <div x-show="employees.length > 0" class="mb-10">
+                  <div class="flex items-center gap-2 mb-5">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #4ade80, #22c55e);">
+                      <i class="fas fa-code text-white text-sm"></i>
+                    </div>
+                    <div>
+                      <h2 class="text-lg font-bold text-white">产研团队</h2>
+                      <p class="text-xs text-gray-500">产品研发与质量管理</p>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                    <template x-for="emp in employees.filter(e => ['management','engineering','design'].includes(e.category))" :key="emp.id">
+                      <div class="glass rounded-2xl p-6 card-float glow-border-hover cursor-pointer group"
+                           @click="selectEmployee(emp)">
+                        <div class="flex items-start gap-4 mb-4">
+                          <div class="emp-avatar shrink-0" style="background: linear-gradient(135deg, #4ade80, #22c55e);">
+                            <template x-if="emp.avatar && emp.avatar.startsWith('http')">
+                              <img :src="emp.avatar" :alt="emp.name" class="w-full h-full rounded-[17px] object-cover" />
+                            </template>
+                            <template x-if="!emp.avatar || !emp.avatar.startsWith('http')">
+                              <i class="fas fa-code text-white text-2xl"></i>
+                            </template>
+                          </div>
+                          <div class="min-w-0 flex-1">
+                            <h3 class="text-lg font-semibold text-white truncate" x-text="emp.name"></h3>
+                            <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium" style="background: rgba(74,222,128,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.25);"
+                                  x-text="{'management':'产品经理','engineering':'研发工程师','design':'UI设计师'}[emp.category] || '产研'"></span>
+                          </div>
+                        </div>
+                        <p class="text-sm text-gray-400 line-clamp-2 mb-4 min-h-[2.5rem]" x-text="emp.description || '暂无描述'"></p>
+                        <div class="flex flex-wrap gap-1.5 mb-4 min-h-[1.5rem]">
+                          <template x-for="skill in (emp.skills || []).slice(0, 3)" :key="skill">
+                            <span class="skill-badge" style="background: rgba(74,222,128,0.1); color: #86efac; border: 1px solid rgba(74,222,128,0.15);">
+                              <span x-text="skill"></span>
+                            </span>
+                          </template>
+                        </div>
+                        <button class="btn-gradient w-full py-2 rounded-lg text-sm font-semibold text-white btn-ripple flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <i class="fas fa-comment-dots text-xs"></i>开始对话
+                        </button>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+
+                <!-- Group: 运营&销售 -->
+                <div x-show="employees.length > 0" class="mb-10">
+                  <div class="flex items-center gap-2 mb-5">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #f472b6, #ec4899);">
+                      <i class="fas fa-megaphone text-white text-sm"></i>
+                    </div>
+                    <div>
+                      <h2 class="text-lg font-bold text-white">运营&销售</h2>
+                      <p class="text-xs text-gray-500">市场营销与客户增长</p>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                    <template x-for="emp in employees.filter(e => e.category === 'marketing' || e.category === 'sales')" :key="emp.id">
+                      <div class="glass rounded-2xl p-6 card-float glow-border-hover cursor-pointer group"
+                           @click="selectEmployee(emp)">
+                        <div class="flex items-start gap-4 mb-4">
+                          <div class="emp-avatar shrink-0" style="background: linear-gradient(135deg, #f472b6, #ec4899);">
+                            <template x-if="emp.avatar && emp.avatar.startsWith('http')">
+                              <img :src="emp.avatar" :alt="emp.name" class="w-full h-full rounded-[17px] object-cover" />
+                            </template>
+                            <template x-if="!emp.avatar || !emp.avatar.startsWith('http')">
+                              <i class="fas fa-megaphone text-white text-2xl"></i>
+                            </template>
+                          </div>
+                          <div class="min-w-0 flex-1">
+                            <h3 class="text-lg font-semibold text-white truncate" x-text="emp.name"></h3>
+                            <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium" style="background: rgba(244,114,182,0.15); color: #f472b6; border: 1px solid rgba(244,114,182,0.25);"
+                                  x-text="{'marketing':'营销','sales':'销售'}[emp.category] || '运营'"></span>
+                          </div>
+                        </div>
+                        <p class="text-sm text-gray-400 line-clamp-2 mb-4 min-h-[2.5rem]" x-text="emp.description || '暂无描述'"></p>
+                        <div class="flex flex-wrap gap-1.5 mb-4 min-h-[1.5rem]">
+                          <template x-for="skill in (emp.skills || []).slice(0, 3)" :key="skill">
+                            <span class="skill-badge" style="background: rgba(244,114,182,0.1); color: #f9a8d4; border: 1px solid rgba(244,114,182,0.15);">
+                              <span x-text="skill"></span>
+                            </span>
+                          </template>
+                        </div>
+                        <button class="btn-gradient w-full py-2 rounded-lg text-sm font-semibold text-white btn-ripple flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <i class="fas fa-comment-dots text-xs"></i>开始对话
+                        </button>
+                      </div>
+                    </template>
+                  </div>
                 </div>
               </div>
             </template>
@@ -1561,14 +1656,51 @@ ${r?'Expression: "'+r+`"
                       <span>战略报告</span>
                     </div>
 
-                    <div class="text-[10px] uppercase tracking-wider mb-2 mt-5 px-3" style="color: var(--fuse-muted); font-weight: 600;">数字员工</div>
+                    <!-- Group: 核心大脑 (core + intelligence) -->
+                    <div class="text-[10px] uppercase tracking-wider mb-2 mt-5 px-3" style="color: var(--fuse-muted); font-weight: 600;">
+                      <i class="fas fa-brain text-[10px] mr-1" style="color: #a78bfa;"></i>核心大脑
+                    </div>
                     <div class="space-y-0.5">
-                      <template x-for="emp in employees" :key="emp.id">
+                      <template x-for="emp in employees.filter(e => e.category === 'core' || e.category === 'intelligence')" :key="emp.id">
                         <div @click="selectEmployee(emp)"
                              class="fuse-nav-item"
                              :class="selectedEmployee?.id === emp.id ? 'active' : ''">
-                          <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold" style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2)); color: white; font-size: 8px;">
+                          <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold" style="background: linear-gradient(135deg, #a78bfa, #7c3aed); color: white; font-size: 8px;">
                             <span x-text="(emp.name || '智').charAt(0)"></span>
+                          </div>
+                          <span style="font-size: 12px;" x-text="emp.name || '未知员工'"></span>
+                        </div>
+                      </template>
+                    </div>
+
+                    <!-- Group: 产研团队 (management + engineering + design) -->
+                    <div class="text-[10px] uppercase tracking-wider mb-2 mt-3 px-3" style="color: var(--fuse-muted); font-weight: 600;">
+                      <i class="fas fa-code text-[10px] mr-1" style="color: #4ade80;"></i>产研团队
+                    </div>
+                    <div class="space-y-0.5">
+                      <template x-for="emp in employees.filter(e => ['management','engineering','design'].includes(e.category))" :key="emp.id">
+                        <div @click="selectEmployee(emp)"
+                             class="fuse-nav-item"
+                             :class="selectedEmployee?.id === emp.id ? 'active' : ''">
+                          <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold" style="background: linear-gradient(135deg, #4ade80, #22c55e); color: white; font-size: 8px;">
+                            <span x-text="(emp.name || '工').charAt(0)"></span>
+                          </div>
+                          <span style="font-size: 12px;" x-text="emp.name || '未知员工'"></span>
+                        </div>
+                      </template>
+                    </div>
+
+                    <!-- Group: 运营&销售 (marketing + sales) -->
+                    <div class="text-[10px] uppercase tracking-wider mb-2 mt-3 px-3" style="color: var(--fuse-muted); font-weight: 600;">
+                      <i class="fas fa-megaphone text-[10px] mr-1" style="color: #f472b6;"></i>运营&销售
+                    </div>
+                    <div class="space-y-0.5">
+                      <template x-for="emp in employees.filter(e => e.category === 'marketing' || e.category === 'sales')" :key="emp.id">
+                        <div @click="selectEmployee(emp)"
+                             class="fuse-nav-item"
+                             :class="selectedEmployee?.id === emp.id ? 'active' : ''">
+                          <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold" style="background: linear-gradient(135deg, #f472b6, #ec4899); color: white; font-size: 8px;">
+                            <span x-text="(emp.name || '运').charAt(0)"></span>
                           </div>
                           <span style="font-size: 12px;" x-text="emp.name || '未知员工'"></span>
                         </div>
@@ -1605,36 +1737,20 @@ ${r?'Expression: "'+r+`"
                     </div>
                   </header>
 
-                  <!-- Expert Selector -->
+                  <!-- Expert Selector (simplified — sidebar already has employee list) -->
                   <div class="px-5 py-3 border-b flex items-center gap-3" style="background: var(--fuse-surface); border-color: var(--fuse-border);">
                     <span class="text-[11px]" style="color: var(--fuse-muted);">当前专家：</span>
-
-                    <!-- Horizontal expert cards -->
-                    <template x-if="expertCards.length > 0">
-                      <div class="flex items-center gap-2 flex-wrap flex-1">
-                        <template x-for="card in expertCards" :key="card.id">
-                          <div class="expert-card" :class="card.selected ? 'selected' : ''" @click="selectEmployee(employees.find(e => e.id === card.id))">
-                            <div class="expert-avatar" style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2));">
-                              <template x-if="card.avatar && card.avatar.startsWith('http')">
-                                <img :src="card.avatar" class="w-full h-full rounded-full object-cover" />
-                              </template>
-                              <template x-if="!card.avatar || !card.avatar.startsWith('http')">
-                                <i class="fas fa-brain text-white text-xs"></i>
-                              </template>
-                            </div>
-                            <div class="expert-info">
-                              <div class="expert-name" x-text="card.name"></div>
-                              <div class="expert-desc" x-text="card.desc"></div>
-                            </div>
-                            <i class="fas fa-chevron-down text-[10px]" style="color: var(--fuse-muted);"></i>
-                          </div>
-                        </template>
+                    <template x-if="selectedEmployee">
+                      <div class="flex items-center gap-2" style="color: var(--fuse-text);">
+                        <div class="w-6 h-6 rounded-md flex items-center justify-center text-xs font-semibold" style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2)); color: white;">
+                          <span x-text="(selectedEmployee.name || '?').charAt(0)"></span>
+                        </div>
+                        <span class="text-sm font-medium" x-text="selectedEmployee.name || ''"></span>
                       </div>
                     </template>
-                    <template x-if="expertCards.length === 0">
-                      <div class="text-xs" style="color: var(--fuse-muted);">加载中...</div>
+                    <template x-if="!selectedEmployee">
+                      <span class="text-xs" style="color: var(--fuse-muted);">请从左侧选择</span>
                     </template>
-
                     <div class="flex items-center gap-2 ml-auto">
                       <span class="status-pill">在线</span>
                     </div>
@@ -1679,10 +1795,10 @@ ${r?'Expression: "'+r+`"
                               <!-- Streaming content with typing cursor -->
                               <div x-show="isStreaming && idx === messages.length - 1"
                                    class="typing-cursor"
-                                   x-html="msg.content + (streamingContent ? streamingContent : '')">
+                                   x-html="mdToHtml(msg.content + (streamingContent ? streamingContent : ''))">
                               </div>
                               <div x-show="!(isStreaming && idx === messages.length - 1)"
-                                   x-html="msg.content">
+                                   x-html="mdToHtml(msg.content)">
                               </div>
                               <!-- Skills used badge -->
                               <template x-if="msg.skills_used && msg.skills_used.length > 0">
@@ -1712,10 +1828,53 @@ ${r?'Expression: "'+r+`"
 
                   <!-- Quick Pills + Input -->
                   <div class="px-5 py-3 border-t" style="background: var(--fuse-surface); border-color: var(--fuse-border);">
+
+                    <!-- Topic Picker (ceo-advisor only) -->
+                    <template x-if="showTopicPicker">
+                      <div class="mb-3 p-3 rounded-lg" style="background: var(--fuse-surface2); border: 1px solid var(--fuse-border);">
+                        <div class="flex items-center justify-between mb-2">
+                          <span class="text-xs font-semibold" style="color: var(--fuse-accent);">
+                            <i class="fas fa-bullseye text-[10px] mr-1"></i>
+                            <span x-text="topicPickerMode === 'report' ? '选择主题生成报告' : topicPickerMode === 'competitor' ? '选择主题进行竞品分析' : '选择主题查看今日早报'"></span>
+                          </span>
+                          <button @click="cancelTopicPick" class="text-xs" style="color: var(--fuse-muted);"><i class="fas fa-times"></i></button>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 mb-2">
+                          <template x-for="t in topics" :key="t.id">
+                            <button class="text-xs px-2.5 py-1.5 rounded-md border transition-all"
+                              :style="topicPickerTopicId === t.id ? 'background: var(--fuse-accent); color: #fff; border-color: var(--fuse-accent);' : 'background: transparent; color: var(--fuse-text2); border-color: var(--fuse-border2);'"
+                              @click="topicPickerTopicId = t.id; topicPickerTopicName = t.name">
+                              <span x-text="t.name"></span>
+                            </button>
+                          </template>
+                          <template x-if="(!topics || topics.length === 0)">
+                            <p class="text-xs" style="color: var(--fuse-muted);">暂无主题，请先在智闻设置中添加</p>
+                          </template>
+                        </div>
+                        <template x-if="topicPickerMode === 'report'">
+                          <div class="flex gap-2 mb-2">
+                            <template x-for="rt in [{v:'daily',l:'日报'},{v:'weekly',l:'周报'},{v:'monthly',l:'月报'}]" :key="rt.v">
+                              <button class="text-xs px-3 py-1.5 rounded-full border transition-all"
+                                :style="topicPickerReportType === rt.v ? 'background: var(--fuse-accent); color: #fff; border-color: var(--fuse-accent);' : 'background: transparent; color: var(--fuse-text2); border-color: var(--fuse-border2);'"
+                                @click="topicPickerReportType = rt.v">
+                                <span x-text="rt.l"></span>
+                              </button>
+                            </template>
+                          </div>
+                        </template>
+                        <div class="flex gap-2 mt-2">
+                          <button class="fuse-btn-primary text-xs flex-1" @click="confirmTopicPick">
+                            <i class="fas fa-check text-[10px] mr-1"></i>确认发送
+                          </button>
+                          <button class="quick-pill text-xs" @click="cancelTopicPick">取消</button>
+                        </div>
+                      </div>
+                    </template>
+
                     <!-- Quick pills -->
                     <div class="flex flex-wrap gap-2 mb-3">
-                      <template x-for="pill in quickPills" :key="pill.action">
-                        <button class="quick-pill" @click="addQuickMsg(pill.action)">
+                      <template x-for="pill in quickPills" :key="pill.label">
+                        <button class="quick-pill" @click="addQuickMsg(pill.msg)">
                           <i :class="'fas fa-' + pill.icon + ' text-[10px]'"></i>
                           <span x-text="pill.label"></span>
                         </button>
@@ -1739,9 +1898,17 @@ ${r?'Expression: "'+r+`"
                 </div>
 
                 <!-- === RIGHT PANEL (Automation + Reports) === -->
-                <div class="w-80 shrink-0 hidden lg:flex flex-col overflow-hidden rounded-xl" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
+                <template x-if="!rightPanelCollapsed">
+                  <div class="w-80 shrink-0 hidden lg:flex flex-col overflow-hidden rounded-xl" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
 
-                  <!-- Tabs -->
+                    <!-- Collapse button -->
+                    <div class="flex items-center justify-end px-3 pt-2">
+                      <button @click="toggleRightPanel" class="text-gray-500 hover:text-violet-400 transition text-xs p-1" title="折叠面板">
+                        <i class="fas fa-chevron-right"></i>
+                      </button>
+                    </div>
+
+                    <!-- Tabs -->
                   <div class="flex border-b" style="border-color: var(--fuse-border);">
                     <button class="flex-1 py-3 text-xs font-medium border-b-2 transition-all"
                             :style="rightPanelTab === 'auto' ? 'color: var(--fuse-accent2); border-color: var(--fuse-accent);' : 'color: var(--fuse-muted); border-color: transparent;'"
@@ -1758,83 +1925,90 @@ ${r?'Expression: "'+r+`"
                   <!-- === AUTO PANEL === -->
                   <div class="flex-1 overflow-y-auto px-4 py-3" x-show="rightPanelTab === 'auto'">
 
-                    <!-- Group: 内容采集 -->
-                    <div class="mb-4">
-                      <div class="text-[10px] uppercase tracking-wider mb-2" style="color: var(--fuse-muted); font-weight: 600;">内容采集</div>
-                      <template x-for="task in automationTasks.filter(t => ['news','policy'].includes(t.id))" :key="task.id">
-                        <div class="task-item">
-                          <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                               :style="'background: ' + (task.color === 'blue' ? 'rgba(59,130,246,0.12)' : 'rgba(52,211,153,0.1)') + ';'">
-                            <i class="fas fa-rss text-xs" :style="'color: ' + (task.color === 'blue' ? 'var(--fuse-accent)' : 'var(--fuse-success)') + ';'"></i>
-                          </div>
-                          <div class="flex-1 min-w-0">
-                            <div class="text-[13px] font-medium" style="color: var(--fuse-text);" x-text="task.title"></div>
-                            <div class="text-[10px]" style="color: var(--fuse-muted);" x-text="task.desc"></div>
-                          </div>
-                          <div class="fuse-toggle" :class="task.enabled ? 'on' : ''" @click="toggleTask(task.id)"></div>
-                        </div>
-                      </template>
-                    </div>
-
-                    <!-- Group: 报告生成 -->
-                    <div class="mb-4">
-                      <div class="text-[10px] uppercase tracking-wider mb-2" style="color: var(--fuse-muted); font-weight: 600;">报告生成</div>
-                      <template x-for="task in automationTasks.filter(t => ['daily','weekly','monthly'].includes(t.id))" :key="task.id">
-                        <div class="task-item">
-                          <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                               :style="'background: ' + (task.color === 'amber' ? 'rgba(251,191,36,0.1)' : task.color === 'indigo' ? 'rgba(129,140,248,0.1)' : 'rgba(248,113,113,0.1)') + ';'">
-                            <i class="fas fa-file-alt text-xs" :style="'color: ' + (task.color === 'amber' ? 'var(--fuse-warning)' : task.color === 'indigo' ? '#818cf8' : 'var(--fuse-danger)') + ';'"></i>
-                          </div>
-                          <div class="flex-1 min-w-0">
-                            <div class="text-[13px] font-medium" style="color: var(--fuse-text);" x-text="task.title"></div>
-                            <div class="text-[10px]" style="color: var(--fuse-muted);" x-text="task.desc"></div>
-                          </div>
-                          <div class="fuse-toggle" :class="task.enabled ? 'on' : ''" @click="toggleTask(task.id)"></div>
-                        </div>
-                      </template>
-                    </div>
-
-                    <!-- Group: 推送渠道 -->
-                    <div class="mb-4">
-                      <div class="text-[10px] uppercase tracking-wider mb-2" style="color: var(--fuse-muted); font-weight: 600;">推送渠道</div>
-                      <template x-for="task in automationTasks.filter(t => ['feishu','email'].includes(t.id))" :key="task.id">
-                        <div class="task-item">
-                          <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                               :style="'background: ' + (task.color === 'blue' ? 'rgba(59,130,246,0.1)' : 'rgba(52,211,153,0.1)') + ';'">
-                            <i class="fas fa-envelope text-xs" :style="'color: ' + (task.color === 'blue' ? 'var(--fuse-accent)' : 'var(--fuse-success)') + ';'"></i>
-                          </div>
-                          <div class="flex-1 min-w-0">
-                            <div class="text-[13px] font-medium" style="color: var(--fuse-text);" x-text="task.title"></div>
-                            <div class="text-[10px]" style="color: var(--fuse-muted);" x-text="task.desc"></div>
-                          </div>
-                          <div class="fuse-toggle" :class="task.enabled ? 'on' : ''" @click="toggleTask(task.id)"></div>
-                        </div>
-                      </template>
-                    </div>
-
-                    <!-- Recent Runs -->
-                    <div>
-                      <div class="text-[10px] uppercase tracking-wider mb-2" style="color: var(--fuse-muted); font-weight: 600;">最近执行</div>
-                      <div class="space-y-2">
-                        <div class="flex items-center gap-2 text-[11px]" style="color: var(--fuse-muted);">
-                          <i class="fas fa-check-circle text-[10px]" style="color: var(--fuse-success);"></i>
-                          行业新闻采集 · 10分钟前
-                        </div>
-                        <div class="flex items-center gap-2 text-[11px]" style="color: var(--fuse-muted);">
-                          <i class="fas fa-check-circle text-[10px]" style="color: var(--fuse-success);"></i>
-                          每日简报生成 · 2小时前
-                        </div>
-                        <div class="flex items-center gap-2 text-[11px]" style="color: var(--fuse-muted);">
-                          <i class="fas fa-check-circle text-[10px]" style="color: var(--fuse-success);"></i>
-                          政策动态推送 · 今日 9:00
-                        </div>
+                    <template x-if="!topics || topics.length === 0">
+                      <div class="text-center py-10">
+                        <div class="text-3xl mb-3 opacity-30"><i class="fas fa-sliders"></i></div>
+                        <p class="text-xs mb-2" style="color: var(--fuse-muted);">暂无自动化配置</p>
+                        <p class="text-[10px]" style="color: #6b7280;">请先在智闻设置中添加主题</p>
                       </div>
+                    </template>
+
+                    <template x-if="topics && topics.length > 0">
+                      <div class="space-y-3">
+                        <template x-for="catGroup in getCategories()" :key="catGroup[0]">
+                          <div>
+                            <div class="text-[10px] uppercase tracking-wider mb-2" style="color: var(--fuse-muted); font-weight: 600;" x-text="catGroup[0]"></div>
+                            <div class="space-y-2">
+                              <template x-for="card in autoTopicCards.filter(c => c.category === catGroup[0])" :key="card.id">
+                                <div class="rounded-lg p-3" style="background: var(--fuse-card); border: 1px solid var(--fuse-border);">
+                                  <!-- Topic name -->
+                                  <div class="flex items-center gap-2 mb-2.5">
+                                    <div class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style="background: rgba(59,130,246,0.12);">
+                                      <i class="fas text-xs" :class="card.cycleIcon" style="color: var(--fuse-accent);"></i>
+                                    </div>
+                                    <span class="text-[13px] font-semibold truncate" style="color: var(--fuse-text);" x-text="card.title"></span>
+                                    <span class="text-[10px] ml-auto" style="color: var(--fuse-muted);" x-text="card.cycleLabel"></span>
+                                  </div>
+                                  <!-- Three toggle rows -->
+                                  <div class="space-y-1.5">
+                                    <!-- 数据采集 -->
+                                    <div class="flex items-center justify-between px-2 py-1 rounded-md" style="background: rgba(255,255,255,0.03);">
+                                      <div class="flex items-center gap-2 min-w-0">
+                                        <i class="fas fa-download text-[10px]" style="color: var(--fuse-muted); width: 14px; text-align: center;"></i>
+                                        <span class="text-[11px]" style="color: var(--fuse-muted);">数据采集</span>
+                                      </div>
+                                      <div class="fuse-toggle shrink-0" :class="card.collect_enabled ? 'on' : ''" @click="toggleCollect(card.id)"></div>
+                                    </div>
+                                    <!-- 报告生成 -->
+                                    <div class="flex items-center justify-between px-2 py-1 rounded-md" style="background: rgba(255,255,255,0.03);">
+                                      <div class="flex items-center gap-2 min-w-0">
+                                        <i class="fas fa-file-alt text-[10px]" style="color: var(--fuse-muted); width: 14px; text-align: center;"></i>
+                                        <span class="text-[11px]" style="color: var(--fuse-muted);">报告生成</span>
+                                      </div>
+                                      <div class="fuse-toggle shrink-0" :class="card.report_enabled ? 'on' : ''" @click="toggleReport(card.id)"></div>
+                                    </div>
+                                    <!-- 飞书推送 -->
+                                    <div class="flex items-center justify-between px-2 py-1 rounded-md" style="background: rgba(255,255,255,0.03);">
+                                      <div class="flex items-center gap-2 min-w-0">
+                                        <i class="fab fa-telegram-plane text-[10px]" style="color: var(--fuse-muted); width: 14px; text-align: center;"></i>
+                                        <span class="text-[11px]" style="color: var(--fuse-muted);">飞书推送</span>
+                                      </div>
+                                      <div class="fuse-toggle shrink-0" :class="card.feishu_push_enabled ? 'on' : ''" @click="toggleFeishuPush(card.id)"></div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </template>
+                            </div>
+                          </div>
+                        </template>
+                      </div>
+                    </template>
+
+                    <!-- 手动采集器按钮 -->
+                    <div class="pt-2 border-t border-white/5">
+                      <button @click="showManualCollectModal = true"
+                              class="w-full py-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-2"
+                              style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2)); color: white;">
+                        <i class="fas fa-download text-[11px]"></i>手动采集器
+                      </button>
                     </div>
                   </div>
 
                   <!-- === REPORTS PANEL === -->
                   <div class="flex-1 overflow-y-auto px-4 py-3" x-show="rightPanelTab === 'reports'">
                     <div class="space-y-3">
+                      <!-- Header bar -->
+                      <div class="flex items-center justify-between mb-1">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider" style="color: var(--fuse-muted);">报告列表</span>
+                        <button @click="showTrashModal = true; loadTrashReports()"
+                                class="text-[10px] text-gray-500 hover:text-red-400 transition flex items-center gap-1 px-2 py-1 rounded-md"
+                                style="background: rgba(239,68,68,0.08);">
+                          <i class="fas fa-trash-alt text-[9px]"></i>回收站
+                          <span x-show="trashReports.length > 0" class="text-[9px] bg-red-500/20 text-red-400 rounded-full px-1.5">
+                            <span x-text="trashReports.length"></span>
+                          </span>
+                        </button>
+                      </div>
                       <template x-if="getSidebarReports().length === 0">
                         <div class="text-center py-8">
                           <div class="text-3xl mb-3 opacity-30"><i class="fas fa-file-lines text-gradient"></i></div>
@@ -1860,13 +2034,25 @@ ${r?'Expression: "'+r+`"
                       </template>
                       <div class="text-center pt-3">
                         <button class="fuse-btn-primary text-xs" @click="switchPage('reports')">
-                          <i class="fas fa-plus text-[10px]"></i>查看全部报告
+                          查看全部报告
                         </button>
                       </div>
                     </div>
                   </div>
 
                 </div><!-- end right panel -->
+                </template>
+
+                <!-- Expand button (when right panel is collapsed) -->
+                <template x-if="rightPanelCollapsed">
+                  <div class="w-10 shrink-0 hidden lg:flex flex-col items-center pt-3 gap-3">
+                    <button @click="toggleRightPanel" class="text-gray-500 hover:text-violet-400 transition text-xs p-2 rounded-lg" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);" title="展开面板">
+                      <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button @click="rightPanelTab='auto'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="自动化">🔄</button>
+                    <button @click="rightPanelTab='reports'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="报告">📊</button>
+                  </div>
+                </template>
 
                 <!-- ===== BOTTOM TAB BAR (mobile only) ===== -->
                 <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around"
@@ -1926,14 +2112,49 @@ ${r?'Expression: "'+r+`"
                   </nav>
                   <!-- Employee list -->
                   <div class="border-t px-3 py-3" style="border-color: var(--fuse-border);">
-                    <div class="text-[10px] uppercase tracking-wider mb-2 px-3" style="color: var(--fuse-muted); font-weight: 600;">数字员工</div>
-                    <div class="space-y-0.5">
-                      <template x-for="emp in employees" :key="emp.id">
+                    <!-- Group: 核心大脑 -->
+                    <div class="text-[10px] uppercase tracking-wider mb-1.5 px-3" style="color: var(--fuse-muted); font-weight: 600;">
+                      <i class="fas fa-brain text-[10px] mr-1" style="color: #a78bfa;"></i>核心大脑
+                    </div>
+                    <div class="space-y-0.5 mb-3">
+                      <template x-for="emp in employees.filter(e => e.category === 'core' || e.category === 'intelligence')" :key="emp.id">
                         <div @click="selectEmployee(emp); showMobileDrawer = false"
                              class="fuse-nav-item"
                              :class="selectedEmployee?.id === emp.id ? 'active' : ''">
-                          <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold" style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2)); color: white; font-size: 8px;">
+                          <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold" style="background: linear-gradient(135deg, #a78bfa, #7c3aed); color: white; font-size: 8px;">
                             <span x-text="(emp.name || '智').charAt(0)"></span>
+                          </div>
+                          <span style="font-size: 12px;" x-text="emp.name || '未知员工'"></span>
+                        </div>
+                      </template>
+                    </div>
+                    <!-- Group: 产研团队 -->
+                    <div class="text-[10px] uppercase tracking-wider mb-1.5 px-3" style="color: var(--fuse-muted); font-weight: 600;">
+                      <i class="fas fa-code text-[10px] mr-1" style="color: #4ade80;"></i>产研团队
+                    </div>
+                    <div class="space-y-0.5 mb-3">
+                      <template x-for="emp in employees.filter(e => ['management','engineering','design'].includes(e.category))" :key="emp.id">
+                        <div @click="selectEmployee(emp); showMobileDrawer = false"
+                             class="fuse-nav-item"
+                             :class="selectedEmployee?.id === emp.id ? 'active' : ''">
+                          <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold" style="background: linear-gradient(135deg, #4ade80, #22c55e); color: white; font-size: 8px;">
+                            <span x-text="(emp.name || '工').charAt(0)"></span>
+                          </div>
+                          <span style="font-size: 12px;" x-text="emp.name || '未知员工'"></span>
+                        </div>
+                      </template>
+                    </div>
+                    <!-- Group: 运营&销售 -->
+                    <div class="text-[10px] uppercase tracking-wider mb-1.5 px-3" style="color: var(--fuse-muted); font-weight: 600;">
+                      <i class="fas fa-megaphone text-[10px] mr-1" style="color: #f472b6;"></i>运营&销售
+                    </div>
+                    <div class="space-y-0.5">
+                      <template x-for="emp in employees.filter(e => e.category === 'marketing' || e.category === 'sales')" :key="emp.id">
+                        <div @click="selectEmployee(emp); showMobileDrawer = false"
+                             class="fuse-nav-item"
+                             :class="selectedEmployee?.id === emp.id ? 'active' : ''">
+                          <div class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold" style="background: linear-gradient(135deg, #f472b6, #ec4899); color: white; font-size: 8px;">
+                            <span x-text="(emp.name || '运').charAt(0)"></span>
                           </div>
                           <span style="font-size: 12px;" x-text="emp.name || '未知员工'"></span>
                         </div>
@@ -2086,7 +2307,7 @@ ${r?'Expression: "'+r+`"
                 <!-- Kanban View -->
                 <div x-show="teamView === 'kanban'" class="flex-1 flex flex-col min-h-0">
                   <div class="flex items-center gap-2 mb-2">
-                    <button @click="createTeamTask()" class="px-3 py-1.5 rounded-lg text-xs font-medium transition" style="background: var(--fuse-accent2); color: white;">
+                    <button @click="openCreateTaskModal()" class="px-3 py-1.5 rounded-lg text-xs font-medium transition" style="background: var(--fuse-accent2); color: white;">
                       <i class="fas fa-plus text-[10px]"></i> 创建任务
                     </button>
                     <span class="text-xs" style="color: var(--fuse-muted);" x-text="teamTasks.length + ' 个任务'"></span>
@@ -2102,13 +2323,31 @@ ${r?'Expression: "'+r+`"
                         </div>
                         <div class="flex flex-col gap-2 min-h-[100px]">
                           <template x-for="task in teamTasks.filter(t => t.status === 'backlog')" :key="task.id">
-                            <div @click="selectedTeamTask = task; showTeamTaskModal = true"
-                                 class="px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:scale-[1.02]"
+                            <div @click="openTaskDetail(task)"
+                                 class="px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:scale-[1.02] group"
                                  style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
                               <div class="text-xs font-medium truncate" style="color: var(--fuse-text);" x-text="task.title"></div>
                               <div class="flex items-center gap-2 mt-1.5">
                                 <span class="text-[10px] px-1.5 py-0.5 rounded" style="background: rgba(107,114,128,0.15); color: #9ca3af;" x-text="task.priority || 'P3'"></span>
                                 <span class="text-[10px]" style="color: var(--fuse-muted);" x-text="task.assignee_name || task.assignee || ''"></span>
+                              </div>
+                              <div class="flex gap-1 mt-2 pt-2 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                   @click.stop
+                                   x-show="task.status !== 'done'">
+                                <template x-for="nextStatus in (taskStatusFlow[task.status] || [])" :key="nextStatus">
+                                  <button @click="moveTask(task, nextStatus)"
+                                          class="flex-1 py-1 rounded text-[10px] font-medium transition"
+                                          :style="{
+                                            'backlog': 'background: rgba(107,114,128,0.15); color: #9ca3af;',
+                                            'design': 'background: rgba(139,92,246,0.15); color: #a78bfa;',
+                                            'dev': 'background: rgba(59,130,246,0.15); color: #60a5fa;',
+                                            'review': 'background: rgba(245,158,11,0.15); color: #fbbf24;',
+                                            'qa': 'background: rgba(16,185,129,0.15); color: #34d399;',
+                                            'done': 'background: rgba(34,197,94,0.15); color: #4ade80;',
+                                          }[nextStatus] || ''"
+                                          x-text="taskStatusLabel[nextStatus]">
+                                  </button>
+                                </template>
                               </div>
                             </div>
                           </template>
@@ -2123,13 +2362,31 @@ ${r?'Expression: "'+r+`"
                         </div>
                         <div class="flex flex-col gap-2 min-h-[100px]">
                           <template x-for="task in teamTasks.filter(t => t.status === 'design')" :key="task.id">
-                            <div @click="selectedTeamTask = task; showTeamTaskModal = true"
-                                 class="px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:scale-[1.02]"
+                            <div @click="openTaskDetail(task)"
+                                 class="px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:scale-[1.02] group"
                                  style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
                               <div class="text-xs font-medium truncate" style="color: var(--fuse-text);" x-text="task.title"></div>
                               <div class="flex items-center gap-2 mt-1.5">
                                 <span class="text-[10px] px-1.5 py-0.5 rounded" style="background: rgba(139,92,246,0.15); color: #a78bfa;" x-text="task.priority || 'P3'"></span>
                                 <span class="text-[10px]" style="color: var(--fuse-muted);" x-text="task.assignee_name || task.assignee || ''"></span>
+                              </div>
+                              <div class="flex gap-1 mt-2 pt-2 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                   @click.stop
+                                   x-show="task.status !== 'done'">
+                                <template x-for="nextStatus in (taskStatusFlow[task.status] || [])" :key="nextStatus">
+                                  <button @click="moveTask(task, nextStatus)"
+                                          class="flex-1 py-1 rounded text-[10px] font-medium transition"
+                                          :style="{
+                                            'backlog': 'background: rgba(107,114,128,0.15); color: #9ca3af;',
+                                            'design': 'background: rgba(139,92,246,0.15); color: #a78bfa;',
+                                            'dev': 'background: rgba(59,130,246,0.15); color: #60a5fa;',
+                                            'review': 'background: rgba(245,158,11,0.15); color: #fbbf24;',
+                                            'qa': 'background: rgba(16,185,129,0.15); color: #34d399;',
+                                            'done': 'background: rgba(34,197,94,0.15); color: #4ade80;',
+                                          }[nextStatus] || ''"
+                                          x-text="taskStatusLabel[nextStatus]">
+                                  </button>
+                                </template>
                               </div>
                             </div>
                           </template>
@@ -2144,13 +2401,31 @@ ${r?'Expression: "'+r+`"
                         </div>
                         <div class="flex flex-col gap-2 min-h-[100px]">
                           <template x-for="task in teamTasks.filter(t => t.status === 'dev')" :key="task.id">
-                            <div @click="selectedTeamTask = task; showTeamTaskModal = true"
-                                 class="px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:scale-[1.02]"
+                            <div @click="openTaskDetail(task)"
+                                 class="px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:scale-[1.02] group"
                                  style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
                               <div class="text-xs font-medium truncate" style="color: var(--fuse-text);" x-text="task.title"></div>
                               <div class="flex items-center gap-2 mt-1.5">
                                 <span class="text-[10px] px-1.5 py-0.5 rounded" style="background: rgba(59,130,246,0.15); color: #60a5fa;" x-text="task.priority || 'P3'"></span>
                                 <span class="text-[10px]" style="color: var(--fuse-muted);" x-text="task.assignee_name || task.assignee || ''"></span>
+                              </div>
+                              <div class="flex gap-1 mt-2 pt-2 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                   @click.stop
+                                   x-show="task.status !== 'done'">
+                                <template x-for="nextStatus in (taskStatusFlow[task.status] || [])" :key="nextStatus">
+                                  <button @click="moveTask(task, nextStatus)"
+                                          class="flex-1 py-1 rounded text-[10px] font-medium transition"
+                                          :style="{
+                                            'backlog': 'background: rgba(107,114,128,0.15); color: #9ca3af;',
+                                            'design': 'background: rgba(139,92,246,0.15); color: #a78bfa;',
+                                            'dev': 'background: rgba(59,130,246,0.15); color: #60a5fa;',
+                                            'review': 'background: rgba(245,158,11,0.15); color: #fbbf24;',
+                                            'qa': 'background: rgba(16,185,129,0.15); color: #34d399;',
+                                            'done': 'background: rgba(34,197,94,0.15); color: #4ade80;',
+                                          }[nextStatus] || ''"
+                                          x-text="taskStatusLabel[nextStatus]">
+                                  </button>
+                                </template>
                               </div>
                             </div>
                           </template>
@@ -2165,13 +2440,31 @@ ${r?'Expression: "'+r+`"
                         </div>
                         <div class="flex flex-col gap-2 min-h-[100px]">
                           <template x-for="task in teamTasks.filter(t => t.status === 'review')" :key="task.id">
-                            <div @click="selectedTeamTask = task; showTeamTaskModal = true"
-                                 class="px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:scale-[1.02]"
+                            <div @click="openTaskDetail(task)"
+                                 class="px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:scale-[1.02] group"
                                  style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
                               <div class="text-xs font-medium truncate" style="color: var(--fuse-text);" x-text="task.title"></div>
                               <div class="flex items-center gap-2 mt-1.5">
                                 <span class="text-[10px] px-1.5 py-0.5 rounded" style="background: rgba(245,158,11,0.15); color: #fbbf24;" x-text="task.priority || 'P3'"></span>
                                 <span class="text-[10px]" style="color: var(--fuse-muted);" x-text="task.assignee_name || task.assignee || ''"></span>
+                              </div>
+                              <div class="flex gap-1 mt-2 pt-2 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                   @click.stop
+                                   x-show="task.status !== 'done'">
+                                <template x-for="nextStatus in (taskStatusFlow[task.status] || [])" :key="nextStatus">
+                                  <button @click="moveTask(task, nextStatus)"
+                                          class="flex-1 py-1 rounded text-[10px] font-medium transition"
+                                          :style="{
+                                            'backlog': 'background: rgba(107,114,128,0.15); color: #9ca3af;',
+                                            'design': 'background: rgba(139,92,246,0.15); color: #a78bfa;',
+                                            'dev': 'background: rgba(59,130,246,0.15); color: #60a5fa;',
+                                            'review': 'background: rgba(245,158,11,0.15); color: #fbbf24;',
+                                            'qa': 'background: rgba(16,185,129,0.15); color: #34d399;',
+                                            'done': 'background: rgba(34,197,94,0.15); color: #4ade80;',
+                                          }[nextStatus] || ''"
+                                          x-text="taskStatusLabel[nextStatus]">
+                                  </button>
+                                </template>
                               </div>
                             </div>
                           </template>
@@ -2186,13 +2479,31 @@ ${r?'Expression: "'+r+`"
                         </div>
                         <div class="flex flex-col gap-2 min-h-[100px]">
                           <template x-for="task in teamTasks.filter(t => t.status === 'qa')" :key="task.id">
-                            <div @click="selectedTeamTask = task; showTeamTaskModal = true"
-                                 class="px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:scale-[1.02]"
+                            <div @click="openTaskDetail(task)"
+                                 class="px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:scale-[1.02] group"
                                  style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
                               <div class="text-xs font-medium truncate" style="color: var(--fuse-text);" x-text="task.title"></div>
                               <div class="flex items-center gap-2 mt-1.5">
                                 <span class="text-[10px] px-1.5 py-0.5 rounded" style="background: rgba(16,185,129,0.15); color: #34d399;" x-text="task.priority || 'P3'"></span>
                                 <span class="text-[10px]" style="color: var(--fuse-muted);" x-text="task.assignee_name || task.assignee || ''"></span>
+                              </div>
+                              <div class="flex gap-1 mt-2 pt-2 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                   @click.stop
+                                   x-show="task.status !== 'done'">
+                                <template x-for="nextStatus in (taskStatusFlow[task.status] || [])" :key="nextStatus">
+                                  <button @click="moveTask(task, nextStatus)"
+                                          class="flex-1 py-1 rounded text-[10px] font-medium transition"
+                                          :style="{
+                                            'backlog': 'background: rgba(107,114,128,0.15); color: #9ca3af;',
+                                            'design': 'background: rgba(139,92,246,0.15); color: #a78bfa;',
+                                            'dev': 'background: rgba(59,130,246,0.15); color: #60a5fa;',
+                                            'review': 'background: rgba(245,158,11,0.15); color: #fbbf24;',
+                                            'qa': 'background: rgba(16,185,129,0.15); color: #34d399;',
+                                            'done': 'background: rgba(34,197,94,0.15); color: #4ade80;',
+                                          }[nextStatus] || ''"
+                                          x-text="taskStatusLabel[nextStatus]">
+                                  </button>
+                                </template>
                               </div>
                             </div>
                           </template>
@@ -2207,13 +2518,31 @@ ${r?'Expression: "'+r+`"
                         </div>
                         <div class="flex flex-col gap-2 min-h-[100px]">
                           <template x-for="task in teamTasks.filter(t => t.status === 'done')" :key="task.id">
-                            <div @click="selectedTeamTask = task; showTeamTaskModal = true"
-                                 class="px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:scale-[1.02]"
+                            <div @click="openTaskDetail(task)"
+                                 class="px-3 py-2.5 rounded-lg cursor-pointer transition-all hover:scale-[1.02] group"
                                  style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
                               <div class="text-xs font-medium truncate" style="color: var(--fuse-text);" x-text="task.title"></div>
                               <div class="flex items-center gap-2 mt-1.5">
                                 <span class="text-[10px] px-1.5 py-0.5 rounded" style="background: rgba(34,197,94,0.15); color: #4ade80;" x-text="task.priority || 'P3'"></span>
                                 <span class="text-[10px]" style="color: var(--fuse-muted);" x-text="task.assignee_name || task.assignee || ''"></span>
+                              </div>
+                              <div class="flex gap-1 mt-2 pt-2 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                   @click.stop
+                                   x-show="task.status !== 'done'">
+                                <template x-for="nextStatus in (taskStatusFlow[task.status] || [])" :key="nextStatus">
+                                  <button @click="moveTask(task, nextStatus)"
+                                          class="flex-1 py-1 rounded text-[10px] font-medium transition"
+                                          :style="{
+                                            'backlog': 'background: rgba(107,114,128,0.15); color: #9ca3af;',
+                                            'design': 'background: rgba(139,92,246,0.15); color: #a78bfa;',
+                                            'dev': 'background: rgba(59,130,246,0.15); color: #60a5fa;',
+                                            'review': 'background: rgba(245,158,11,0.15); color: #fbbf24;',
+                                            'qa': 'background: rgba(16,185,129,0.15); color: #34d399;',
+                                            'done': 'background: rgba(34,197,94,0.15); color: #4ade80;',
+                                          }[nextStatus] || ''"
+                                          x-text="taskStatusLabel[nextStatus]">
+                                  </button>
+                                </template>
                               </div>
                             </div>
                           </template>
@@ -2265,7 +2594,7 @@ ${r?'Expression: "'+r+`"
               </div>
             </div>
 
-            <!-- Team Task Detail Modal -->
+            <!-- Team Task Detail Modal (Enhanced) -->
             <div x-show="showTeamTaskModal"
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0"
@@ -2274,7 +2603,7 @@ ${r?'Expression: "'+r+`"
                  @click.self="showTeamTaskModal = false">
               <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
               <div class="relative glass rounded-2xl p-6 w-full max-w-lg mx-4">
-                <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center justify-between mb-4">
                   <h3 class="text-lg font-bold" style="color: var(--fuse-text);">
                     <i class="fas fa-tasks mr-2" style="color: var(--fuse-accent);"></i>
                     <span x-text="selectedTeamTask?.title || '任务详情'"></span>
@@ -2285,8 +2614,9 @@ ${r?'Expression: "'+r+`"
                 </div>
                 <template x-if="selectedTeamTask">
                   <div class="space-y-4">
-                    <div class="flex items-center gap-3">
-                      <span class="text-xs px-2 py-1 rounded-full font-medium"
+                    <!-- Status & Priority badges -->
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs px-2.5 py-1 rounded-full font-medium"
                             :style="{
                               'backlog': 'background: rgba(107,114,128,0.15); color: #9ca3af;',
                               'design': 'background: rgba(139,92,246,0.15); color: #a78bfa;',
@@ -2297,24 +2627,190 @@ ${r?'Expression: "'+r+`"
                             }[selectedTeamTask.status] || ''"
                             x-text="{'backlog':'待办','design':'设计','dev':'开发','review':'审核','qa':'测试','done':'完成'}[selectedTeamTask.status] || selectedTeamTask.status">
                       </span>
-                      <span class="text-xs px-2 py-1 rounded-full font-medium" style="background: rgba(251,191,36,0.15); color: #fbbf24;" x-text="selectedTeamTask.priority || 'P3'"></span>
+                      <span class="text-xs px-2.5 py-1 rounded-full font-medium" style="background: rgba(251,191,36,0.15); color: #fbbf24;" x-text="selectedTeamTask.priority || 'P3'"></span>
                     </div>
+                    <!-- Details grid -->
                     <div class="grid grid-cols-2 gap-3">
-                      <div class="px-3 py-2 rounded-lg" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
+                      <div class="px-3 py-2.5 rounded-lg" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
                         <div class="text-[10px] font-medium" style="color: var(--fuse-muted);">负责人</div>
-                        <div class="text-sm mt-0.5" style="color: var(--fuse-text);" x-text="selectedTeamTask.assignee_name || selectedTeamTask.assignee || '未指派'"></div>
+                        <div class="text-sm mt-0.5" style="color: var(--fuse-text);" x-text="getTaskAssigneeName(selectedTeamTask.assignee) || selectedTeamTask.assignee || '未指派'"></div>
                       </div>
-                      <div class="px-3 py-2 rounded-lg" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
+                      <div class="px-3 py-2.5 rounded-lg" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
                         <div class="text-[10px] font-medium" style="color: var(--fuse-muted);">创建时间</div>
                         <div class="text-sm mt-0.5" style="color: var(--fuse-text);" x-text="selectedTeamTask.created_at ? utcToLocal(selectedTeamTask.created_at) : '未知'"></div>
                       </div>
                     </div>
-                    <div x-show="selectedTeamTask.description" class="px-3 py-2 rounded-lg" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
+                    <!-- Description -->
+                    <div x-show="selectedTeamTask.description" class="px-3 py-2.5 rounded-lg" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
                       <div class="text-[10px] font-medium mb-1" style="color: var(--fuse-muted);">描述</div>
                       <div class="text-sm" style="color: var(--fuse-text);" x-text="selectedTeamTask.description"></div>
                     </div>
+                    <!-- Action buttons: Move Status + Delete -->
+                    <div class="flex items-center justify-between pt-3 border-t" style="border-color: rgba(255,255,255,0.06);">
+                      <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-medium" style="color: var(--fuse-muted);">移动至：</span>
+                        <template x-if="(taskStatusFlow[selectedTeamTask.status] || []).length === 0">
+                          <span class="text-[10px]" style="color: #6b7280;">无</span>
+                        </template>
+                        <template x-for="nextStatus in (taskStatusFlow[selectedTeamTask.status] || [])" :key="nextStatus">
+                          <button @click="moveTask(selectedTeamTask, nextStatus)"
+                                  :disabled="movingTaskId === selectedTeamTask.id"
+                                  class="px-2.5 py-1 rounded-lg text-[10px] font-medium transition hover:scale-105 disabled:opacity-40"
+                                  :style="{
+                                    'backlog': 'background: rgba(107,114,128,0.15); color: #9ca3af; border: 1px solid rgba(107,114,128,0.25);',
+                                    'design': 'background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25);',
+                                    'dev': 'background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25);',
+                                    'review': 'background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25);',
+                                    'qa': 'background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25);',
+                                    'done': 'background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.25);',
+                                  }[nextStatus] || ''"
+                                  x-text="taskStatusLabel[nextStatus]">
+                          </button>
+                        </template>
+                      </div>
+                      <button @click="confirmDeleteTask(selectedTeamTask)"
+                              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition hover:scale-105"
+                              style="background: rgba(239,68,68,0.12); color: #fca5a5;">
+                        <i class="fas fa-trash-alt text-[10px]"></i> 删除
+                      </button>
+                    </div>
+                    <!-- Activity Log -->
+                    <div class="pt-3 border-t" style="border-color: rgba(255,255,255,0.06);">
+                      <div class="text-[10px] font-semibold mb-2 flex items-center gap-1.5" style="color: var(--fuse-muted);">
+                        <i class="fas fa-history text-[10px]"></i> 操作日志
+                      </div>
+                      <template x-if="(!taskLogs[selectedTeamTask.id] || taskLogs[selectedTeamTask.id].length === 0)">
+                        <div class="text-center py-3">
+                          <p class="text-[10px]" style="color: #6b7280;">暂无操作记录</p>
+                        </div>
+                      </template>
+                      <div class="space-y-1.5 max-h-28 overflow-y-auto" x-show="taskLogs[selectedTeamTask.id] && taskLogs[selectedTeamTask.id].length > 0">
+                        <template x-for="log in (taskLogs[selectedTeamTask.id] || [])" :key="log.id">
+                          <div class="flex items-start gap-2 text-[11px]">
+                            <span class="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
+                                  :style="log.action === 'created' ? 'background: #10b981;' : 'background: #60a5fa;'"></span>
+                            <div>
+                              <span style="color: var(--fuse-text);" x-text="log.message"></span>
+                              <span style="color: #6b7280;" x-text="' · ' + (log.created_at ? utcToLocal(log.created_at) : '') + ' · by ' + (log.actor || 'system')"></span>
+                            </div>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
                   </div>
                 </template>
+              </div>
+            </div>
+
+            <!-- Create Task Modal -->
+            <div x-show="showCreateTaskModal"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 class="fixed inset-0 z-50 flex items-center justify-center"
+                 @click.self="cancelCreateTask()">
+              <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+              <div class="relative glass rounded-2xl p-6 w-full max-w-md mx-4">
+                <div class="flex items-center justify-between mb-5">
+                  <h3 class="text-lg font-bold" style="color: var(--fuse-text);">
+                    <i class="fas fa-plus-circle mr-2" style="color: var(--fuse-accent);"></i>创建任务
+                  </h3>
+                  <button @click="cancelCreateTask()" class="text-gray-400 hover:text-white transition"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="space-y-4">
+                  <!-- Title -->
+                  <div>
+                    <label class="text-xs font-medium mb-1.5 block" style="color: var(--fuse-muted);">任务标题 *</label>
+                    <input type="text" x-model="newTaskTitle"
+                           class="w-full px-3 py-2.5 rounded-xl text-sm outline-none transition"
+                           style="background: rgba(255,255,255,0.05); color: var(--fuse-text); border: 1px solid rgba(255,255,255,0.10);"
+                           placeholder="输入任务标题" @keydown.enter="submitCreateTask()">
+                  </div>
+                  <!-- Description -->
+                  <div>
+                    <label class="text-xs font-medium mb-1.5 block" style="color: var(--fuse-muted);">描述</label>
+                    <textarea x-model="newTaskDescription" rows="3"
+                              class="w-full px-3 py-2.5 rounded-xl text-sm outline-none resize-none transition"
+                              style="background: rgba(255,255,255,0.05); color: var(--fuse-text); border: 1px solid rgba(255,255,255,0.10);"
+                              placeholder="描述任务目标和交付标准"></textarea>
+                  </div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <!-- Assignee -->
+                    <div>
+                      <label class="text-xs font-medium mb-1.5 block" style="color: var(--fuse-muted);">负责人</label>
+                      <select x-model="newTaskAssignee"
+                              class="w-full px-3 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer transition"
+                              style="background: rgba(255,255,255,0.05); color: var(--fuse-text); border: 1px solid rgba(255,255,255,0.10);">
+                        <template x-for="emp in teamEmployees" :key="emp.id">
+                          <option :value="emp.id" x-text="emp.emoji + ' ' + emp.name" style="background: #1f1f2e;"></option>
+                        </template>
+                      </select>
+                    </div>
+                    <!-- Priority -->
+                    <div>
+                      <label class="text-xs font-medium mb-1.5 block" style="color: var(--fuse-muted);">优先级</label>
+                      <div class="flex gap-1.5">
+                        <button @click="newTaskPriority = 'P0'"
+                                class="flex-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all"
+                                :style="newTaskPriority === 'P0'
+                                  ? 'background: rgba(239,68,68,0.2); color: #fca5a5; border: 2px solid #ef4444;'
+                                  : 'background: rgba(239,68,68,0.1); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2);'">P0</button>
+                        <button @click="newTaskPriority = 'P1'"
+                                class="flex-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all"
+                                :style="newTaskPriority === 'P1'
+                                  ? 'background: rgba(245,158,11,0.2); color: #fcd34d; border: 2px solid #f59e0b;'
+                                  : 'background: rgba(245,158,11,0.1); color: #fcd34d; border: 1px solid rgba(245,158,11,0.2);'">P1</button>
+                        <button @click="newTaskPriority = 'P2'"
+                                class="flex-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all"
+                                :style="newTaskPriority === 'P2'
+                                  ? 'background: rgba(96,165,250,0.2); color: #93c5fd; border: 2px solid #60a5fa;'
+                                  : 'background: rgba(96,165,250,0.1); color: #93c5fd; border: 1px solid rgba(96,165,250,0.2);'">P2</button>
+                        <button @click="newTaskPriority = 'P3'"
+                                class="flex-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all"
+                                :style="newTaskPriority === 'P3'
+                                  ? 'background: rgba(107,114,128,0.2); color: #9ca3af; border: 2px solid #6b7280;'
+                                  : 'background: rgba(107,114,128,0.1); color: #9ca3af; border: 1px solid rgba(107,114,128,0.2);'">P3</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex justify-end gap-2 pt-2">
+                    <button @click="cancelCreateTask()"
+                            class="px-4 py-2 rounded-xl text-sm transition"
+                            style="background: rgba(255,255,255,0.05); color: var(--fuse-muted); border: 1px solid rgba(255,255,255,0.08);">取消</button>
+                    <button @click="submitCreateTask()"
+                            :disabled="!newTaskTitle.trim()"
+                            class="btn-gradient px-5 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition">
+                      创建任务
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Delete Task Confirmation -->
+            <div x-show="showDeleteTaskConfirm"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 class="fixed inset-0 z-[60] flex items-center justify-center"
+                 @click.self="showDeleteTaskConfirm = false">
+              <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+              <div class="relative glass rounded-2xl p-6 w-full max-w-sm mx-4 text-center">
+                <div class="text-4xl mb-3">🗑️</div>
+                <h3 class="text-lg font-bold mb-2" style="color: var(--fuse-text);">确认删除任务</h3>
+                <p class="text-sm mb-5" style="color: var(--fuse-muted);">
+                  确定要删除「<span x-text="taskToDelete?.title" class="font-medium" style="color: var(--fuse-text);"></span>」吗？此操作不可撤销。
+                </p>
+                <div class="flex justify-center gap-3">
+                  <button @click="showDeleteTaskConfirm = false; taskToDelete = null"
+                          class="px-4 py-2 rounded-xl text-sm transition"
+                          style="background: rgba(255,255,255,0.05); color: var(--fuse-muted); border: 1px solid rgba(255,255,255,0.08);">取消</button>
+                  <button @click="deleteTask(taskToDelete?.id)"
+                          class="px-5 py-2 rounded-xl text-sm font-semibold text-white transition"
+                          style="background: #ef4444;">
+                    <i class="fas fa-trash-alt text-xs mr-1"></i> 确认删除
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -2341,12 +2837,6 @@ ${r?'Expression: "'+r+`"
                             :disabled="reportGenerating"
                             class="btn-gradient px-4 py-2 rounded-lg text-sm font-semibold text-white btn-ripple flex items-center gap-2 disabled:opacity-40">
                       <i class="fas fa-plus text-xs"></i>生成报告
-                    </button>
-                    <button @click="refreshAll"
-                            :disabled="refreshing"
-                            class="btn-gradient px-4 py-2 rounded-lg text-sm font-semibold text-white btn-ripple flex items-center gap-2 disabled:opacity-40">
-                      <span x-show="!refreshing"><i class="fas fa-sync text-xs"></i>手动刷新</span>
-                      <span x-show="refreshing"><i class="fas fa-sync fa-spin text-xs"></i>采集中...</span>
                     </button>
                     <button @click="showZhiWenSettingsModal = true; zhiWenSettingsTab = 'topics'; loadTopics()"
                             class="px-4 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 border border-white/10 transition flex items-center gap-2">
@@ -2443,14 +2933,14 @@ ${r?'Expression: "'+r+`"
                                       </div>
                                     </div>
                                     <!-- Risk Badge -->
-                                    <span x-show="report.risk_level && report.risk_level !== '中'"
+                                    <span x-show="report.risk_level"
                                           class="text-[10px] px-2 py-0.5 rounded-full font-medium"
                                           :class="{
                                             'bg-red-500/15 text-red-400': report.risk_level === 'high' || report.risk_level === '高',
-                                            'bg-yellow-500/15 text-yellow-400': report.risk_level === 'medium',
+                                            'bg-yellow-500/15 text-yellow-400': report.risk_level === 'medium' || report.risk_level === '中',
                                             'bg-emerald-500/15 text-emerald-400': report.risk_level === 'low' || report.risk_level === '低'
                                           }"
-                                          x-text="{'high':'高风险','medium':'中风险','low':'低风险','高':'高风险','低':'低风险'}[report.risk_level] || report.risk_level">
+                                          x-text="{'high':'高风险','medium':'中风险','low':'低风险','高':'高风险','中':'中风险','低':'低风险'}[report.risk_level] || report.risk_level">
                                     </span>
                                   </div>
 
@@ -2759,6 +3249,85 @@ ${r?'Expression: "'+r+`"
                     </div>
                   </div>
                 </div>
+
+                <!-- ===== 回收站 Modal ===== -->
+                <div x-show="showTrashModal"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     class="fixed inset-0 z-50 flex items-center justify-center"
+                     @click.self="showTrashModal = false">
+                  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+                  <div class="relative glass rounded-2xl p-5 w-full max-w-lg mx-4 max-h-[75vh] flex flex-col">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between mb-4">
+                      <h3 class="text-sm font-bold" style="color: var(--fuse-text);">
+                        <i class="fas fa-trash-alt mr-2 text-red-400"></i>回收站
+                        <span x-show="trashReports.length > 0" class="text-[10px] font-normal text-gray-500 ml-1">（<span x-text="trashReports.length"></span>份）</span>
+                      </h3>
+                      <div class="flex items-center gap-2">
+                        <button x-show="trashReports.length > 0"
+                                @click="clearAllTrash"
+                                class="text-[10px] text-red-400 hover:text-red-300 transition px-2 py-1 rounded-md"
+                                style="background: rgba(239,68,68,0.1);">
+                          <i class="fas fa-fire text-[9px] mr-1"></i>清空全部
+                        </button>
+                        <button @click="showTrashModal = false" class="text-gray-400 hover:text-white transition">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Loading -->
+                    <div x-show="trashLoading" class="flex items-center justify-center py-10">
+                      <i class="fas fa-spinner fa-spin text-gray-400 text-lg"></i>
+                      <span class="text-xs text-gray-500 ml-2">加载中...</span>
+                    </div>
+
+                    <!-- Empty -->
+                    <template x-if="!trashLoading && trashReports.length === 0">
+                      <div class="text-center py-10">
+                        <div class="text-3xl mb-3 opacity-30"><i class="fas fa-trash-alt text-gray-500"></i></div>
+                        <p class="text-xs" style="color: var(--fuse-muted);">回收站是空的</p>
+                        <p class="text-[10px] text-gray-600 mt-1">删除的报告会先移到这里</p>
+                      </div>
+                    </template>
+
+                    <!-- Trash list -->
+                    <template x-if="!trashLoading && trashReports.length > 0">
+                      <div class="flex-1 overflow-y-auto space-y-2 min-h-0">
+                        <template x-for="r in trashReports" :key="r.id">
+                          <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                               style="background: var(--fuse-card); border: 1px solid var(--fuse-border);">
+                            <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style="background: rgba(239,68,68,0.1);">
+                              <i class="fas fa-file text-xs" style="color: var(--fuse-muted);"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                              <div class="text-[12px] font-medium truncate" style="color: var(--fuse-text);" x-text="r.title"></div>
+                              <div class="text-[10px]" style="color: var(--fuse-muted);">
+                                <span x-text="{'daily':'日报','weekly':'周报','monthly':'月报','quarterly':'季报','yearly':'年报'}[r.report_type] || r.report_type"></span>
+                                <span x-show="r.risk_level" class="ml-2" x-text="'· ' + ({'high':'高风险','medium':'中风险','low':'低风险','高':'高风险','中':'中风险','低':'低风险'}[r.risk_level] || r.risk_level)"></span>
+                              </div>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                              <button @click="restoreReport(r.id)"
+                                      class="text-gray-400 hover:text-emerald-400 transition text-[10px] p-1.5 rounded-lg"
+                                      title="恢复">
+                                <i class="fas fa-undo-alt"></i>
+                              </button>
+                              <button @click="permanentDeleteReport(r.id)"
+                                      class="text-gray-500 hover:text-red-400 transition text-[10px] p-1.5 rounded-lg"
+                                      title="永久删除">
+                                <i class="fas fa-times-circle"></i>
+                              </button>
+                            </div>
+                          </div>
+                        </template>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+
           </div>
         </main>
 
@@ -2804,11 +3373,19 @@ ${r?'Expression: "'+r+`"
           </button>
         </div>
 
-        <!-- Search -->
-        <div class="relative mb-4">
-          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-          <input type="text" x-model="chatHistorySearch" placeholder="搜索对话记录..."
-                 class="w-full pl-9 pr-4 py-2 rounded-lg text-sm bg-white/5 border border-white/10 text-gray-200 focus:border-violet-500/50 placeholder-gray-500" />
+        <!-- Search + clear all -->
+        <div class="flex items-center gap-2 mb-4">
+          <div class="relative flex-1">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            <input type="text" x-model="chatHistorySearch" placeholder="搜索对话记录..."
+                   class="w-full pl-9 pr-4 py-2 rounded-lg text-sm bg-white/5 border border-white/10 text-gray-200 focus:border-violet-500/50 placeholder-gray-500" />
+          </div>
+          <button @click="chatHistory.length > 0 ? showClearHistoryConfirm = true : null"
+                  :disabled="chatHistory.length === 0"
+                  class="px-3 py-2 rounded-lg text-xs border transition-all disabled:opacity-30"
+                  style="color:var(--fuse-muted);border-color:var(--fuse-border);">
+            <i class="fas fa-trash-alt text-[10px] mr-1"></i>清空
+          </button>
         </div>
 
         <!-- Conversation list -->
@@ -2836,13 +3413,63 @@ ${r?'Expression: "'+r+`"
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center justify-between mb-1">
                     <span class="text-xs font-medium text-gray-200" x-text="getEmployeeName(conv.employee_id)"></span>
-                    <span class="text-[10px] text-gray-500" x-text="formatConvTime(conv.updated_at)"></span>
+                    <span class="text-[10px] text-gray-500 flex items-center gap-2">
+                      <span x-text="formatConvTime(conv.updated_at)"></span>
+                      <button @click.stop="deleteConversation(conv.id, $event)"
+                              class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-red-400"
+                              title="删除对话">
+                        <i class="fas fa-trash-alt text-[10px]"></i>
+                      </button>
+                    </span>
                   </div>
                   <p class="text-[11px] text-gray-400 truncate" x-text="getLastMessage(conv)"></p>
                 </div>
               </div>
             </div>
           </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- CLEAR HISTORY CONFIRM                                           -->
+    <!-- ============================================================== -->
+    <div x-show="showClearHistoryConfirm" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+         @click.self="showClearHistoryConfirm = false">
+      <div class="relative max-w-[240px] mx-auto page-enter" @click.stop>
+        <div class="glass-strong rounded-2xl p-5 glow-border">
+          <button @click="showClearHistoryConfirm = false"
+                  class="absolute -top-2.5 -right-2.5 w-7 h-7 rounded-full flex items-center justify-center text-sm text-gray-400 hover:text-gray-200 transition"
+                  style="background: var(--bg-card-strong); border: 1px solid var(--border-glass);">
+            <i class="fas fa-times"></i>
+          </button>
+          <div class="text-center mb-4">
+            <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-2xl"
+                 style="background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(220,38,38,0.15));">
+              <i class="fas fa-exclamation-triangle text-red-400"></i>
+            </div>
+          </div>
+          <h3 class="text-base font-bold text-center mb-2">清空所有对话</h3>
+          <p class="text-xs text-gray-400 text-center mb-4">
+            确定要删除所有对话记录吗？此操作不可撤销。
+          </p>
+          <div class="flex gap-2">
+            <button @click="showClearHistoryConfirm = false"
+                    class="flex-1 py-2.5 rounded-lg text-sm border transition"
+                    style="color:var(--fuse-text2);border-color:var(--fuse-border2);">取消</button>
+            <button @click="clearConversations"
+                    class="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white transition"
+                    style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+              <i class="fas fa-check text-[10px] mr-1"></i>确认清空
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -3105,6 +3732,122 @@ ${r?'Expression: "'+r+`"
     </div>
 
     <!-- ============================================================== -->
+    <!-- REFRESH CONFIRM MODAL                                           -->
+    <!-- ============================================================== -->
+    <!-- ============================================================== -->
+    <!-- 手动采集器弹窗                                                -->
+    <!-- ============================================================== -->
+    <div x-show="showManualCollectModal" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed inset-0 z-[60] flex items-center justify-center"
+         @click.self="showManualCollectModal = false">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div class="relative glass rounded-2xl p-6 w-full max-w-md mx-4">
+        <!-- Close button -->
+        <button @click="showManualCollectModal = false"
+                class="absolute -top-2.5 -right-2.5 w-7 h-7 rounded-full flex items-center justify-center text-xs z-10 transition"
+                style="background: var(--fuse-card); border: 1px solid var(--fuse-border); color: var(--fuse-muted);"
+                onmouseover="this.style.color='var(--fuse-text)'" onmouseout="this.style.color='var(--fuse-muted)'">
+          <i class="fas fa-times"></i>
+        </button>
+
+        <!-- Icon + Title -->
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+               style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2));">
+            <i class="fas fa-download text-white"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold" style="color: var(--fuse-text);">手动采集器</h3>
+            <p class="text-[11px]" style="color: var(--fuse-muted);">立即触发，不等自动调度</p>
+          </div>
+        </div>
+
+        <!-- What it does -->
+        <div class="mb-4 p-3 rounded-xl text-xs leading-relaxed"
+             style="background: var(--fuse-surface2); border: 1px solid var(--fuse-border); color: var(--fuse-text2);">
+          <div class="flex items-center gap-2 mb-2 font-semibold" style="color: var(--fuse-accent);">
+            <i class="fas fa-info-circle text-[11px]"></i>采集流程
+          </div>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold" style="background: rgba(59,130,246,0.15); color: var(--fuse-accent);">1</span>
+              <span>采集所有 RSS 新闻源的最新文章</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold" style="background: rgba(16,185,129,0.15); color: #10b981;">2</span>
+              <span>按选定主题的关键词匹配文章</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold" style="background: rgba(139,92,246,0.15); color: #8b5cf6;">3</span>
+              <span>AI 分析生成日度战略报告（含SWOT/风险/机会）</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Value proposition -->
+        <div class="mb-4 p-3 rounded-xl text-xs"
+             style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.15); color: var(--fuse-text2);">
+          <div class="flex items-center gap-2 mb-1.5 font-semibold" style="color: #10b981;">
+            <i class="fas fa-clock text-[11px]"></i>与自动调度的区别
+          </div>
+          <p>自动调度每天 08:30 执行一次。手动采集可以随时触发，适合：刚添加主题/修改关键词后想立即生成、想看当前最新数据的即时分析。</p>
+        </div>
+
+        <!-- Topic selection -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs font-semibold" style="color: var(--fuse-text);">选择采集的主题</label>
+            <div class="flex gap-2 text-[10px]">
+              <button @click="manualCollectSelectedTopics = topics.map(t => t.id)"
+                      class="px-2 py-0.5 rounded transition"
+                      style="color: var(--fuse-accent); background: rgba(99,102,241,0.1);">全选</button>
+              <button @click="manualCollectSelectedTopics = []"
+                      class="px-2 py-0.5 rounded transition"
+                      style="color: var(--fuse-muted); background: rgba(255,255,255,0.05);">清空</button>
+            </div>
+          </div>
+          <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+            <template x-for="t in topics" :key="t.id">
+              <label class="flex items-center gap-2.5 py-1.5 px-2.5 rounded-lg cursor-pointer transition"
+                     style="background: var(--fuse-surface2);"
+                     onmouseover="this.style.background='var(--fuse-hover)'" onmouseout="this.style.background='var(--fuse-surface2)'">
+                <input type="checkbox"
+                       :value="t.id"
+                       x-model="manualCollectSelectedTopics"
+                       class="rounded border-gray-500 accent-violet-500 w-3.5 h-3.5">
+                <span class="text-xs font-medium" style="color: var(--fuse-text);" x-text="t.name"></span>
+                <span class="text-[10px] ml-auto" style="color: var(--fuse-muted);" x-text="t.category || ''"></span>
+              </label>
+            </template>
+          </div>
+          <p x-show="manualCollectSelectedTopics.length === 0" class="text-[10px] mt-1" style="color: var(--fuse-muted);">
+            请至少选择一个主题
+          </p>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-3">
+          <button @click="showManualCollectModal = false"
+                  class="flex-1 py-2.5 rounded-xl text-sm transition"
+                  style="background: rgba(255,255,255,0.05); color: var(--fuse-muted); border: 1px solid rgba(255,255,255,0.08);">
+            取消
+          </button>
+          <button @click="startManualCollect()"
+                  :disabled="manualCollectSelectedTopics.length === 0 || refreshing"
+                  class="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition flex items-center justify-center gap-2 disabled:opacity-40"
+                  :class="refreshing ? 'opacity-60' : ''"
+                  style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2));">
+            <i class="fas" :class="refreshing ? 'fa-spinner fa-spin' : 'fa-play'"></i>
+            <span x-text="refreshing ? '采集中...' : '开始采集'"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
     <!-- NEW TOPIC MODAL                                                 -->
     <!-- ============================================================== -->
     <div x-show="showNewTopicModal" x-cloak
@@ -3304,8 +4047,11 @@ ${r?'Expression: "'+r+`"
         reportsLoading: false,
         reportGenerating: false,
         refreshing: false,
-        reportFilter: '全部',
+        showRefreshConfirm: false,
+        showManualCollectModal: false,
+        manualCollectSelectedTopics: [],
         showReportDetailModal: false,
+        reportFilter: '全部',
         selectedReport: null,
         showGenerateReportModal: false,
         newReport: { topic_id: '', report_type: 'daily' },
@@ -3316,11 +4062,23 @@ ${r?'Expression: "'+r+`"
         selectedPushTopic: '',
         pushConfigForm: { feishu_chat_id: '', feishu_push_enabled: false, webhook_url: '' },
 
+        // ---- Automation Configs (精细化开关) ----
+        automationConfigs: {},   // dict keyed by topic_id {collect_enabled, report_enabled, feishu_push_enabled}
+
+        // ---- Topic Picker (for ceo-advisor quick pills) ----
+        showTopicPicker: false,
+        topicPickerMode: '',       // 'report' | 'competitor' | 'brief'
+        topicPickerTopicId: '',
+        topicPickerTopicName: '',
+        topicPickerReportType: 'daily',
+
         // ---- Chat History ----
         showHistoryModal: false,
+        showClearHistoryConfirm: false,
         chatHistory: [],
         chatHistoryLoading: false,
         chatHistorySearch: '',
+        rightPanelCollapsed: false,
 
         // ---- ZhiWen Settings ----
         showZhiWenSettingsModal: false,
@@ -3414,6 +4172,16 @@ ${r?'Expression: "'+r+`"
         showTeamTaskModal: false,
         teamChatInput: '',
         teamIsStreaming: false,
+        showCreateTaskModal: false,
+        newTaskTitle: '',
+        newTaskDescription: '',
+        newTaskAssignee: 'rd-engineer',
+        newTaskPriority: 'P2',
+        showDeleteTaskConfirm: false,
+        taskToDelete: null,
+        taskLogs: {},
+        movingTaskId: null,
+        showRefreshConfirm: false,
         teamEmployees: [
           { id: 'team-lead', name: '产研主管', emoji: '🧠', status: 'online' },
           { id: 'project-manager', name: '产品经理', emoji: '📋', status: 'online' },
@@ -3421,6 +4189,37 @@ ${r?'Expression: "'+r+`"
           { id: 'qa-engineer', name: '测试工程师', emoji: '🧪', status: 'online' },
           { id: 'ui-designer', name: 'UI设计师', emoji: '🎨', status: 'online' },
         ],
+
+        // ---- Team helper maps ----
+        ASSIGNEE_MAP: {
+          'team-lead': { name: '产研主管', emoji: '🧠' },
+          'project-manager': { name: '产品经理', emoji: '📋' },
+          'rd-engineer': { name: '研发工程师', emoji: '💻' },
+          'qa-engineer': { name: '测试工程师', emoji: '🧪' },
+          'ui-designer': { name: 'UI设计师', emoji: '🎨' },
+        },
+
+        get taskStatusFlow() {
+          return {
+            'backlog': ['design', 'dev'],
+            'design': ['dev', 'review'],
+            'dev': ['review', 'qa'],
+            'review': ['qa', 'dev'],
+            'qa': ['done', 'dev'],
+            'done': [],
+          };
+        },
+
+        get taskStatusLabel() {
+          return {
+            'backlog': '待办',
+            'design': '设计',
+            'dev': '开发',
+            'review': '审核',
+            'qa': '测试',
+            'done': '完成',
+          };
+        },
 
         // ---- Fusion 003: Right Panel ----
         automationTasks: [
@@ -3444,27 +4243,367 @@ ${r?'Expression: "'+r+`"
           }));
         },
 
-        // Quick pill actions
-        quickPills: [
-          { label: '生成报告', icon: 'chart-line', action: 'generate_report' },
-          { label: '竞品分析', icon: 'users', action: 'competitor_analysis' },
-          { label: '今日早报', icon: 'newspaper', action: 'morning_brief' },
-          { label: '任务状态', icon: 'list-check', action: 'task_status' },
-        ],
-
-        addQuickMsg(action) {
-          const map = {
-            generate_report: '帮我生成一份行业分析报告',
-            competitor_analysis: '帮我分析竞品动态',
-            morning_brief: '生成今日早报',
-            task_status: '查看任务执行状态',
-          };
-          this.chatInput = map[action] || '';
+        // Quick pill actions (per-employee prompts)
+        get quickPills() {
+          if (!this.selectedEmployee) return [];
+          return this._pillsForEmployee(this.selectedEmployee.id);
         },
 
-        toggleTask(taskId) {
-          const task = this.automationTasks.find(t => t.id === taskId);
-          if (task) task.enabled = !task.enabled;
+        _pillsForEmployee(id) {
+          const defs = {
+            // ── 核心大脑 ──
+            'ceo-advisor': [
+              { label: '生成报告', icon: 'chart-line', msg: '帮我生成一份深度战略分析报告，涵盖行业政策变化、市场格局演变和竞争态势，附上数据支撑和趋势预判' },
+              { label: '竞品分析', icon: 'users', msg: '对我关注的核心竞品进行全面的动态追踪和竞争态势分析，识别新进入者和潜在威胁' },
+              { label: '今日早报', icon: 'newspaper', msg: '整理今日行业早报，包括重要政策发布、市场热点事件和竞品重大动态' },
+              { label: '任务状态', icon: 'list-check', msg: '查看当前情报采集和定时报告任务的执行状态' },
+            ],
+            'primary-agent': [
+              { label: '生成报告', icon: 'chart-line', msg: '请从全局战略视角，对当前核心议题进行系统性分析报告，涵盖多维度交叉分析' },
+              { label: '竞品分析', icon: 'users', msg: '从跨领域视角分析整体竞争格局变化，识别跨界竞争对手和生态位重叠' },
+              { label: '今日早报', icon: 'newspaper', msg: '汇总各业务线的关键信息，形成今日战略简报' },
+              { label: '任务状态', icon: 'list-check', msg: '查看所有协作任务和子任务的执行情况' },
+            ],
+            // ── 产研团队 ──
+            'project-manager': [
+              { label: '生成报告', icon: 'chart-line', msg: '帮我生成一份产品需求分析报告，包括用户痛点、功能优先级和市场机会评估' },
+              { label: '竞品分析', icon: 'users', msg: '对比分析主要竞品的产品功能和用户体验差异，输出改进建议' },
+              { label: '今日早报', icon: 'newspaper', msg: '整理今日产品相关行业动态和竞品功能更新' },
+              { label: '任务状态', icon: 'list-check', msg: '查看项目进度和产品迭代任务状态' },
+            ],
+            'rd-engineer': [
+              { label: '生成报告', icon: 'chart-line', msg: '帮我生成技术方案评估报告，包括架构对比、性能指标和实施难度' },
+              { label: '竞品分析', icon: 'users', msg: '分析竞品的技术架构和技术栈选型，评估其优势与风险' },
+              { label: '今日早报', icon: 'newspaper', msg: '整理今日技术社区重要动态、新技术发布和开源项目更新' },
+              { label: '任务状态', icon: 'list-check', msg: '查看开发任务和代码审查进度' },
+            ],
+            'qa-engineer': [
+              { label: '生成报告', icon: 'chart-line', msg: '帮我整理测试覆盖率和质量分析报告，包括缺陷趋势和风险区域' },
+              { label: '竞品分析', icon: 'users', msg: '分析竞品的产品质量和测试策略，提炼可借鉴的实践' },
+              { label: '今日早报', icon: 'newspaper', msg: '整理今日测试环境和自动化测试运行概况' },
+              { label: '任务状态', icon: 'list-check', msg: '查看测试任务执行和缺陷修复状态' },
+            ],
+            'ui-designer': [
+              { label: '生成报告', icon: 'chart-line', msg: '帮我分析产品用户体验和界面设计评估报告，包括可用性问题和优化建议' },
+              { label: '竞品分析', icon: 'users', msg: '分析竞品的UI设计风格和交互模式，输出设计趋势对比' },
+              { label: '今日早报', icon: 'newspaper', msg: '整理今日设计领域前沿趋势、灵感和优秀案例' },
+              { label: '任务状态', icon: 'list-check', msg: '查看设计任务和改版进度' },
+            ],
+            // ── 运营&销售 ──
+            'marketing-assistant': [
+              { label: '生成报告', icon: 'chart-line', msg: '帮我生成一份营销活动效果分析报告，包括渠道ROI、用户转化和内容表现' },
+              { label: '竞品分析', icon: 'users', msg: '分析竞品的品牌传播策略和营销打法，挖掘差异化机会' },
+              { label: '今日早报', icon: 'newspaper', msg: '整理今日营销热点、社媒趋势和可借势的素材灵感' },
+              { label: '任务状态', icon: 'list-check', msg: '查看营销任务的执行状态' },
+            ],
+            'sales-consultant': [
+              { label: '生成报告', icon: 'chart-line', msg: '帮我生成客户需求和销售机会分析报告，包括行业客户画像和商机排序' },
+              { label: '竞品分析', icon: 'users', msg: '分析竞品的销售策略和客户痛点覆盖，输出差异化卖点' },
+              { label: '今日早报', icon: 'newspaper', msg: '整理今日行业客户动态和潜在销售线索' },
+              { label: '任务状态', icon: 'list-check', msg: '查看客户跟进和销售任务完成情况' },
+            ],
+          };
+          return defs[id] || defs['ceo-advisor'];
+        },
+
+        addQuickMsg(msg) {
+          // For ceo-advisor, topic-specific actions show the topic picker
+          if (this.selectedEmployee?.id === 'ceo-advisor') {
+            const modeMap = {
+              '生成报告': 'report',
+              '竞品分析': 'competitor',
+              '今日早报': 'brief',
+            };
+            const pills = this._pillsForEmployee('ceo-advisor');
+            const matchedPill = pills.find(p => p.msg === msg);
+            const mode = matchedPill ? modeMap[matchedPill.label] : null;
+            if (mode) {
+              this.topicPickerMode = mode;
+              this.topicPickerTopicId = '';
+              this.topicPickerTopicName = '';
+              this.topicPickerReportType = 'daily';
+              this.showTopicPicker = true;
+              return;
+            }
+          }
+          this.chatInput = msg;
+        },
+
+        cancelTopicPick() {
+          this.showTopicPicker = false;
+          this.topicPickerMode = '';
+        },
+
+        confirmTopicPick() {
+          const topicName = this.topicPickerTopicName || this.topicPickerTopicId;
+          const topicId = this.topicPickerTopicId;
+          if (!topicName) { this.showToast('请先选择一个主题', 'error'); return; }
+          this.showTopicPicker = false;
+          if (this.topicPickerMode === 'report') {
+            const rt = { daily: '日报', weekly: '周报', monthly: '月报' }[this.topicPickerReportType] || '报告';
+            const rtEng = { daily: 'daily', weekly: 'weekly', monthly: 'monthly' }[this.topicPickerReportType] || 'daily';
+            const userMsg = `请针对「${topicName}」生成一份深度${rt}`;
+            this.messages.push({ role: 'user', content: userMsg });
+            const aiMsg = { role: 'assistant', content: `⏳ 报告生成中...
+
+正在采集并分析「${topicName}」的最新动态，请稍候（约30-60秒）` };
+            this.messages.push(aiMsg);
+            this.$nextTick(() => {
+              const el = this.$refs.chatMessages;
+              if (el) el.scrollTop = el.scrollHeight;
+            });
+            this._generateChatReport(topicId, topicName, rt, rtEng, aiMsg);
+            return;
+          }
+          let msg = '';
+          if (this.topicPickerMode === 'competitor') {
+            msg = `请对「${topicName}」相关的核心竞品进行全面的动态追踪和竞争态势分析，识别新进入者和潜在威胁`;
+          } else if (this.topicPickerMode === 'brief') {
+            msg = `请整理「${topicName}」今日重要动态，包括政策发布、市场热点和竞品重大信息，形成简洁的早报`;
+          }
+          this.chatInput = msg;
+          this.$nextTick(() => {
+            setTimeout(() => this.sendMessage(), 100);
+          });
+        },
+
+        async _generateChatReport(topicId, topicName, rt, rtEng, aiMsg) {
+          try {
+            const res = await fetch('/api/v1/reports', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+              },
+              body: JSON.stringify({ topic_id: topicId, report_type: rtEng })
+            });
+            if (!res.ok && res.status !== 202) {
+              const err = await res.json();
+              throw new Error(err.detail || '报告生成失败');
+            }
+            // Save the new report's ID from the API response
+            let newReportId = null;
+            try {
+              const body = await res.json();
+              newReportId = body.id;
+            } catch(e) {}
+            // Poll for report completion using the new report ID
+            let attempts = 0;
+            const maxAttempts = 20;
+            const poll = async () => {
+              attempts++;
+              await this.loadReports();
+              // Find by exact ID first (guarantees we get the NEW report, not an old one)
+              let match = null;
+              if (newReportId) {
+                match = this.reports.find(r => String(r.id) === String(newReportId));
+              }
+              // Fallback: find newest matching topic+type
+              if (!match) {
+                match = this.reports
+                  .filter(r => r.topic_id === topicId && r.report_type === rtEng)
+                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+              }
+              if (match && match.status !== 'pending' && match.status !== 'draft') {
+                let content = `## 📊 ${match.title}
+
+`;
+                if (match.summary) content += `${match.summary}
+
+`;
+                content += `**类型**：${rt}  **状态**：✅ 已完成
+
+`;
+                try {
+                  const swot = typeof match.swot === 'string' ? JSON.parse(match.swot) : match.swot;
+                  if (swot) {
+                    content += `### 🏆 SWOT 分析
+`;
+                    if (swot.s) content += `- **优势**：${swot.s}
+`;
+                    if (swot.w) content += `- **劣势**：${swot.w}
+`;
+                    if (swot.o) content += `- **机会**：${swot.o}
+`;
+                    if (swot.t) content += `- **威胁**：${swot.t}
+`;
+                    content += `
+`;
+                  }
+                } catch(e) {}
+                if (match.risk_level) {
+                  const rl = { high: '🔴 高风险', medium: '🟡 中风险', low: '🟢 低风险', '高': '🔴 高风险', '中': '🟡 中风险', '低': '🟢 低风险' };
+                  content += `**整体风险等级**：${rl[match.risk_level] || match.risk_level}
+
+`;
+                }
+                try {
+                  const cd = typeof match.content === 'string' ? JSON.parse(match.content) : match.content;
+                  if (cd && cd.articles && cd.articles.length > 0) {
+                    content += `### 📰 收录文章（${cd.articles.length}篇）
+
+`;
+                    for (const art of cd.articles.slice(0, 5)) {
+                      content += `- **[${art.title}](${art.url})**
+  ${(art.summary || '').substring(0, 120)}...
+`;
+                    }
+                    if (cd.articles.length > 5) content += `
+*...还有 ${cd.articles.length - 5} 篇，详见报告详情*
+`;
+                  }
+                } catch(e) {}
+                content += `\n---
+> 💡 完整报告可在右侧「报告」面板中查看详情`;
+                aiMsg.content = content;
+                aiMsg.skills_used = ['报告生成'];
+                return;
+              }
+              if (attempts >= maxAttempts) {
+                aiMsg.content = `报告生成请求已提交，但尚未完成。请稍后在「报告」面板查看「${topicName}」的最新${rt}。`;
+                return;
+              }
+              setTimeout(poll, 3000);
+            };
+            setTimeout(poll, 3000);
+          } catch (e) {
+            aiMsg.content = `❌ 报告生成失败：${e.message}`;
+            this.showToast(e.message, 'error');
+          }
+        },
+
+        // ── 自动化任务面板（基于真实主题） ──
+        async loadAutomationConfigs() {
+          // 从 API 获取每个主题的精细化配置
+          try {
+            const res = await fetch('/api/v1/automation/configs', {
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) {
+              const configs = await res.json();
+              const map = {};
+              for (const cfg of configs) {
+                map[cfg.topic_id] = {
+                  collect_enabled: cfg.collect_enabled || false,
+                  report_enabled: cfg.report_enabled || false,
+                  feishu_push_enabled: cfg.feishu_push_enabled || false,
+                };
+              }
+              this.automationConfigs = map;
+            }
+          } catch (e) {
+            // silent
+          }
+        },
+
+        get autoTopicCards() {
+          if (!this.topics || this.topics.length === 0) return [];
+          return this.topics.map(t => {
+            const cfg = this.automationConfigs[t.id] || {};
+            return {
+              id: t.id,
+              title: t.name,
+              category: t.category || '',
+              cycle: t.push_cycle || 'daily',
+              cycleLabel: {daily:'日报', weekly:'周报', monthly:'月报', quarterly:'季报', yearly:'年报'}[t.push_cycle] || '日报',
+              cycleIcon: {daily:'fa-sun', weekly:'fa-calendar-week', monthly:'fa-calendar-alt'}[t.push_cycle] || 'fa-calendar',
+              collect_enabled: cfg.collect_enabled === true,
+              report_enabled: cfg.report_enabled === true,
+              feishu_push_enabled: cfg.feishu_push_enabled === true,
+            };
+          });
+        },
+
+        async toggleCollect(topicId) {
+          const topic = this.topics.find(t => t.id === topicId);
+          if (!topic) return;
+          const newState = !(this.automationConfigs[topicId]?.collect_enabled);
+          // optimistic
+          if (!this.automationConfigs[topicId]) this.automationConfigs[topicId] = {};
+          this.automationConfigs[topicId].collect_enabled = newState;
+          try {
+            const res = await fetch(`/api/v1/automation/topics/${topicId}/config`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
+              body: JSON.stringify({ collect_enabled: newState }),
+            });
+            if (!res.ok) throw new Error();
+          } catch(e) {
+            this.automationConfigs[topicId].collect_enabled = !newState; // rollback
+          }
+        },
+
+        async toggleReport(topicId) {
+          const topic = this.topics.find(t => t.id === topicId);
+          if (!topic) return;
+          const newState = !(this.automationConfigs[topicId]?.report_enabled);
+          if (!this.automationConfigs[topicId]) this.automationConfigs[topicId] = {};
+          this.automationConfigs[topicId].report_enabled = newState;
+          try {
+            const res = await fetch(`/api/v1/automation/topics/${topicId}/config`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
+              body: JSON.stringify({ report_enabled: newState }),
+            });
+            if (!res.ok) throw new Error();
+          } catch(e) {
+            this.automationConfigs[topicId].report_enabled = !newState;
+          }
+        },
+
+        async toggleFeishuPush(topicId) {
+          const topic = this.topics.find(t => t.id === topicId);
+          if (!topic) return;
+          const newState = !(this.automationConfigs[topicId]?.feishu_push_enabled);
+          if (!this.automationConfigs[topicId]) this.automationConfigs[topicId] = {};
+          this.automationConfigs[topicId].feishu_push_enabled = newState;
+          try {
+            const res = await fetch(`/api/v1/automation/topics/${topicId}/config`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.token}` },
+              body: JSON.stringify({ feishu_push_enabled: newState }),
+            });
+            if (!res.ok) throw new Error();
+          } catch(e) {
+            this.automationConfigs[topicId].feishu_push_enabled = !newState;
+          }
+        },
+
+        // ── Markdown 渲染 ──
+        mdToHtml(text) {
+          if (!text) return '';
+          const escape = (s) => {
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+          };
+          let html = escape(text);
+          // Code blocks
+          html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+            return '<pre style="background:var(--fuse-surface2);border:1px solid var(--fuse-border);border-radius:8px;padding:12px;overflow-x:auto;font-size:12px;line-height:1.6;margin:8px 0"><code>' + escape(code.trim()) + '</code></pre>';
+          });
+          // Inline code
+          html = html.replace(/`([^`]+)`/g, '<code style="background:var(--fuse-surface2);padding:2px 6px;border-radius:4px;font-size:12px">$1</code>');
+          // Headers
+          html = html.replace(/^### (.+)$/gm, '<h3 style="font-size:15px;font-weight:700;margin:12px 0 6px;color:var(--fuse-accent)">$1</h3>');
+          html = html.replace(/^## (.+)$/gm, '<h2 style="font-size:16px;font-weight:700;margin:14px 0 8px;color:var(--fuse-accent)">$1</h2>');
+          html = html.replace(/^# (.+)$/gm, '<h1 style="font-size:18px;font-weight:700;margin:16px 0 10px;color:var(--fuse-accent)">$1</h1>');
+          // Bold + italic
+          html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+          html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+          html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+          // Links
+          html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--fuse-accent2);text-decoration:underline">$1</a>');
+          // Lists
+          html = html.replace(/^[\s]*[-*] (.+)$/gm, '<li style="margin:2px 0 2px 16px;list-style:disc">$1</li>');
+          html = html.replace(/^[\s]*\d+\. (.+)$/gm, '<li style="margin:2px 0 2px 16px;list-style:decimal">$1</li>');
+          // Horizontal rule
+          html = html.replace(/^---$/gm, '<hr style="border:none;border-top:1px solid var(--fuse-border);margin:12px 0">');
+          // Paragraphs
+          html = html.replace(/\n\n/g, '</p><p style="margin:6px 0;line-height:1.7">');
+          html = html.replace(/\n/g, '<br>');
+          if (!html.startsWith('<')) html = '<p style="margin:6px 0;line-height:1.7">' + html + '</p>';
+          return html;
         },
 
         switchRightPanel(tab) {
@@ -3825,6 +4964,8 @@ ${r?'Expression: "'+r+`"
               headers: { 'Authorization': `Bearer ${this.token}` }
             });
             if (res.ok) this.topics = await res.json();
+            // 每次加载主题后，同步刷新自动化配置
+            await this.loadAutomationConfigs();
           } catch (e) {
             console.error('Failed to load topics', e);
           }
@@ -3861,6 +5002,14 @@ ${r?'Expression: "'+r+`"
           } finally {
             this.reportGenerating = false;
           }
+        },
+
+        startManualCollect() {
+          this.showManualCollectModal = false;
+          const selected = this.manualCollectSelectedTopics;
+          if (selected.length === 0) return;
+          this.showToast(`已选择 ${selected.length} 个主题，开始采集并生成报告...`, 'info');
+          this.refreshAll();
         },
 
         async refreshAll() {
@@ -3922,20 +5071,99 @@ ${r?'Expression: "'+r+`"
         },
 
         async deleteReport(reportId) {
-          if (!confirm('确定删除这份报告？')) return;
           try {
             const res = await fetch(`/api/v1/reports/${reportId}`, {
               method: 'DELETE',
               headers: { 'Authorization': `Bearer ${this.token}` }
             });
-            if (res.ok || res.status === 204) {
+            if (res.ok) {
               this.reports = this.reports.filter(r => r.id !== reportId);
-            this.showToast('报告已删除', 'success');
+              this.showToast('报告已移至回收站', 'success');
+            } else {
+              const err = await res.json().catch(() => ({}));
+              this.showToast(err.detail || '删除失败', 'error');
+            }
+          } catch (e) {
+            this.showToast('删除失败', 'error');
           }
-        } catch (e) {
-          this.showToast('删除失败', 'error');
-        }
-      },
+        },
+
+        // ── 回收站 ──
+        showTrashModal: false,
+        trashReports: [],
+        trashLoading: false,
+
+        async loadTrashReports() {
+          this.trashLoading = true;
+          try {
+            const res = await fetch('/api/v1/reports/trash/list', {
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) this.trashReports = await res.json();
+          } catch (e) {
+            this.showToast('加载回收站失败', 'error');
+          } finally {
+            this.trashLoading = false;
+          }
+        },
+
+        async restoreReport(reportId) {
+          try {
+            const res = await fetch(`/api/v1/reports/trash/${reportId}/restore`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) {
+              this.trashReports = this.trashReports.filter(r => r.id !== reportId);
+              this.loadReports();
+              this.showToast('报告已恢复', 'success');
+            } else {
+              const err = await res.json().catch(() => ({}));
+              this.showToast(err.detail || '恢复失败', 'error');
+            }
+          } catch (e) {
+            this.showToast('恢复失败', 'error');
+          }
+        },
+
+        async permanentDeleteReport(reportId) {
+          if (!confirm('确定要永久删除这份报告吗？此操作不可撤销！')) return;
+          try {
+            const res = await fetch(`/api/v1/reports/trash/${reportId}/permanent`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) {
+              this.trashReports = this.trashReports.filter(r => r.id !== reportId);
+              this.showToast('报告已永久删除', 'success');
+            } else {
+              const err = await res.json().catch(() => ({}));
+              this.showToast(err.detail || '删除失败', 'error');
+            }
+          } catch (e) {
+            this.showToast('删除失败', 'error');
+          }
+        },
+
+        async clearAllTrash() {
+          if (!confirm('确定清空回收站？所有报告将被永久删除！')) return;
+          try {
+            const res = await fetch('/api/v1/reports/trash/clear', {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) {
+              this.trashReports = [];
+              this.loadReports();
+              this.showToast('回收站已清空', 'success');
+            } else {
+              const err = await res.json().catch(() => ({}));
+              this.showToast(err.detail || '清空失败', 'error');
+            }
+          } catch (e) {
+            this.showToast('清空失败', 'error');
+          }
+        },
 
       async pushReport(report) {
         if (!confirm(`确认推送「${report.title}」到飞书？`)) return;
@@ -4063,6 +5291,49 @@ ${r?'Expression: "'+r+`"
           } finally {
             this.chatHistoryLoading = false;
           }
+        },
+
+        async deleteConversation(convId, event) {
+          event.stopPropagation();
+          if (!confirm('确定删除这条对话记录？')) return;
+          try {
+            const res = await fetch(`/api/v1/chat/conversation/${convId}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) {
+              this.chatHistory = this.chatHistory.filter(c => c.id !== convId);
+              this.showToast('对话已删除', 'success');
+            } else {
+              const err = await res.json();
+              throw new Error(err.detail || '删除失败');
+            }
+          } catch (e) {
+            this.showToast(e.message || '删除失败', 'error');
+          }
+        },
+
+        async clearConversations() {
+          this.showClearHistoryConfirm = false;
+          try {
+            const res = await fetch('/api/v1/chat/conversations', {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) {
+              this.chatHistory = [];
+              this.showToast('所有对话已清空', 'success');
+            } else {
+              const err = await res.json();
+              throw new Error(err.detail || '清空失败');
+            }
+          } catch (e) {
+            this.showToast(e.message || '清空失败', 'error');
+          }
+        },
+
+        toggleRightPanel() {
+          this.rightPanelCollapsed = !this.rightPanelCollapsed;
         },
 
         get filteredChatHistory() {
@@ -4285,19 +5556,43 @@ ${r?'Expression: "'+r+`"
           }
         },
 
-        async createTeamTask() {
-          const title = prompt('请输入任务标题：');
-          if (!title || !title.trim()) return;
-          const assignee = prompt('请输入负责人ID (team-lead / project-manager / rd-engineer / qa-engineer / ui-designer)：', 'rd-engineer');
-          if (!assignee) return;
-          const priority = prompt('请输入优先级 (P0/P1/P2/P3)：', 'P2');
+        // ===== Team Task Methods =====
+        openTaskDetail(task) {
+          this.selectedTeamTask = task;
+          this.showTeamTaskModal = true;
+          this.loadTaskLogs(task.id);
+        },
+
+        openCreateTaskModal() {
+          this.newTaskTitle = '';
+          this.newTaskDescription = '';
+          this.newTaskAssignee = 'rd-engineer';
+          this.newTaskPriority = 'P2';
+          this.showCreateTaskModal = true;
+        },
+
+        cancelCreateTask() {
+          this.showCreateTaskModal = false;
+          this.newTaskTitle = '';
+          this.newTaskDescription = '';
+        },
+
+        async submitCreateTask() {
+          const title = this.newTaskTitle.trim();
+          if (!title) return;
           try {
-            const res = await fetch(`/api/v1/team/tasks?title=${encodeURIComponent(title.trim())}&assignee=${encodeURIComponent(assignee)}&priority=${priority || 'P2'}`, {
+            const params = new URLSearchParams({
+              title,
+              assignee: this.newTaskAssignee,
+              priority: this.newTaskPriority,
+            });
+            const res = await fetch(`/api/v1/team/tasks?${params}`, {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${this.token}` }
             });
             if (res.ok) {
               this.showToast('任务创建成功', 'success');
+              this.cancelCreateTask();
               await this.loadTeamTasks();
             } else {
               const err = await res.json().catch(() => ({}));
@@ -4306,6 +5601,78 @@ ${r?'Expression: "'+r+`"
           } catch (e) {
             this.showToast(e.message || '创建任务失败', 'error');
           }
+        },
+
+        async moveTask(task, toStatus) {
+          this.movingTaskId = task.id;
+          try {
+            const res = await fetch(`/api/v1/team/tasks/${task.id}/move?to_status=${toStatus}`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            const data = await res.json();
+            if (data.error) {
+              this.showToast(data.message || '不能移动到该状态', 'error');
+            } else {
+              this.showToast(data.message || '任务已移动', 'success');
+              await this.loadTeamTasks();
+              // Refresh logs if detail modal is open for this task
+              if (this.showTeamTaskModal && this.selectedTeamTask?.id === task.id) {
+                this.loadTaskLogs(task.id);
+              }
+            }
+          } catch (e) {
+            this.showToast('移动任务失败', 'error');
+          } finally {
+            this.movingTaskId = null;
+          }
+        },
+
+        confirmDeleteTask(task) {
+          this.taskToDelete = task;
+          this.showDeleteTaskConfirm = true;
+        },
+
+        async deleteTask(taskId) {
+          if (!taskId) return;
+          try {
+            const res = await fetch(`/api/v1/team/tasks/${taskId}`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) {
+              this.showToast('任务已删除', 'success');
+              this.showDeleteTaskConfirm = false;
+              this.taskToDelete = null;
+              this.showTeamTaskModal = false;
+              await this.loadTeamTasks();
+            } else {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.detail || '删除失败');
+            }
+          } catch (e) {
+            this.showToast(e.message || '删除任务失败', 'error');
+          }
+        },
+
+        async loadTaskLogs(taskId) {
+          if (!taskId || !this.token) return;
+          try {
+            const res = await fetch(`/api/v1/team/tasks/${taskId}/logs`, {
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) {
+              const logs = await res.json();
+              this.taskLogs[taskId] = logs;
+            }
+          } catch (e) {
+            console.error('Failed to load task logs', e);
+          }
+        },
+
+        getTaskAssigneeName(assigneeId) {
+          const info = this.ASSIGNEE_MAP[assigneeId];
+          return info ? (info.emoji + ' ' + info.name) : null;
         },
 
         async sendTeamChat() {
@@ -4360,7 +5727,9 @@ ${r?'Expression: "'+r+`"
             this.loadReports();
             this.loadTopics();
             if (!this.selectedEmployee && this.employees.length > 0) {
-              // Optionally auto-select first employee
+              // Auto-select ceo-advisor (智闻·CEO顾问) as default
+              const defaultEmp = this.employees.find(e => e.id === 'ceo-advisor') || this.employees[0];
+              this.selectEmployee(defaultEmp);
             }
           }
           if (page === 'reports') {
