@@ -71,6 +71,34 @@ async def manual_push_report(
             o_text = (swot.get("o", "") or "")[:300]
             t_text = (swot.get("t", "") or "")[:300]
 
+            # Build risk items text for card
+            risk_section = ""
+            if risk_items:
+                risks_list = risk_items.get("risks", []) if isinstance(risk_items, dict) else (risk_items if isinstance(risk_items, list) else [])
+                if risks_list:
+                    risk_lines = []
+                    for r in risks_list[:3]:
+                        r_title = r.get("title", "")
+                        r_level = r.get("level", "")
+                        rl_icon = {"高": "🔴", "中": "🟡", "低": "🟢", "high": "🔴", "medium": "🟡", "low": "🟢"}
+                        icon = rl_icon.get(r_level, "▪️")
+                        risk_lines.append(f"{icon} [{r_level}] {r_title}")
+                    if risk_lines:
+                        risk_section = "\n".join(risk_lines)
+
+            # Build opportunities text for card
+            opp_section = ""
+            if opportunities:
+                opps_list = opportunities.get("opportunities", []) if isinstance(opportunities, dict) else (opportunities if isinstance(opportunities, list) else [])
+                if opps_list:
+                    opp_lines = []
+                    for o in opps_list[:3]:
+                        o_title = o.get("title", "")
+                        if o_title:
+                            opp_lines.append(f"✨ {o_title}")
+                    if opp_lines:
+                        opp_section = "\n".join(opp_lines)
+
             level_color = {"高": "red", "中": "yellow", "低": "green"}
             color = level_color.get(report.risk_level or "中", "blue")
 
@@ -81,6 +109,18 @@ async def manual_push_report(
                 {"tag": "hr"},
                 {"tag": "markdown", "content": f"**整体风险等级：{report.risk_level or '中'}**"},
             ]
+
+            # Add risk items section
+            if risk_section:
+                risk_count = len(risk_items.get("risks", [])) if isinstance(risk_items, dict) and risk_items else 0
+                elements.append({"tag": "hr"})
+                elements.append({"tag": "markdown", "content": f"**🔍 风险识别（{risk_count}项）**\n\n{risk_section}"})
+
+            # Add opportunities section
+            if opp_section:
+                opp_count = len(opportunities.get("opportunities", [])) if isinstance(opportunities, dict) and opportunities else 0
+                elements.append({"tag": "hr"})
+                elements.append({"tag": "markdown", "content": f"**🌟 机会发现（{opp_count}项）**\n\n{opp_section}"})
             if article_links:
                 elements.append({"tag": "hr"})
                 elements.append({"tag": "markdown", "content": f"**📰 源文章快照（{len(articles)}篇）**\n\n{article_links[:1500]}"})

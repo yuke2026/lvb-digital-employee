@@ -2838,6 +2838,11 @@ ${r?'Expression: "'+r+`"
                             class="btn-gradient px-4 py-2 rounded-lg text-sm font-semibold text-white btn-ripple flex items-center gap-2 disabled:opacity-40">
                       <i class="fas fa-plus text-xs"></i>生成报告
                     </button>
+                    <button @click="showTrashModal = true; loadTrashReports()"
+                            class="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-red-400 border border-white/10 hover:border-red-400/30 transition flex items-center gap-2">
+                      <i class="fas fa-trash-alt text-xs"></i>回收站
+                      <span x-show="trashReports.length > 0" class="text-[10px] bg-red-500/20 text-red-400 rounded-full px-1.5 py-0.5"><span x-text="trashReports.length"></span></span>
+                    </button>
                     <button @click="showZhiWenSettingsModal = true; zhiWenSettingsTab = 'topics'; loadTopics()"
                             class="px-4 py-2 rounded-lg text-sm text-gray-300 hover:bg-white/5 border border-white/10 transition flex items-center gap-2">
                       <i class="fas fa-gear text-xs"></i>设置
@@ -3848,6 +3853,39 @@ ${r?'Expression: "'+r+`"
     </div>
 
     <!-- ============================================================== -->
+    <!-- 删除确认弹窗                                                    -->
+    <!-- ============================================================== -->
+    <div x-show="showDeleteConfirmModal" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed inset-0 z-[60] flex items-center justify-center"
+         @click.self="showDeleteConfirmModal = false">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div class="relative glass rounded-2xl p-6 w-full max-w-sm mx-4 text-center">
+        <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-4"
+             style="background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(220,38,38,0.15));">
+          <i class="fas fa-trash-alt text-red-400"></i>
+        </div>
+        <h3 class="text-base font-bold mb-2" style="color: var(--fuse-text);">确认删除报告</h3>
+        <p class="text-xs mb-1" style="color: var(--fuse-muted);">删除后报告将移至回收站</p>
+        <p class="text-xs mb-5" style="color: #6b7280;">可在回收站中恢复或永久删除</p>
+        <div class="flex gap-3">
+          <button @click="showDeleteConfirmModal = false; deleteTargetReportId = null"
+                  class="flex-1 py-2.5 rounded-xl text-sm transition"
+                  style="background: rgba(255,255,255,0.05); color: var(--fuse-muted); border: 1px solid rgba(255,255,255,0.08);">
+            取消
+          </button>
+          <button @click="confirmDeleteReport"
+                  class="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition"
+                  style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+            <i class="fas fa-trash-alt mr-1.5 text-xs"></i>移入回收站
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
     <!-- NEW TOPIC MODAL                                                 -->
     <!-- ============================================================== -->
     <div x-show="showNewTopicModal" x-cloak
@@ -4050,6 +4088,8 @@ ${r?'Expression: "'+r+`"
         showRefreshConfirm: false,
         showManualCollectModal: false,
         manualCollectSelectedTopics: [],
+        showDeleteConfirmModal: false,
+        deleteTargetReportId: null,
         showReportDetailModal: false,
         reportFilter: '全部',
         selectedReport: null,
@@ -5071,6 +5111,13 @@ ${r?'Expression: "'+r+`"
         },
 
         async deleteReport(reportId) {
+          this.deleteTargetReportId = reportId;
+          this.showDeleteConfirmModal = true;
+        },
+
+        async confirmDeleteReport() {
+          const reportId = this.deleteTargetReportId;
+          if (!reportId) return;
           try {
             const res = await fetch(`/api/v1/reports/${reportId}`, {
               method: 'DELETE',
@@ -5078,6 +5125,8 @@ ${r?'Expression: "'+r+`"
             });
             if (res.ok) {
               this.reports = this.reports.filter(r => r.id !== reportId);
+              this.showDeleteConfirmModal = false;
+              this.deleteTargetReportId = null;
               this.showToast('报告已移至回收站', 'success');
             } else {
               const err = await res.json().catch(() => ({}));

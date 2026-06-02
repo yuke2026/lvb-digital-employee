@@ -363,16 +363,38 @@ async def push_report_to_feishu(
         if swot.get("t"):
             content_parts.append({"tag": "text", "text": f"🚨 威胁: {swot['t'][:50]}"})
     
-    # 风险和机会
-    risks = report_data.get("risk_items", {}).get("risks", [])
-    if risks:
-        top_risk = risks[0]
-        content_parts.append({"tag": "text", "text": f"⚠️ 首要风险: {top_risk.get('title', '')} - {top_risk.get('description', '')}"})
+    # 风险识别（全部展示，最多3条）
+    risks_data = report_data.get("risk_items", None) or report_data.get("risks", None)
+    risks_list = []
+    if risks_data:
+        if isinstance(risks_data, dict):
+            risks_list = risks_data.get("risks", [])
+        elif isinstance(risks_data, list):
+            risks_list = risks_data
+    if risks_list:
+        content_parts.append({"tag": "text", "text": "🔍 风险识别:"})
+        level_icon = {"高": "🔴", "中": "🟡", "低": "🟢", "high": "🔴", "medium": "🟡", "low": "🟢"}
+        for r in risks_list[:3]:
+            r_title = r.get("title", "") if isinstance(r, dict) else str(r)
+            r_level = r.get("level", "") if isinstance(r, dict) else ""
+            icon = level_icon.get(r_level, "▪️")
+            if r_title:
+                content_parts.append({"tag": "text", "text": f"  {icon} {r_title}"})
     
-    opportunities = report_data.get("opportunities", {}).get("opportunities", [])
-    if opportunities:
-        top_opp = opportunities[0]
-        content_parts.append({"tag": "text", "text": f"✨ 首要机会: {top_opp.get('title', '')} - {top_opp.get('description', '')}"})
+    # 机会发现（全部展示，最多3条）
+    opps_data = report_data.get("opportunities", None)
+    opps_list = []
+    if opps_data:
+        if isinstance(opps_data, dict):
+            opps_list = opps_data.get("opportunities", [])
+        elif isinstance(opps_data, list):
+            opps_list = opps_data
+    if opps_list:
+        content_parts.append({"tag": "text", "text": "🌟 机会发现:"})
+        for o in opps_list[:3]:
+            o_title = o.get("title", "") if isinstance(o, dict) else str(o)
+            if o_title:
+                content_parts.append({"tag": "text", "text": f"  ✨ {o_title}"})
     
     # 飞书 Card 格式
     card = {
