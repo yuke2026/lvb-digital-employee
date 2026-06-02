@@ -96,8 +96,8 @@ async def list_tasks(
                 "priority": row[5],
                 "created_by": row[6],
                 "conversation_id": row[7],
-                "created_at": row[8].isoformat() if row[8] else None,
-                "updated_at": row[9].isoformat() if row[9] else None,
+                "created_at": row[8].isoformat() if hasattr(row[8], 'isoformat') else str(row[8]),
+                "updated_at": row[9].isoformat() if row[9] and hasattr(row[9], 'isoformat') else str(row[9]) if row[9] else None,
             }
             for row in rows
         ]

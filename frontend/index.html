@@ -4327,16 +4327,16 @@ ${r?'Expression: "'+r+`"
         movingTaskId: null,
         showRefreshConfirm: false,
         teamEmployees: [
-          { id: 'team-lead', name: '产研主管', emoji: '🧠', status: 'online' },
-          { id: 'project-manager', name: '产品经理', emoji: '📋', status: 'online' },
-          { id: 'rd-engineer', name: '研发工程师', emoji: '💻', status: 'online' },
-          { id: 'qa-engineer', name: '测试工程师', emoji: '🧪', status: 'online' },
-          { id: 'ui-designer', name: 'UI设计师', emoji: '🎨', status: 'online' },
+          { id: 'primary-agent', name: '主Agent', emoji: '🧠', status: 'online', prompt_prefix: '你是一位资深的产研团队主管，具备卓越的技术管理能力和战略思维。请从团队主管的角度回答以下问题：\n\n' },
+          { id: 'project-manager', name: '产品经理', emoji: '📋', status: 'online', prompt_prefix: '你是一位资深的产品经理，擅长需求分析、产品规划和项目管理。请从产品经理的角度回答以下问题：\n\n' },
+          { id: 'rd-engineer', name: '研发工程师', emoji: '💻', status: 'online', prompt_prefix: '你是一位经验丰富的研发工程师，精通系统架构、编码实现和技术方案设计。请从研发工程师的角度回答以下问题：\n\n' },
+          { id: 'qa-engineer', name: '测试工程师', emoji: '🧪', status: 'online', prompt_prefix: '你是一位专业的测试工程师，精通测试用例设计、自动化测试和质量保障。请从测试工程师的角度回答以下问题：\n\n' },
+          { id: 'ui-designer', name: 'UI设计师', emoji: '🎨', status: 'online', prompt_prefix: '你是一位富有创意的UI/UX设计师，擅长界面设计、交互设计和设计系统维护。请从UI设计师的角度回答以下问题：\n\n' },
         ],
 
         // ---- Team helper maps ----
         ASSIGNEE_MAP: {
-          'team-lead': { name: '产研主管', emoji: '🧠' },
+          'primary-agent': { name: '主Agent', emoji: '🧠' },
           'project-manager': { name: '产品经理', emoji: '📋' },
           'rd-engineer': { name: '研发工程师', emoji: '💻' },
           'qa-engineer': { name: '测试工程师', emoji: '🧪' },
@@ -5808,11 +5808,12 @@ ${r?'Expression: "'+r+`"
           if (!title) return;
           try {
             const params = new URLSearchParams({
-              title,
+              title: title,
+              description: this.newTaskDescription || '',
               assignee: this.newTaskAssignee,
               priority: this.newTaskPriority,
             });
-            const res = await fetch(`/api/v1/team/tasks?${params}`, {
+            const res = await fetch(`/api/v1/team/tasks?${params.toString()}`, {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${this.token}` }
             });
@@ -5905,7 +5906,8 @@ ${r?'Expression: "'+r+`"
           const msg = this.teamChatInput.trim();
           if (!msg || !this.selectedTeamEmployee || this.teamIsStreaming) return;
 
-          const empId = this.selectedTeamEmployee.id;
+          const emp = this.selectedTeamEmployee;
+          const empId = emp.id;
 
           // Initialize messages for this employee
           if (!this.teamMessages[empId]) {
@@ -5923,24 +5925,87 @@ ${r?'Expression: "'+r+`"
             if (el) el.scrollTop = el.scrollHeight;
           });
 
-          // Mock response for now
-          setTimeout(() => {
-            const mockReplies = {
-              'team-lead': '好的，我已了解，会安排产研团队跟进。',
-              'project-manager': '收到，已更新到产品需求文档中。',
-              'rd-engineer': '这个功能我评估一下开发工时，稍后回复你。',
-              'qa-engineer': '测试用例已覆盖该场景，正在执行回归测试。',
-              'ui-designer': '设计稿已更新，你可以查看最新版本。',
-            };
-            const reply = mockReplies[empId] || '已收到你的消息，会尽快处理。';
-            this.teamMessages[empId].push({ role: 'assistant', content: reply });
-            this.teamIsStreaming = false;
+          try {
+            // Add role prefix for this employee persona
+            const promptPrefix = emp.prompt_prefix || '';
+            const messageWithRole = promptPrefix + msg;
 
+            const res = await fetch('/api/v1/chat/send', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+              },
+              body: JSON.stringify({
+                message: messageWithRole,
+                employee_id: empId,
+                conversation_id: null,
+              }),
+            });
+
+            if (!res.ok) {
+              throw new Error(`API error: ${res.status}`);
+            }
+
+            // Handle SSE stream
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let fullReply = '';
+            let buffer = '';
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.slice(6).trim();
+                  if (data === '[DONE]') continue;
+                  try {
+                    const parsed = JSON.parse(data);
+                    const token = parsed.choices?.[0]?.delta?.content || parsed.content || '';
+                    fullReply += token;
+                    // Update the last assistant message in real-time
+                    const msgs = this.teamMessages[empId];
+                    if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') {
+                      msgs[msgs.length - 1].content = fullReply;
+                    } else {
+                      msgs.push({ role: 'assistant', content: fullReply });
+                    }
+                    // Force Alpine reactivity
+                    this.teamMessages = { ...this.teamMessages };
+                  } catch (e) {
+                    // Skip non-JSON SSE data
+                  }
+                }
+              }
+            }
+
+            // Ensure final message is stored
+            if (fullReply) {
+              const msgs = this.teamMessages[empId];
+              if (msgs.length === 0 || msgs[msgs.length - 1].content !== fullReply) {
+                msgs.push({ role: 'assistant', content: fullReply });
+                this.teamMessages = { ...this.teamMessages };
+              }
+            }
+          } catch (e) {
+            console.error('Team chat error:', e);
+            const msgs = this.teamMessages[empId];
+            msgs.push({ role: 'assistant', content: '抱歉，AI响应失败，请稍后重试。' });
+            this.teamMessages = { ...this.teamMessages };
+            this.showToast('AI响应失败：' + e.message, 'error');
+          } finally {
+            this.teamIsStreaming = false;
             this.$nextTick(() => {
               const el = this.$refs.teamChatMessages;
               if (el) el.scrollTop = el.scrollHeight;
             });
-          }, 800);
+          }
         },
 
         // ================================================================
