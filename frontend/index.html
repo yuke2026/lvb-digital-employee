@@ -3368,6 +3368,90 @@ ${r?'Expression: "'+r+`"
                   </div>
                 </div>
 
+                <!-- ===== 永久删除确认弹窗 ===== -->
+                <div x-show="showPermanentDeleteConfirm"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     class="fixed inset-0 z-[60] flex items-center justify-center"
+                     @click.self="showPermanentDeleteConfirm = false">
+                  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+                  <div class="relative glass rounded-2xl p-6 w-full max-w-sm mx-4 text-center">
+                    <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-4"
+                         style="background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(220,38,38,0.15));">
+                      <i class="fas fa-fire text-red-400"></i>
+                    </div>
+                    <h3 class="text-base font-bold mb-2" style="color: var(--fuse-text);">确认永久删除</h3>
+                    <p class="text-xs mb-1" style="color: var(--fuse-muted);">此操作将彻底删除该报告</p>
+                    <p class="text-xs mb-5" style="color: #6b7280;">删除后无法恢复</p>
+                    <div class="flex gap-3">
+                      <button @click="showPermanentDeleteConfirm = false; permanentDeleteTargetId = null"
+                              class="flex-1 py-2.5 rounded-xl text-sm" style="color: var(--fuse-text2); background: var(--fuse-card);">取消</button>
+                      <button @click="confirmPermanentDelete()"
+                              class="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white"
+                              style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                        <i class="fas fa-fire mr-1.5 text-xs"></i>确认删除
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ===== 清空回收站确认弹窗 ===== -->
+                <div x-show="showClearTrashConfirm"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     class="fixed inset-0 z-[60] flex items-center justify-center"
+                     @click.self="showClearTrashConfirm = false">
+                  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+                  <div class="relative glass rounded-2xl p-6 w-full max-w-sm mx-4 text-center">
+                    <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-4"
+                         style="background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(220,38,38,0.15));">
+                      <i class="fas fa-trash-alt text-red-400"></i>
+                    </div>
+                    <h3 class="text-base font-bold mb-2" style="color: var(--fuse-text);">确认清空回收站</h3>
+                    <p class="text-xs mb-1" style="color: var(--fuse-muted);">所有回收站中的报告将被永久删除</p>
+                    <p class="text-xs mb-5" style="color: #6b7280;">此操作不可撤销</p>
+                    <div class="flex gap-3">
+                      <button @click="showClearTrashConfirm = false"
+                              class="flex-1 py-2.5 rounded-xl text-sm" style="color: var(--fuse-text2); background: var(--fuse-card);">取消</button>
+                      <button @click="confirmClearTrash()"
+                              class="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white"
+                              style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                        <i class="fas fa-fire mr-1.5 text-xs"></i>确认清空
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ===== 推送确认弹窗 ===== -->
+                <div x-show="showPushConfirmModal"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     class="fixed inset-0 z-[60] flex items-center justify-center"
+                     @click.self="showPushConfirmModal = false; pushTargetReport = null">
+                  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+                  <div class="relative glass rounded-2xl p-6 w-full max-w-sm mx-4 text-center">
+                    <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-4"
+                         style="background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.15));">
+                      <i class="fas fa-paper-plane text-emerald-400"></i>
+                    </div>
+                    <h3 class="text-base font-bold mb-2" style="color: var(--fuse-text);">确认推送报告</h3>
+                    <p class="text-xs mb-1" style="color: var(--fuse-muted);">将报告推送到飞书群</p>
+                    <p class="text-xs mb-5" style="color: #6b7280;" x-text="pushTargetReport ? '「' + (pushTargetReport.title || '') + '」' : ''"></p>
+                    <div class="flex gap-3">
+                      <button @click="showPushConfirmModal = false; pushTargetReport = null"
+                              class="flex-1 py-2.5 rounded-xl text-sm" style="color: var(--fuse-text2); background: var(--fuse-card);">取消</button>
+                      <button @click="confirmPushReport()"
+                              class="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white"
+                              style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="fas fa-paper-plane mr-1.5 text-xs"></i>确认推送
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
           </div>
         </main>
 
@@ -5178,6 +5262,11 @@ ${r?'Expression: "'+r+`"
         trashLoading: false,
         showRestoreConfirmModal: false,
         restoreTargetReportId: null,
+        showPermanentDeleteConfirm: false,
+        permanentDeleteTargetId: null,
+        showClearTrashConfirm: false,
+        showPushConfirmModal: false,
+        pushTargetReport: null,
 
         async loadTrashReports() {
           this.trashLoading = true;
@@ -5245,46 +5334,17 @@ ${r?'Expression: "'+r+`"
         },
 
         async permanentDeleteReport(reportId) {
-          if (!confirm('确定要永久删除这份报告吗？此操作不可撤销！')) return;
-          try {
-            const res = await fetch(`/api/v1/reports/trash/${reportId}/permanent`, {
-              method: 'DELETE',
-              headers: { 'Authorization': `Bearer ${this.token}` }
-            });
-            if (res.ok) {
-              this.trashReports = this.trashReports.filter(r => r.id !== reportId);
-              this.showToast('报告已永久删除', 'success');
-            } else {
-              const err = await res.json().catch(() => ({}));
-              this.showToast(err.detail || '删除失败', 'error');
-            }
-          } catch (e) {
-            this.showToast('删除失败', 'error');
-          }
+          this.permanentDeleteTargetId = reportId;
+          this.showPermanentDeleteConfirm = true;
         },
 
         async clearAllTrash() {
-          if (!confirm('确定清空回收站？所有报告将被永久删除！')) return;
-          try {
-            const res = await fetch('/api/v1/reports/trash/clear', {
-              method: 'DELETE',
-              headers: { 'Authorization': `Bearer ${this.token}` }
-            });
-            if (res.ok) {
-              this.trashReports = [];
-              this.loadReports();
-              this.showToast('回收站已清空', 'success');
-            } else {
-              const err = await res.json().catch(() => ({}));
-              this.showToast(err.detail || '清空失败', 'error');
-            }
-          } catch (e) {
-            this.showToast('清空失败', 'error');
-          }
+          this.showClearTrashConfirm = true;
         },
 
       async pushReport(report) {
-        if (!confirm(`确认推送「${report.title}」到飞书？`)) return;
+        this.pushTargetReport = report;
+        this.showPushConfirmModal = true;
         try {
           const res = await fetch(`/api/v1/reports/${report.id}/push`, {
             method: 'POST',
@@ -5297,9 +5357,72 @@ ${r?'Expression: "'+r+`"
             this.showToast(err.detail || '推送失败', 'error');
           }
         } catch (e) {
-          this.showToast('推送请求失败', 'error');
+            this.showToast('推送请求失败', 'error');
         }
       },
+
+        async confirmPushReport() {
+          const report = this.pushTargetReport;
+          if (!report) return;
+          try {
+            const res = await fetch(`/api/v1/reports/${report.id}/push`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) {
+              this.showPushConfirmModal = false;
+              this.pushTargetReport = null;
+              this.showToast('推送成功 ✅', 'success');
+            } else {
+              const err = await res.json().catch(() => ({}));
+              this.showToast(err.detail || '推送失败', 'error');
+            }
+          } catch (e) {
+            this.showToast('推送请求失败', 'error');
+          }
+        },
+
+        async confirmPermanentDelete() {
+          const reportId = this.permanentDeleteTargetId;
+          if (!reportId) return;
+          try {
+            const res = await fetch(`/api/v1/reports/trash/${reportId}/permanent`, {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) {
+              this.trashReports = this.trashReports.filter(r => r.id !== reportId);
+              this.showPermanentDeleteConfirm = false;
+              this.permanentDeleteTargetId = null;
+              this.showToast('报告已永久删除', 'success');
+            } else {
+              const err = await res.json().catch(() => ({}));
+              this.showToast(err.detail || '删除失败', 'error');
+            }
+          } catch (e) {
+            this.showToast('删除失败', 'error');
+          }
+        },
+
+        async confirmClearTrash() {
+          try {
+            const res = await fetch('/api/v1/reports/trash/clear', {
+              method: 'DELETE',
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) {
+              this.trashReports = [];
+              this.loadReports();
+              this.showClearTrashConfirm = false;
+              this.showToast('回收站已清空', 'success');
+            } else {
+              const err = await res.json().catch(() => ({}));
+              this.showToast(err.detail || '清空失败', 'error');
+            }
+          } catch (e) {
+            this.showToast('清空失败', 'error');
+          }
+        },
 
         // ================================================================
         // PUSH CONFIG
