@@ -839,7 +839,7 @@ ${r?'Expression: "'+r+`"
       justify-content: center;
       background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.15));
       border: 1px solid rgba(139,92,246,0.15);
-      font-size: 28px;
+      font-size: 34px;
       transition: all 0.3s;
     }
     .card-float:hover .emp-avatar {
@@ -1494,13 +1494,8 @@ ${r?'Expression: "'+r+`"
                       <div class="glass rounded-2xl p-6 card-float glow-border-hover cursor-pointer group"
                            @click="selectEmployee(emp)">
                         <div class="flex items-start gap-4 mb-4">
-                          <div class="emp-avatar shrink-0" style="background: linear-gradient(135deg, #a78bfa, #7c3aed);">
-                            <template x-if="emp.avatar && emp.avatar.startsWith('http')">
-                              <img :src="emp.avatar" :alt="emp.name" class="w-full h-full rounded-[17px] object-cover" />
-                            </template>
-                            <template x-if="!emp.avatar || !emp.avatar.startsWith('http')">
-                              <i class="fas fa-brain text-white text-2xl"></i>
-                            </template>
+                          <div class="emp-avatar shrink-0 flex items-center justify-center text-3xl" style="background: linear-gradient(135deg, #a78bfa, #7c3aed);">
+                            <span x-text="emp.avatar || '🧠'" class="leading-none"></span>
                           </div>
                           <div class="min-w-0 flex-1">
                             <h3 class="text-lg font-semibold text-white truncate" x-text="emp.name"></h3>
@@ -1540,13 +1535,8 @@ ${r?'Expression: "'+r+`"
                       <div class="glass rounded-2xl p-6 card-float glow-border-hover cursor-pointer group"
                            @click="selectEmployee(emp)">
                         <div class="flex items-start gap-4 mb-4">
-                          <div class="emp-avatar shrink-0" style="background: linear-gradient(135deg, #4ade80, #22c55e);">
-                            <template x-if="emp.avatar && emp.avatar.startsWith('http')">
-                              <img :src="emp.avatar" :alt="emp.name" class="w-full h-full rounded-[17px] object-cover" />
-                            </template>
-                            <template x-if="!emp.avatar || !emp.avatar.startsWith('http')">
-                              <i class="fas fa-code text-white text-2xl"></i>
-                            </template>
+                          <div class="emp-avatar shrink-0 flex items-center justify-center text-3xl" style="background: linear-gradient(135deg, #4ade80, #22c55e);">
+                            <span x-text="emp.avatar || '💻'" class="leading-none"></span>
                           </div>
                           <div class="min-w-0 flex-1">
                             <h3 class="text-lg font-semibold text-white truncate" x-text="emp.name"></h3>
@@ -1586,13 +1576,8 @@ ${r?'Expression: "'+r+`"
                       <div class="glass rounded-2xl p-6 card-float glow-border-hover cursor-pointer group"
                            @click="selectEmployee(emp)">
                         <div class="flex items-start gap-4 mb-4">
-                          <div class="emp-avatar shrink-0" style="background: linear-gradient(135deg, #f472b6, #ec4899);">
-                            <template x-if="emp.avatar && emp.avatar.startsWith('http')">
-                              <img :src="emp.avatar" :alt="emp.name" class="w-full h-full rounded-[17px] object-cover" />
-                            </template>
-                            <template x-if="!emp.avatar || !emp.avatar.startsWith('http')">
-                              <i class="fas fa-megaphone text-white text-2xl"></i>
-                            </template>
+                          <div class="emp-avatar shrink-0 flex items-center justify-center text-3xl" style="background: linear-gradient(135deg, #f472b6, #ec4899);">
+                            <span x-text="emp.avatar || '📢'" class="leading-none"></span>
                           </div>
                           <div class="min-w-0 flex-1">
                             <h3 class="text-lg font-semibold text-white truncate" x-text="emp.name"></h3>
