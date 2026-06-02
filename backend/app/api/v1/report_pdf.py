@@ -33,10 +33,10 @@ def _parse_json(v):
 def _swot_blocks(swot: dict) -> dict:
     """Extract non-empty SWOT blocks."""
     labels = {
-        "s": ("💪 优势 (Strengths)", "emerald"),
-        "w": ("⚠️ 劣势 (Weaknesses)", "red"),
-        "o": ("🚀 机会 (Opportunities)", "blue"),
-        "t": ("🔻 威胁 (Threats)", "yellow"),
+        "s": ("[优势] Strengths", "emerald"),
+        "w": ("[劣势] Weaknesses", "red"),
+        "o": ("[机会] Opportunities", "blue"),
+        "t": ("[威胁] Threats", "yellow"),
     }
     blocks = {}
     for key, (label, color) in labels.items():
@@ -151,7 +151,7 @@ def _generate_report_pdf(report: dict) -> bytes:
         if has_font:
             pdf.set_font("WQY", "B", 11)
         pdf.set_text_color(30, 30, 30)
-        pdf.cell(page_w, 6, "📋 摘要", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(page_w, 6, "-- 摘要", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(1)
         if has_font:
             pdf.set_font("WQY", "", 9.5)
@@ -167,7 +167,7 @@ def _generate_report_pdf(report: dict) -> bytes:
         if has_font:
             pdf.set_font("WQY", "B", 11)
         pdf.set_text_color(30, 30, 30)
-        pdf.cell(page_w, 6, "📊 SWOT 分析", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(page_w, 6, ">> SWOT 分析", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2)
         
         color_map = {
@@ -179,59 +179,42 @@ def _generate_report_pdf(report: dict) -> bytes:
             "blue": (239, 246, 255), "yellow": (254, 252, 232),
         }
         
-        # 2-column layout for SWOT
+        # Single-column layout for SWOT (cleaner for PDF)
         cols = list(swot_blocks.items())
-        for i in range(0, len(cols), 2):
-            pair = cols[i:i+2]
-            cell_w = (page_w - 4) / 2  # 2mm gap
+        col_colors = {"emerald": (16,185,129), "red": (239,68,68), "blue": (59,130,246), "yellow": (234,179,8)}
+        col_bgs = {"emerald": (236,253,245), "red": (254,242,242), "blue": (239,246,255), "yellow": (254,252,232)}
+        
+        for key, block in cols:
+            color = col_colors.get(block["color"], (100,100,100))
+            bg = col_bgs.get(block["color"], (248,248,248))
             
-            y_start = pdf.get_y()
-            max_y = y_start
-            x_positions = []
+            y0 = pdf.get_y()
+            # Check if we need a new page (leave room for at least 3 lines)
+            if y0 > 260:
+                pdf.add_page()
+                y0 = pdf.get_y()
             
-            for j, (key, block) in enumerate(pair):
-                x = pdf.l_margin + j * (cell_w + 4)
-                x_positions.append(x)
-                
-                # Background
-                bg = bg_map.get(block["color"], (245, 245, 245))
-                pdf.set_fill_color(*bg)
-                pdf.rect(x, y_start, cell_w, 100, style="F")  # filled later
+            # Draw background and left color bar (before text, so text is on top)
+            pdf.set_fill_color(*bg)
+            pdf.rect(pdf.l_margin, y0, page_w, 50, style="F")
+            pdf.set_fill_color(*color)
+            pdf.rect(pdf.l_margin, y0, 2.5, 50, style="F")
             
-            for j, (key, block) in enumerate(pair):
-                x = x_positions[j]
-                pdf.set_xy(x + 2, y_start + 2)
-                
-                # Block title
-                if has_font:
-                    pdf.set_font("WQY", "B", 9)
-                c = color_map.get(block["color"], (100, 100, 100))
-                pdf.set_text_color(*c)
-                pdf.cell(cell_w - 4, 5, block["label"], new_x="LMARGIN", new_y="NEXT")
-                
-                # Block text
-                if has_font:
-                    pdf.set_font("WQY", "", 8)
-                pdf.set_text_color(60, 60, 60)
-                pdf.set_xy(x + 2, pdf.get_y())
-                wrapped = _wrap_text(block["text"], int((cell_w - 4) / 1.6))
-                pdf.multi_cell(cell_w - 4, 4.5, wrapped, new_x="LMARGIN", new_y="NEXT")
-                
-                block_bottom = pdf.get_y() + 2
-                if block_bottom > max_y:
-                    max_y = block_bottom
+            # Title
+            if has_font:
+                pdf.set_font("WQY", "B", 10)
+            pdf.set_text_color(*color)
+            pdf.set_xy(pdf.l_margin + 8, y0 + 3)
+            pdf.cell(page_w - 12, 5, block["label"], new_x="LMARGIN", new_y="NEXT")
             
-            # Fill remaining background height
-            for key, block in pair:
-                pdf.set_fill_color(*bg_map.get(block["color"], (245, 245, 245)))
-                pdf.rect(x_positions[pair.index((key, block))], y_start, cell_w, max_y - y_start, style="F")
-                # Redraw border
-                c = color_map.get(block["color"], (200, 200, 200))
-                pdf.set_draw_color(*c)
-                pdf.rect(x_positions[pair.index((key, block))], y_start, cell_w, max_y - y_start, style="D")
+            # Text
+            if has_font:
+                pdf.set_font("WQY", "", 9)
+            pdf.set_text_color(50, 50, 50)
+            pdf.set_x(pdf.l_margin + 8)
+            pdf.multi_cell(page_w - 12, 5.5, block["text"], new_x="LMARGIN", new_y="NEXT")
             
-            pdf.set_y(max_y)
-            pdf.ln(4)
+            pdf.ln(3)
     
     # ── Risks ──
     risk_items = _parse_json(report.get("risk_items")) or {}
@@ -240,7 +223,7 @@ def _generate_report_pdf(report: dict) -> bytes:
         if has_font:
             pdf.set_font("WQY", "B", 11)
         pdf.set_text_color(30, 30, 30)
-        pdf.cell(page_w, 6, "🔍 风险识别", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(page_w, 6, ">> 风险识别", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2)
         
         level_colors = {"高": (239,68,68), "中": (234,179,8), "低": (16,185,129),
@@ -282,7 +265,7 @@ def _generate_report_pdf(report: dict) -> bytes:
         if has_font:
             pdf.set_font("WQY", "B", 11)
         pdf.set_text_color(30, 30, 30)
-        pdf.cell(page_w, 6, "🌟 机会发现", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(page_w, 6, ">> 机会发现", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2)
         
         for o in opps[:10]:
@@ -335,7 +318,7 @@ def _generate_report_pdf(report: dict) -> bytes:
         if has_font:
             pdf.set_font("WQY", "B", 11)
         pdf.set_text_color(30, 30, 30)
-        pdf.cell(page_w, 6, f"📰 源文章快照（{len(articles)}篇）", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(page_w, 6, f"源文章快照（{len(articles)}篇）", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2)
         
         for i, art in enumerate(articles[:20]):
