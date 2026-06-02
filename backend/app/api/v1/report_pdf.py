@@ -86,10 +86,10 @@ def _generate_report_pdf(report: dict) -> bytes:
     pdf = FPDF(orientation="P", unit="mm", format="A4")
     pdf.add_page()
     
-    # ── Font: DejaVu for Unicode support ──
+    # ── Font: WenQuanYi Zen Hei for full CJK support ──
     try:
-        pdf.add_font("DejaVu", "", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", uni=True)
-        pdf.add_font("DejaVu", "B", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", uni=True)
+        pdf.add_font("WQY", "", "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc")
+        pdf.add_font("WQY", "B", "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc")
         has_font = True
     except Exception:
         has_font = False
@@ -102,12 +102,12 @@ def _generate_report_pdf(report: dict) -> bytes:
     
     def write_line(text, style="", size=10, bold=False):
         if has_font:
-            pdf.set_font("DejaVu", "B" if bold else "", size)
+            pdf.set_font("WQY", "B" if bold else "", size)
         pdf.multi_cell(page_w, 6, text, new_x="LMARGIN", new_y="NEXT")
     
     # ── Title ──
     if has_font:
-        pdf.set_font("DejaVu", "B", 16)
+        pdf.set_font("WQY", "B", 16)
     pdf.set_text_color(30, 30, 30)
     title = report.get("title", "报告详情")
     pdf.multi_cell(page_w, 8, title, new_x="LMARGIN", new_y="NEXT")
@@ -120,7 +120,7 @@ def _generate_report_pdf(report: dict) -> bytes:
     
     # ── Meta info ──
     if has_font:
-        pdf.set_font("DejaVu", "", 9)
+        pdf.set_font("WQY", "", 9)
     pdf.set_text_color(120, 120, 120)
     type_labels = {"daily": "日报", "weekly": "周报", "monthly": "月报", "quarterly": "季报", "yearly": "年报"}
     meta_parts = []
@@ -149,12 +149,12 @@ def _generate_report_pdf(report: dict) -> bytes:
         pdf.rect(x0, y0, page_w, 2, style="F")  # thin top bar
         pdf.ln(3)
         if has_font:
-            pdf.set_font("DejaVu", "B", 11)
+            pdf.set_font("WQY", "B", 11)
         pdf.set_text_color(30, 30, 30)
         pdf.cell(page_w, 6, "📋 摘要", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(1)
         if has_font:
-            pdf.set_font("DejaVu", "", 9.5)
+            pdf.set_font("WQY", "", 9.5)
         pdf.set_text_color(60, 60, 60)
         wrapped = _wrap_text(summary, 90)
         pdf.multi_cell(page_w, 5, wrapped, new_x="LMARGIN", new_y="NEXT")
@@ -165,7 +165,7 @@ def _generate_report_pdf(report: dict) -> bytes:
     swot_blocks = _swot_blocks(swot_raw)
     if swot_blocks:
         if has_font:
-            pdf.set_font("DejaVu", "B", 11)
+            pdf.set_font("WQY", "B", 11)
         pdf.set_text_color(30, 30, 30)
         pdf.cell(page_w, 6, "📊 SWOT 分析", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2)
@@ -204,14 +204,14 @@ def _generate_report_pdf(report: dict) -> bytes:
                 
                 # Block title
                 if has_font:
-                    pdf.set_font("DejaVu", "B", 9)
+                    pdf.set_font("WQY", "B", 9)
                 c = color_map.get(block["color"], (100, 100, 100))
                 pdf.set_text_color(*c)
                 pdf.cell(cell_w - 4, 5, block["label"], new_x="LMARGIN", new_y="NEXT")
                 
                 # Block text
                 if has_font:
-                    pdf.set_font("DejaVu", "", 8)
+                    pdf.set_font("WQY", "", 8)
                 pdf.set_text_color(60, 60, 60)
                 pdf.set_xy(x + 2, pdf.get_y())
                 wrapped = _wrap_text(block["text"], int((cell_w - 4) / 1.6))
@@ -238,7 +238,7 @@ def _generate_report_pdf(report: dict) -> bytes:
     risks = risk_items.get("risks", []) if isinstance(risk_items, dict) else []
     if risks:
         if has_font:
-            pdf.set_font("DejaVu", "B", 11)
+            pdf.set_font("WQY", "B", 11)
         pdf.set_text_color(30, 30, 30)
         pdf.cell(page_w, 6, "🔍 风险识别", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2)
@@ -259,14 +259,14 @@ def _generate_report_pdf(report: dict) -> bytes:
             pdf.ln(1)
             
             if has_font:
-                pdf.set_font("DejaVu", "B", 9)
+                pdf.set_font("WQY", "B", 9)
             pdf.set_text_color(*level_colors.get(lvl, (100,100,100)))
             level_icon = {"高": "🔴", "中": "🟡", "低": "🟢"}
             pdf.cell(page_w, 5, f"{level_icon.get(lvl, '▪')} [{lvl}] {title}", new_x="LMARGIN", new_y="NEXT")
             
             if desc:
                 if has_font:
-                    pdf.set_font("DejaVu", "", 8.5)
+                    pdf.set_font("WQY", "", 8.5)
                 pdf.set_text_color(80, 80, 80)
                 pdf.set_x(pdf.l_margin + 4)
                 wrapped = _wrap_text(desc, 85)
@@ -280,7 +280,7 @@ def _generate_report_pdf(report: dict) -> bytes:
     opps = opps_data.get("opportunities", []) if isinstance(opps_data, dict) else []
     if opps:
         if has_font:
-            pdf.set_font("DejaVu", "B", 11)
+            pdf.set_font("WQY", "B", 11)
         pdf.set_text_color(30, 30, 30)
         pdf.cell(page_w, 6, "🌟 机会发现", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2)
@@ -297,13 +297,13 @@ def _generate_report_pdf(report: dict) -> bytes:
             pdf.ln(1)
             
             if has_font:
-                pdf.set_font("DejaVu", "B", 9)
+                pdf.set_font("WQY", "B", 9)
             pdf.set_text_color(30, 64, 175)
             pdf.cell(page_w, 5, f"✨ {title}", new_x="LMARGIN", new_y="NEXT")
             
             if desc:
                 if has_font:
-                    pdf.set_font("DejaVu", "", 8.5)
+                    pdf.set_font("WQY", "", 8.5)
                 pdf.set_text_color(80, 80, 80)
                 pdf.set_x(pdf.l_margin + 4)
                 wrapped = _wrap_text(desc, 85)
@@ -316,7 +316,7 @@ def _generate_report_pdf(report: dict) -> bytes:
                 detail_parts.append(f"时机：{timeline}")
             if detail_parts:
                 if has_font:
-                    pdf.set_font("DejaVu", "", 8)
+                    pdf.set_font("WQY", "", 8)
                 pdf.set_text_color(120, 120, 120)
                 pdf.set_x(pdf.l_margin + 4)
                 pdf.cell(page_w - 4, 4.5, " | ".join(detail_parts), new_x="LMARGIN", new_y="NEXT")
@@ -333,7 +333,7 @@ def _generate_report_pdf(report: dict) -> bytes:
             pdf.add_page()
         
         if has_font:
-            pdf.set_font("DejaVu", "B", 11)
+            pdf.set_font("WQY", "B", 11)
         pdf.set_text_color(30, 30, 30)
         pdf.cell(page_w, 6, f"📰 源文章快照（{len(articles)}篇）", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2)
@@ -344,13 +344,13 @@ def _generate_report_pdf(report: dict) -> bytes:
             art_url = art.get("url", "")
             
             if has_font:
-                pdf.set_font("DejaVu", "B", 8.5)
+                pdf.set_font("WQY", "B", 8.5)
             pdf.set_text_color(30, 30, 30)
             pdf.cell(page_w, 5, f"{i+1}. {title}", new_x="LMARGIN", new_y="NEXT")
             
             if summary:
                 if has_font:
-                    pdf.set_font("DejaVu", "", 8)
+                    pdf.set_font("WQY", "", 8)
                 pdf.set_text_color(100, 100, 100)
                 pdf.set_x(pdf.l_margin + 4)
                 wrapped = _wrap_text(summary, 85)
@@ -358,7 +358,7 @@ def _generate_report_pdf(report: dict) -> bytes:
             
             if art_url and len(art_url) < 200:
                 if has_font:
-                    pdf.set_font("DejaVu", "", 7)
+                    pdf.set_font("WQY", "", 7)
                 pdf.set_text_color(100, 149, 237)
                 pdf.set_x(pdf.l_margin + 4)
                 pdf.cell(page_w - 4, 3.5, f"🔗 {art_url[:120]}", new_x="LMARGIN", new_y="NEXT")
@@ -371,7 +371,7 @@ def _generate_report_pdf(report: dict) -> bytes:
     pdf.line(20, pdf.get_y(), 190, pdf.get_y())
     pdf.ln(3)
     if has_font:
-        pdf.set_font("DejaVu", "", 7)
+        pdf.set_font("WQY", "", 7)
     pdf.set_text_color(150, 150, 150)
     pdf.cell(page_w, 4, f"由百应智星生成 · {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}", new_x="LMARGIN", new_y="NEXT")
     
