@@ -3011,9 +3011,16 @@ ${r?'Expression: "'+r+`"
                         <i class="fas fa-file-alt mr-2 text-violet-400"></i>
                         <span x-text="(selectedReport || {}).title || '报告详情'"></span>
                       </h3>
-                      <button @click="showReportDetailModal = false" class="text-gray-400 hover:text-white transition">
-                        <i class="fas fa-times"></i>
-                      </button>
+                      <div class="flex items-center gap-2">
+                        <button @click="downloadReportPdf()"
+                                class="text-gray-400 hover:text-emerald-400 transition text-xs"
+                                title="下载PDF">
+                          <i class="fas fa-file-pdf mr-0.5"></i>PDF
+                        </button>
+                        <button @click="showReportDetailModal = false" class="text-gray-400 hover:text-white transition">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
                     </div>
 
                     <template x-if="selectedReport">
@@ -3315,7 +3322,7 @@ ${r?'Expression: "'+r+`"
                               </div>
                             </div>
                             <div class="flex items-center gap-1 shrink-0">
-                              <button @click="restoreReport(r.id)"
+                              <button @click="showRestoreConfirmModal = true; restoreTargetReportId = r.id"
                                       class="text-gray-400 hover:text-emerald-400 transition text-[10px] p-1.5 rounded-lg"
                                       title="恢复">
                                 <i class="fas fa-undo-alt"></i>
@@ -3330,6 +3337,34 @@ ${r?'Expression: "'+r+`"
                         </template>
                       </div>
                     </template>
+                  </div>
+                </div>
+
+                <!-- ===== 恢复确认弹窗 ===== -->
+                <div x-show="showRestoreConfirmModal"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     class="fixed inset-0 z-[60] flex items-center justify-center"
+                     @click.self="showRestoreConfirmModal = false">
+                  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+                  <div class="relative glass rounded-2xl p-6 w-full max-w-sm mx-4 text-center">
+                    <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-4"
+                         style="background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.15));">
+                      <i class="fas fa-undo-alt text-emerald-400"></i>
+                    </div>
+                    <h3 class="text-base font-bold mb-2" style="color: var(--fuse-text);">确认恢复报告</h3>
+                    <p class="text-xs mb-1" style="color: var(--fuse-muted);">恢复后该报告将重新出现在报告列表中</p>
+                    <p class="text-xs mb-5" style="color: #6b7280;">可在报告页面中查看和操作</p>
+                    <div class="flex gap-3">
+                      <button @click="showRestoreConfirmModal = false; restoreTargetReportId = null"
+                              class="flex-1 py-2.5 rounded-xl text-sm" style="color: var(--fuse-text2); background: var(--fuse-card);">取消</button>
+                      <button @click="confirmRestoreReport()"
+                              class="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white"
+                              style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="fas fa-undo-alt mr-1.5 text-xs"></i>确认恢复
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -5141,6 +5176,8 @@ ${r?'Expression: "'+r+`"
         showTrashModal: false,
         trashReports: [],
         trashLoading: false,
+        showRestoreConfirmModal: false,
+        restoreTargetReportId: null,
 
         async loadTrashReports() {
           this.trashLoading = true;
@@ -5156,8 +5193,9 @@ ${r?'Expression: "'+r+`"
           }
         },
 
-        async restoreReport(reportId) {
-          if (!confirm('确定恢复这份报告吗？恢复后它将重新出现在报告列表中。')) return;
+        async confirmRestoreReport() {
+          const reportId = this.restoreTargetReportId;
+          if (!reportId) return;
           try {
             const res = await fetch(`/api/v1/reports/trash/${reportId}/restore`, {
               method: 'POST',
@@ -5166,6 +5204,8 @@ ${r?'Expression: "'+r+`"
             if (res.ok) {
               this.trashReports = this.trashReports.filter(r => r.id !== reportId);
               this.loadReports();
+              this.showRestoreConfirmModal = false;
+              this.restoreTargetReportId = null;
               this.showToast('报告已恢复', 'success');
             } else {
               const err = await res.json().catch(() => ({}));
@@ -5173,6 +5213,34 @@ ${r?'Expression: "'+r+`"
             }
           } catch (e) {
             this.showToast('恢复失败', 'error');
+          }
+        },
+
+        async downloadReportPdf() {
+          const reportId = this.selectedReport?.id;
+          if (!reportId) return;
+          try {
+            const res = await fetch(`/api/v1/reports/${reportId}/pdf`, {
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              this.showToast(err.detail || '下载失败', 'error');
+              return;
+            }
+            // Download as blob
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (this.selectedReport.title || 'report').replace(/[^a-zA-Z0-9_\u4e00-\u9fff-]/g, '_') + '.pdf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            this.showToast('PDF已开始下载', 'success');
+          } catch (e) {
+            this.showToast('下载PDF失败：' + e.message, 'error');
           }
         },
 

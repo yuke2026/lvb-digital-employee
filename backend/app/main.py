@@ -62,7 +62,7 @@ app.add_middleware(
 )
 
 # 注册路由
-from app.api.v1 import auth, employees, chat, news_sources, topics, reports, scheduler_api, push_configs, feishu_events, ceo_advisor, team, report_push, automation
+from app.api.v1 import auth, employees, chat, news_sources, topics, reports, scheduler_api, push_configs, feishu_events, ceo_advisor, team, report_push, automation, report_pdf
 from app.api.v1.topics import TopicCreate
 
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])
@@ -78,6 +78,7 @@ app.include_router(ceo_advisor.router, prefix="/api/v1", tags=["CEO顾问"])
 app.include_router(team.router, tags=["产研团队"])
 app.include_router(report_push.router, tags=["报告推送"])
 app.include_router(automation.router, tags=["自动化配置"])
+app.include_router(report_pdf.router)
 
 
 @app.get("/api/health", include_in_schema=False)
