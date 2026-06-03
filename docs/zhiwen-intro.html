@@ -502,6 +502,8 @@
   .compare-table td:nth-child(2) { color: #ef4444; }
   .compare-table td:nth-child(3) { color: #22c55e; }
   .compare-table tr:hover { background: rgba(255,255,255,0.01); }
+  .pipeline-item ol li { margin-bottom: 6px; }
+  .pipeline-item ol li strong { color: #e4e4e7; }
 </style>
 </head>
 <body>
@@ -601,36 +603,106 @@
     <!-- Pipeline detail -->
     <div class="pipeline" style="margin-top: 80px;">
       <div class="pipeline-track">
+
         <div class="pipeline-item">
           <div class="pipeline-dot"></div>
           <h4><span class="number">01</span> 📡 多源信息采集</h4>
-          <p>系统内置三个权威行业 RSS 源（36氪、雷锋网、iThome），同时支持手动添加任意 RSS Feed。每 6 小时自动轮询，增量采集最新文章，<strong>URL 级去重确保不重复</strong>。</p>
-          <div class="tags"><span>RSS Feed</span><span>36氪</span><span>雷锋网</span><span>iThome</span><span>增量同步</span></div>
+          <p>内置三个权威行业 RSS 源（<strong>36氪、雷锋网、iThome</strong>）作为基础设施层，同时支持手动添加任意 RSS Feed。APScheduler 定时调度，默认每 6 小时自动轮询所有活跃源。</p>
+          <p style="margin-top: 8px;">核心逻辑：feedparser 逐源解析 → 提取标题/正文/发布时间 → <strong>URL 级去重</strong>（`WHERE source_id = :sid AND url = :url`）→ 写入 `raw_articles` 表（is_processed=false）→ 更新源的最后抓取时间。采集和报告生成是独立的两个步骤，互不阻塞。</p>
+          <div class="tags"><span>RSS Feed</span><span>36氪</span><span>雷锋网</span><span>iThome</span><span>APScheduler</span><span>URL去重</span><span>增量同步</span></div>
         </div>
+
         <div class="pipeline-item">
           <div class="pipeline-dot"></div>
-          <h4><span class="number">02</span> 🔍 智能关键词匹配</h4>
-          <p>每个主题可配置专属关键词和排除词。新采集的文章自动与主题关键词做模糊匹配，<strong>匹配成功的文章标记为「已处理」</strong>，可同时关联多个新闻源。支持中文分词级别的模糊匹配，准确率高。</p>
-          <div class="tags"><span>关键词过滤</span><span>排除词</span><span>多源关联</span><span>中文分词</span></div>
+          <h4><span class="number">02</span> 🔍 主题级关键词匹配与多源关联</h4>
+          <p>这是智闻区别于普通 RSS 阅读器的核心设计。不同于所有文章扔进一个池子，智闻采用<strong>「主题 → 关键词 → 源」的三层映射</strong>：每个主题可配置专属关键词和排除词，并关联一个或多个新闻源。</p>
+          <p style="margin-top: 8px;">匹配逻辑：遍历主题的所有关联源 → 对每篇新文章做 `title + content + summary` 全文模糊匹配 → 命中任一关键词即标记 `is_processed=true` → 写入 `topic_sources` 关联表。排除词优先级高于关键词，命中排除词的文章直接跳过。</p>
+          <p style="margin-top: 8px;"><strong>重要设计决策</strong>：即使 DeepSeek API 调用失败，也要将 `is_processed` 置为 true，防止失败文章被无限重试。匹配锚点用 `published_at`（而非 `fetched_at`），保证周期性报告能覆盖到正确的时间范围。</p>
+          <div class="tags"><span>关键词过滤</span><span>排除词</span><span>三层映射</span><span>多源关联</span><span>published_at锚点</span><span>防重复处理</span></div>
         </div>
+
         <div class="pipeline-item">
           <div class="pipeline-dot"></div>
-          <h4><span class="number">03</span> 🤖 AI 深度分析（SWOT + 风险 + 机会）</h4>
-          <p>基于 DeepSeek 大模型，对匹配文章进行结构化 SWOT 分析：<strong>优势(S)、劣势(W)、机会(O)、威胁(T)</strong>。自动提取 🔴 风险清单（高/中/低三级评估）和 🌟 机会清单（含潜力评估和时间窗口）。分析结果封装为 JSON 结构，保证前端和推送链路的稳定解析。</p>
-          <div class="tags"><span>DeepSeek</span><span>SWOT</span><span>风险识别</span><span>机会发现</span><span>JSON结构化</span></div>
+          <h4><span class="number">03</span> 📅 日历周期 + 向上兼容调度 + 重叠守卫</h4>
+          <p>这是智闻报告系统的<strong>核心创新点</strong>。报告的"时间窗口"不使用简单的「过去N天」，而是使用<strong>自然日历周期</strong>：</p>
+          <div style="margin: 12px 0; padding: 14px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); font-size: 13px; line-height: 1.8;">
+            <div><strong style="color: #93c5fd;">日报</strong>：今日 00:00 UTC → 当前（范围：1天）</div>
+            <div><strong style="color: #c4b5fd;">周报</strong>：本周一 00:00 UTC → 当前（范围：累计本周）</div>
+            <div><strong style="color: #6ee7b7;">月报</strong>：本月1日 00:00 UTC → 当前（范围：累计本月）</div>
+            <div><strong style="color: #fcd34d;">季报</strong>：本季首月1日 00:00 UTC → 当前</div>
+            <div><strong style="color: #fca5a5;">年报</strong>：本年1月1日 00:00 UTC → 当前</div>
+          </div>
+          <p>之所以这样设计，是因为「过去7天」在周三生成的周报覆盖的是上周三到这周三的碎片区间，而CEO需要的是<strong>「本周总结」</strong>这个语义正确的范围。日历周期确保每周一、每月1号、每季首日都能产出语义正确、范围清晰的报告。</p>
+          <p style="margin-top: 10px;"><strong>向上兼容调度</strong>：配置为「周报」的主题，自动也会按时生成月报、季报、年报。层级关系：`daily → weekly → monthly → quarterly → yearly`。配置日报的主题会生成所有5种周期，配置季报只生成季报+年报。</p>
+          <p style="margin-top: 10px;"><strong>日历重叠守卫</strong>：每月1号恰好是周一时，日报、周报、月报三个任务同时触发。智闻在 `_run_report` 的首行检查：每月1号跳过日报+周报，只保留月报；周一（非1号）跳过日报只保留周报。优先级：<strong>monthly > weekly > daily</strong>。</p>
+          <div class="tags"><span>日历周期</span><span>非滑动窗口</span><span>向上兼容调度</span><span>重叠守卫</span><span>语义正确</span><span>5级周期</span></div>
         </div>
+
         <div class="pipeline-item">
           <div class="pipeline-dot"></div>
-          <h4><span class="number">04</span> 📊 多周期报告生成</h4>
-          <p>支持 <strong>5 种报告周期</strong>：日报、周报、月报、季报、年报。使用日历周期（非简单「过去N天」），报告标题自动匹配自然时间标签（如「2026年第23周」「2026年Q2」）。<strong>向上兼容调度</strong>：配置周报的主题自动也会按时生成月报、季报、年报。1号重叠检查机制避免月报/周报/日报同时生成。</p>
-          <div class="tags"><span>日报</span><span>周报</span><span>月报</span><span>季报</span><span>年报</span><span>日历周期</span></div>
+          <h4><span class="number">04</span> 🤖 AI 深度分析引擎（SWOT + 风险 + 机会 + 重试）</h4>
+          <p>这是智闻的大脑。匹配到的文章按以下流程处理：</p>
+          <ol style="margin: 10px 0 10px 18px; font-size: 13px; color: #a1a1aa; line-height: 2;">
+            <li><strong>文章快照封装</strong>：取匹配文章（上限50篇），构建 JSON 快照（id/title/summary/url/published_at），嵌入报告 content 字段。>30篇时只传标题+摘要以节省 token。</li>
+            <li><strong>AI Prompt 构建</strong>：基于报告类型动态调整分析深度。日报用「快速分析」（每项100-150字），周报用「深度综合分析」（每项200-300字），月/季/年报用「深度战略分析」。</li>
+            <li><strong>DeepSeek 调用</strong>：调用 `chat_with_deepseek()`，要求返回结构化 JSON（s/w/o/t + risks[] + opportunities[] + risk_level + key_trends + action_items）。</li>
+            <li><strong>Token 预算设计</strong>：这是开发过程中<strong>踩过的最大的坑</strong>。deepseek-v4-flash 是<strong>推理模型（Reasoning Model）</strong>，每次回答前先做链式思考（`reasoning_content`），思考过程消耗大量 token。79-94篇文章的周报 prompt 下，3072 的 `max_tokens` 被思考过程全部吞掉，留给实际 JSON 输出的 token 为 0 → AI 返回空内容 → 3次重试全部失败。修复方案：<strong>所有 token 预算翻倍</strong>：日报8192、周报12288、月/季/年报16384。</li>
+            <li><strong>三次重试 + 退避策略</strong>：首次调用用默认参数，后续重试用 httpx 直连 API，`temperature` 逐次+0.1，`max_tokens` 翻倍，system prompt 追加「请务必输出有实质内容」指令。</li>
+            <li><strong>风险等级标准化</strong>：AI 有时输出「整体风险等级：高」，有时输出 `"high"`，有时输出「高」。后端 `_normalize_risk_level()` 统一清洗：去掉前缀、映射中英文、fallback 到「中」。</li>
+            <li><strong>Has_substance 守卫</strong>：如果所有 SWOT 字段 + 风险列表 + 机会列表均为空，将 status 设为 `draft`（不入库展示、不推送），而不是 `generated`。这是防止空报告推送的<strong>关键安全阀</strong>。</li>
+          </ol>
+          <p><strong>重试循环的 bug 修复</strong>：重试时如果 httpx 抛出异常，`response` 变量未被更新，后续循环一直使用第一次的错误值。修复：每个异常分支强制赋值 `response = f"（重试异常）{str(retry_err)}"`。</p>
+          <div class="tags"><span>DeepSeek</span><span>推理模型</span><span>token预算翻倍</span><span>SWOT四象限</span><span>风险识别</span><span>机会发现</span><span>三级重试</span><span>has_substance守卫</span></div>
         </div>
+
         <div class="pipeline-item">
           <div class="pipeline-dot"></div>
-          <h4><span class="number">05</span> 📨 多渠道主动推送</h4>
-          <p>报告生成后自动通过<strong>飞书 Webhook 卡片</strong>推送到群聊。卡片包含摘要、SWOT 概要、风险识别项（带 🔴🟡🟢 等级图标）、机会发现和文章快照链接。支持飞书 OAuth API 和 Webhook 双通道，任一路径失败不影响另一路。</p>
-          <div class="tags"><span>飞书推送</span><span>Webhook</span><span>卡片消息</span><span>多渠道</span></div>
+          <h4><span class="number">05</span> 📊 报告存储 + 文章快照 + 回收站</h4>
+          <p>报告不是简单的文本文件，而是<strong>结构化数据对象</strong>：</p>
+          <div style="margin: 12px 0; padding: 14px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); font-size: 13px; line-height: 2; font-family: 'SF Mono', 'Cascadia Code', monospace;">
+            <div style="color: #a78bfa;">reports 表字段：</div>
+            <div style="color: #a1a1aa;">id | topic_id | report_type | title</div>
+            <div style="color: #a1a1aa;">summary | <span style="color: #6ee7b7;">content</span> | <span style="color: #fcd34d;">swot</span></div>
+            <div style="color: #a1a1aa;"><span style="color: #fca5a5;">risk_level</span> | <span style="color: #fca5a5;">risk_items</span> | <span style="color: #93c5fd;">opportunities</span></div>
+            <div style="color: #a1a1aa;">push_time | status | feishu_doc_token | feishu_msg_id</div>
+            <div style="color: #a1a1aa;">is_deleted | deleted_at | created_at | updated_at</div>
+          </div>
+          <p><strong>content 文章快照</strong>：报告自包含源文章信息（标题、摘要、URL），即使源站删除也能查阅。快照结构：`{"articles": [...], "time_range": {"start": ..., "end": ..., "label": "第23周"}, "key_trends": ..., "action_items": [...]}`。</p>
+          <p style="margin-top: 8px;"><strong>空周期回溯</strong>：如果当前周期（如本周）无匹配文章，自动回溯最多7天查找。找到的文章在报告标题加「含回顾」后缀，保证<strong>报告不出现空内容</strong>。</p>
+          <p style="margin-top: 8px;"><strong>重要设计决策</strong>：<span style="color: #ef4444;">refresh pipeline 绝对不删除旧报告！</span>之前的实现有一个 `DELETE FROM reports WHERE topic_id IN (...)` 步骤，每次手动刷新都会清空所有历史报告。修复：只 INSERT 不 DELETE，前端显示最多8条足够了。</p>
+          <p style="margin-top: 8px;"><strong>回收站安全设计</strong>：软删除（`is_deleted=1`）→ 回收站列表 → 可恢复（`is_deleted=0`）→ 或永久删除（`DELETE WHERE is_deleted=1`）。所有增删操作都二次确认弹窗。</p>
+          <div class="tags"><span>文章快照</span><span>JSON结构化</span><span>空周期回溯</span><span>不删除旧报告</span><span>软删除</span><span>回收站</span></div>
         </div>
+
+        <div class="pipeline-item">
+          <div class="pipeline-dot"></div>
+          <h4><span class="number">06</span> 📨 三条推送路径 + 安全推送到飞书</h4>
+          <p>智闻的报告推送不是单一路径——这是开发过程中发现的<strong>一个重要架构教训</strong>。系统实际存在<strong>三条独立的推送代码路径</strong>，它们共享推送逻辑但不共享代码：</p>
+          <div style="margin: 12px 0; padding: 14px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); font-size: 13px; line-height: 1.8;">
+            <div><strong style="color: #6ee7b7;">路径1（Auto-push）</strong>：`reports.py` 的 `_run_report_generation` 尾部——AI 报告生成成功后，自动检查 `topic_push_configs` 中是否有 Webhook URL 或飞书 OAuth 配置，有则推送。</div>
+            <div><strong style="color: #93c5fd;">路径2（手动推送）</strong>：`report_push.py` 的 `POST /api/v1/reports/{id}/push`——用户在报告页面手动点击「推送到飞书」时触发。</div>
+            <div><strong style="color: #fcd34d;">路径3（CEO顾问生成+推送）</strong>：`ceo_advisor.py` —— CEO顾问在对话中直接生成报告并推送。</div>
+          </div>
+          <p><strong>关键 bug 修复</strong>：最初只在路径1添加了风险识别和机会发现模块，路径2和3没有。CEO 顾问推送的报告缺少「风险识别」和「机会发现」卡片模块→用户反馈后在三条路径全部同步添加。</p>
+          <p style="margin-top: 8px;"><strong>推送卡片内容</strong>：飞书 interactive 消息卡片，包含：📋摘要 → 📊 SWOT四象限 → 🔍风险识别（🔴🟡🟢图标 + 最多3条）→ 🌟机会发现（最多3条）→ 📰源文章快照（前10篇带链接）。卡片头部颜色随风险等级变化（红/黄/绿）。</p>
+          <p style="margin-top: 8px;"><strong>双通道容错</strong>：OAuth API 推送和 Webhook 推送并行，任一路径失败不影响另一路。OAuth 需要飞书自建应用的 `LARK_APP_ID` + `LARK_APP_SECRET`，Webhook 只需一个 URL。</p>
+          <div class="tags"><span>三条推送路径</span><span>飞书卡片</span><span>Webhook</span><span>OAuth</span><span>风险/机会卡片</span><span>双通道容错</span></div>
+        </div>
+
+        <div class="pipeline-item">
+          <div class="pipeline-dot"></div>
+          <h4><span class="number">07</span> 🔧 精细化控制：三个独立开关 + 手动采集器</h4>
+          <p>每个主题的自动化不是「开/关」二元控制，而是<strong>三个独立开关</strong>：</p>
+          <div style="margin: 12px 0; padding: 14px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); font-size: 13px; line-height: 1.8;">
+            <div><strong style="color: #60a5fa;">📥 数据采集</strong>：控制 APScheduler `collect_{topic_id}` 任务的启停。开 = 每6小时抓取 RSS。</div>
+            <div><strong style="color: #a78bfa;">📊 报告生成</strong>：控制 `report_{type}_{topic_id}` 定时任务的启停。开 = 按 push_cycle 生成报告。</div>
+            <div><strong style="color: #34d399;">📨 飞书推送</strong>：控制 `topic_push_configs.feishu_push_enabled`。开 = 报告生成后自动推送到飞书。</div>
+          </div>
+          <p>每个开关通过 `PUT /api/v1/automation/topics/{id}/config` 独立更新，APScheduler 实时生效<strong>无需重启服务</strong>。数据库持久化（`scheduled_jobs` 表），应用重启后自动恢复。</p>
+          <p style="margin-top: 10px;"><strong>手动采集器</strong>：除了定时调度，还提供「一键刷新」入口（`POST /api/v1/reports/refresh`）。用户可选择指定主题手动触发：采集 RSS → 关键词匹配 → 生成 AI 报告。修改关键词后可立即重跑验证效果，无需等下一轮调度。</p>
+          <div class="tags"><span>三独立开关</span><span>APScheduler</span><span>实时生效</span><span>数据库持久化</span><span>手动采集器</span><span>一键刷新</span></div>
+        </div>
+
       </div>
     </div>
   </div>
