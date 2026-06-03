@@ -1503,7 +1503,13 @@ ${r?'Expression: "'+r+`"
                                   x-text="emp.category === 'core' ? '战略大脑' : '行业顾问'"></span>
                           </div>
                         </div>
-                        <p class="text-sm text-gray-400 line-clamp-2 mb-4 min-h-[2.5rem]" x-text="emp.description || '暂无描述'"></p>
+                        <p class="text-sm text-gray-400 line-clamp-2 mb-2 min-h-[2.5rem]" x-text="emp.description || '暂无描述'"></p>
+                        <a x-show="emp.id === 'ceo-advisor'" href="/zhiwen" target="_blank"
+                           class="inline-flex items-center gap-1 text-[11px] mb-3 transition"
+                           style="color: #a78bfa;" @click.stop
+                           @mouseenter="$el.style.color='#c4b5fd'" @mouseleave="$el.style.color='#a78bfa'">
+                          <i class="fas fa-external-link-alt text-[9px]"></i>了解更多设计思路 →
+                        </a>
                         <div class="flex flex-wrap gap-1.5 mb-4 min-h-[1.5rem]">
                           <template x-for="skill in (emp.skills || []).slice(0, 3)" :key="skill">
                             <span class="skill-badge" style="background: rgba(167,139,250,0.1); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.15);">
@@ -1731,6 +1737,12 @@ ${r?'Expression: "'+r+`"
                           <span x-text="(selectedEmployee.name || '?').charAt(0)"></span>
                         </div>
                         <span class="text-sm font-medium" x-text="selectedEmployee.name || ''"></span>
+                        <a x-show="selectedEmployee?.id === 'ceo-advisor'"
+                           href="/zhiwen" target="_blank"
+                           class="inline-flex items-center gap-1 text-[10px] ml-1 transition opacity-70 hover:opacity-100"
+                           style="color: #a78bfa;">
+                          <i class="fas fa-external-link-alt text-[8px]"></i>设计思路
+                        </a>
                       </div>
                     </template>
                     <template x-if="!selectedEmployee">
