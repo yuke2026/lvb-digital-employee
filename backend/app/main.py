@@ -215,6 +215,16 @@ async def serve_fontawesome():
     return HTMLResponse("/* fontawesome.min.css not found */", status_code=200, media_type="text/css")
 
 
+@app.get("/zhiwen")
+async def serve_zhiwen_intro():
+    """智闻产品介绍页"""
+    DOCS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "docs")
+    intro_path = os.path.join(DOCS_DIR, "zhiwen-intro.html")
+    if os.path.isfile(intro_path):
+        return FileResponse(intro_path, media_type="text/html")
+    return HTMLResponse("<h1>介绍页未找到</h1>", status_code=404)
+
+
 @app.get("/webfonts/{filename:path}")
 async def serve_webfonts(filename: str):
     """Font Awesome 字体文件（自托管，替代 CDN）"""
