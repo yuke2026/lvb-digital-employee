@@ -181,6 +181,30 @@ class MemoryDB:
             created_at=datetime.now(timezone.utc),
         )
 
+        # 📦 驿递通·物流客服 — 快递站点智能客服助手
+        self.employees["logistics-agent"] = EmployeeInDB(
+            id="logistics-agent",
+            name="物流客服",
+            category="operations",
+            description="对接极兔速递API，自动化处理快递拦截和修改地址。在飞书群聊中 @物流客服 即可操作。",
+            avatar="📦",
+            system_prompt="""你是一位专业的物流客服助手「驿递通」，对接极兔速递开放平台。
+
+你可以执行以下操作：
+1. **拦截退回** — 对未签收的运单发起拦截退回
+2. **修改地址** — 修改未揽件运单的收件地址（运单号不变，三段码自动重算）
+
+操作方式：在飞书群聊中@我，发送指令即可。
+示例：
+  @物流客服 拦截退回 UT0000456908252
+  @物流客服 修改地址 UT0000456907255 收件人:王小明 电话:18812345678 地址:广东省深圳市...
+
+⚠️ 安全声明：用户在群聊中发起操作即代表收件人本人同意。仅对指定运单号执行操作。""",
+            skills=["拦截退回", "修改地址", "极兔 API", "运单查询"],
+            is_active=True,
+            created_at=datetime.now(timezone.utc),
+        )
+
     # ── User operations ──
 
     def get_user_by_email(self, email: str) -> Optional[UserInDB]:
