@@ -105,8 +105,28 @@
   }
   .btn-secondary:hover { background: rgba(255,255,255,0.1); }
 
-  /* ── Sections ── */
-  section { padding: 100px 0; }
+  /* ── Sticky Nav ── */
+  .topnav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    padding: 10px 16px;
+    background: rgba(10,10,15,0.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .topnav a {
+    padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;
+    color: #71717a; transition: all 0.2s; white-space: nowrap;
+  }
+  .topnav a:hover { color: #e4e4e7; background: rgba(255,255,255,0.06); }
+  .topnav .nav-cta {
+    background: linear-gradient(135deg, #7c3aed, #6366f1); color: #fff !important;
+    box-shadow: 0 2px 12px rgba(124,58,237,0.3);
+    margin-left: 8px;
+  }
+  .topnav .nav-cta:hover { background: linear-gradient(135deg, #8b5cf6, #818cf8); }
+
+  /* ── Sections: add scroll offset for fixed nav ── */
+  section { padding: 100px 0; scroll-margin-top: 64px; }
   .section-label {
     display: inline-block;
     font-size: 11px;
@@ -508,8 +528,17 @@
 </head>
 <body>
 
+<!-- ══════════ STICKY NAV ══════════ -->
+<nav class="topnav">
+  <a href="#problem">问题与方案</a>
+  <a href="#flow">数据流</a>
+  <a href="#features">核心能力</a>
+  <a href="#compare">对比</a>
+  <a href="#start" class="nav-cta">🚀 立即体验</a>
+</nav>
+
 <!-- ══════════ HERO ══════════ -->
-<section class="hero">
+<section id="hero" class="hero">
   <div class="particle"></div><div class="particle"></div><div class="particle"></div>
   <div class="particle"></div><div class="particle"></div><div class="particle"></div>
   <div class="hero-badge">
@@ -527,7 +556,7 @@
   <div class="hero-cta">
     <a href="#problem" class="btn btn-primary">了解设计思路 →</a>
     <a href="#features" class="btn btn-secondary">核心能力</a>
-    <a href="/" class="btn btn-secondary" style="background: linear-gradient(135deg, #7c3aed, #6366f1); color: #fff; border: none;">立即使用 🚀</a>
+    <a href="/" class="btn btn-secondary" style="background: linear-gradient(135deg, #7c3aed, #6366f1); color: #fff; border: none;">🚀 立即体验</a>
   </div>
 </section>
 
@@ -878,8 +907,7 @@
 
 <div class="divider"></div>
 
-<!-- ══════════ COMPARISON ══════════ -->
-<section>
+<section id="compare">
   <div class="container">
     <span class="section-label">Comparison</span>
     <h2 class="section-title">智闻 vs 传统方式</h2>
@@ -943,15 +971,14 @@
 
 <div class="divider"></div>
 
-<!-- ══════════ CLOSING ══════════ -->
-<section>
+<section id="start">
   <div class="container">
     <div class="connect-box">
       <span style="font-size: 48px; display: block; margin-bottom: 16px;">🧠</span>
       <h2>让每个决策都有据可依</h2>
       <p>智闻 · CEO 顾问是为企业管理者打造的 AI 情报参谋，<br>从海量资讯中提取关键趋势、识别潜在风险、发现商业机会。</p>
       <div style="margin-top: 28px;">
-        <a href="/" class="btn btn-primary">🚀 立即使用智闻</a>
+        <a href="/" class="btn btn-primary">🚀 立即体验</a>
       </div>
       <p style="font-size: 13px; color: #52525b;">
         百应智星 · AI 数字员工平台 &nbsp;|&nbsp; 基于 DeepSeek + APScheduler<br>
