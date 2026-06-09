@@ -223,7 +223,9 @@ async def serve_zhiwen_intro():
     DOCS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "docs")
     intro_path = os.path.join(DOCS_DIR, "zhiwen-intro.html")
     if os.path.isfile(intro_path):
-        return FileResponse(intro_path, media_type="text/html")
+        return FileResponse(intro_path, media_type="text/html",
+                            headers={"Cache-Control": "no-cache, no-store, must-revalidate",
+                                     "Pragma": "no-cache", "Expires": "0"})
     return HTMLResponse("<h1>介绍页未找到</h1>", status_code=404)
 
 
