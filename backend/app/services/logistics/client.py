@@ -43,13 +43,26 @@ class AuthConfig:
 
     @classmethod
     def from_env(cls):
-        """从环境变量加载"""
+        """从环境变量加载（兼容旧模式）"""
         import os
         return cls(
             api_account=os.environ["JT_API_ACCOUNT"],
             plain_password=os.environ["JT_PLAIN_PASSWORD"],
             private_key=os.environ["JT_PRIVATE_KEY"],
         )
+
+    @classmethod
+    def from_dict(cls, config: dict):
+        """从字典加载（SaaS 模式：从数据库读取）"""
+        return cls(
+            api_account=config.get("api_account", ""),
+            plain_password=config.get("plain_password", ""),
+            private_key=config.get("private_key", ""),
+        )
+
+    def is_valid(self) -> bool:
+        """检查是否所有必要字段都已配置"""
+        return bool(self.api_account and self.plain_password and self.private_key)
 
 
 def _md5(s: str) -> str:
@@ -156,6 +169,16 @@ class JTApiClient:
 
         logger.info(f"[API] 成功: {msg}")
         return data.get("data", {})
+
+    # ── 测试连接 ──
+
+    def test_connection(self) -> dict:
+        """测试极兔 API 连通性（轻量调用，验证凭证和签名）"""
+        # 使用查询路由接口验证，请求一个不存在的运单号来测试连通性
+        return self._call("/other/intercept", {
+            "mailNo": "TEST_CONNECTION",
+            "reason": "连接测试",
+        })
 
     # ── 拦截下发 ──
 

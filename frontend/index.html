@@ -1578,7 +1578,7 @@ ${r?'Expression: "'+r+`"
                     </div>
                   </div>
                   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                    <template x-for="emp in employees.filter(e => e.category === 'marketing' || e.category === 'sales')" :key="emp.id">
+                    <template x-for="emp in employees.filter(e => e.category === 'marketing' || e.category === 'sales' || e.category === 'operations')" :key="emp.id">
                       <div class="glass rounded-2xl p-6 card-float glow-border-hover cursor-pointer group"
                            @click="selectEmployee(emp)">
                         <div class="flex items-start gap-4 mb-4">
@@ -1588,7 +1588,7 @@ ${r?'Expression: "'+r+`"
                           <div class="min-w-0 flex-1">
                             <h3 class="text-lg font-semibold text-white truncate" x-text="emp.name"></h3>
                             <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium" style="background: rgba(244,114,182,0.15); color: #f472b6; border: 1px solid rgba(244,114,182,0.25);"
-                                  x-text="{'marketing':'营销','sales':'销售'}[emp.category] || '运营'"></span>
+                                  x-text="{'marketing':'营销','sales':'销售','operations':'物流运营'}[emp.category] || '运营'"></span>
                           </div>
                         </div>
                         <p class="text-sm text-gray-400 line-clamp-2 mb-4 min-h-[2.5rem]" x-text="emp.description || '暂无描述'"></p>
@@ -1681,12 +1681,12 @@ ${r?'Expression: "'+r+`"
                       </template>
                     </div>
 
-                    <!-- Group: 运营&销售 (marketing + sales) -->
+                    <!-- Group: 运营&销售 (marketing + sales + operations) -->
                     <div class="text-[10px] uppercase tracking-wider mb-2 mt-3 px-3" style="color: var(--fuse-muted); font-weight: 600;">
                       <i class="fas fa-megaphone text-[10px] mr-1" style="color: #f472b6;"></i>运营&销售
                     </div>
                     <div class="space-y-0.5">
-                      <template x-for="emp in employees.filter(e => e.category === 'marketing' || e.category === 'sales')" :key="emp.id">
+                      <template x-for="emp in employees.filter(e => e.category === 'marketing' || e.category === 'sales' || e.category === 'operations')" :key="emp.id">
                         <div @click="selectEmployee(emp)"
                              class="fuse-nav-item"
                              :class="selectedEmployee?.id === emp.id ? 'active' : ''">
@@ -1917,6 +1917,13 @@ ${r?'Expression: "'+r+`"
                             @click="switchRightPanel('reports')">
                       <i class="fas fa-file-alt text-[10px] mr-1"></i>报告
                     </button>
+                    <!-- 物流配置选项卡（仅物流客服可见） -->
+                    <button x-show="selectedEmployee?.id === 'logistics-agent'"
+                            class="flex-1 py-3 text-xs font-medium border-b-2 transition-all"
+                            :style="rightPanelTab === 'logistics-config' ? 'color: var(--fuse-accent2); border-color: var(--fuse-accent);' : 'color: var(--fuse-muted); border-color: transparent;'"
+                            @click="switchRightPanel('logistics-config')">
+                      <i class="fas fa-cog text-[10px] mr-1"></i>配置
+                    </button>
                   </div>
 
                   <!-- === AUTO PANEL === -->
@@ -2037,6 +2044,186 @@ ${r?'Expression: "'+r+`"
                     </div>
                   </div>
 
+                  <!-- === LOGISTICS CONFIG PANEL === -->
+                  <div x-show="rightPanelTab === 'logistics-config'"
+                       class="flex-1 overflow-y-auto px-4 py-4">
+                    <div class="text-center mb-4">
+                      <div class="text-2xl mb-2">📦</div>
+                      <div class="text-sm font-semibold" style="color: var(--fuse-text);">物流客服配置</div>
+                      <div class="text-[10px] mt-1" style="color: var(--fuse-muted);">填写极兔速递API凭证即可启用实际操作</div>
+                    </div>
+
+                   <div class="space-y-4">
+
+                      <!-- ══════ 极兔配置（必填）══════ -->
+                      <div>
+                        <div class="flex items-center gap-1.5 mb-3">
+                          <i class="fas fa-truck text-xs" style="color: #60a5fa;"></i>
+                          <span class="text-xs font-semibold" style="color: #60a5fa;">极兔速递API 配置</span>
+                        </div>
+                        <div class="space-y-2.5">
+                          <div>
+                            <label class="text-[11px] font-medium" style="color: var(--fuse-muted);">API 账号 (apiAccount)</label>
+                            <input type="text" x-model="logisticsConfig.api_account"
+                                   class="w-full mt-1 px-3 py-2 rounded-lg text-xs"
+                                   style="background: var(--fuse-bg); color: var(--fuse-text); border: 1px solid var(--fuse-border);"
+                                   placeholder="极兔商户ID">
+                          </div>
+                          <div>
+                            <label class="text-[11px] font-medium" style="color: var(--fuse-muted);">密码 (plainPassword)</label>
+                            <input type="password" x-model="logisticsConfig.plain_password"
+                                   class="w-full mt-1 px-3 py-2 rounded-lg text-xs"
+                                   style="background: var(--fuse-bg); color: var(--fuse-text); border: 1px solid var(--fuse-border);"
+                                   placeholder="极兔密码">
+                          </div>
+                          <div>
+                            <label class="text-[11px] font-medium" style="color: var(--fuse-muted);">PrivateKey</label>
+                            <input type="password" x-model="logisticsConfig.private_key"
+                                   class="w-full mt-1 px-3 py-2 rounded-lg text-xs"
+                                   style="background: var(--fuse-bg); color: var(--fuse-text); border: 1px solid var(--fuse-border);"
+                                   placeholder="极兔PrivateKey">
+                          </div>
+                          <div>
+                            <label class="text-[11px] font-medium" style="color: var(--fuse-muted);">客户编码 (customerCode)</label>
+                            <input type="text" x-model="logisticsConfig.customer_code"
+                                   class="w-full mt-1 px-3 py-2 rounded-lg text-xs"
+                                   style="background: var(--fuse-bg); color: var(--fuse-text); border: 1px solid var(--fuse-border);"
+                                   placeholder="联系出货网点获取">
+                          </div>
+                        </div>
+                        <!-- 极兔按钮 -->
+                        <div class="flex gap-2 mt-3">
+                          <button @click="saveLogisticsConfig"
+                                  class="flex-1 py-2 rounded-lg text-xs font-semibold text-white transition"
+                                  style="background: linear-gradient(135deg, #3b82f6, #6366f1);"
+                                  x-text="logisticsSaving ? '保存中...' : '💾 保存极兔配置'"
+                                  :disabled="logisticsSaving"></button>
+                          <button @click="testLogisticsConnection"
+                                  class="flex-1 py-2 rounded-lg text-xs font-semibold transition"
+                                  style="background: var(--fuse-card); color: var(--fuse-text); border: 1px solid var(--fuse-border);"
+                                  x-text="logisticsTesting ? '测试中...' : '🔗 测试极兔连接'"
+                                  :disabled="logisticsTesting"></button>
+                        </div>
+                        <template x-if="logisticsStatus">
+                          <div class="mt-2 px-3 py-2 rounded-lg text-xs"
+                               :style="logisticsStatus.startsWith('✅') || logisticsStatus.startsWith('💾')
+                                 ? 'background: rgba(74,222,128,0.1); color: #4ade80; border: 1px solid rgba(74,222,128,0.2);'
+                                 : 'background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2);'">
+                            <span x-text="logisticsStatus"></span>
+                          </div>
+                        </template>
+                      </div>
+
+                      <!-- ══════ 飞书机器人配置（可选）══════ -->
+                      <div class="pt-3 border-t" style="border-color: var(--fuse-border);">
+                        <div class="flex items-center gap-1.5 mb-2">
+                          <i class="fab fa-telegram-plane text-xs" style="color: #34d399;"></i>
+                          <span class="text-xs font-semibold" style="color: #34d399;">飞书机器人配置（可选）</span>
+                          <span class="text-[9px] px-1.5 py-0.5 rounded-full" style="background: rgba(52,211,153,0.1); color: #34d399;">群聊@操作</span>
+                        </div>
+                        <p class="text-[10px] mb-3 leading-relaxed" style="color: var(--fuse-muted);">
+                          在飞书群里 <b style="color: #34d399;">@物流客服</b> 即可查询物流、拦截退回、修改地址。
+                          配置后百应智星对话和飞书群聊都可使用物流客服。
+                        </p>
+                        <div class="space-y-2.5">
+                          <div>
+                            <label class="text-[11px] font-medium" style="color: var(--fuse-muted);">App ID</label>
+                            <input type="text" x-model="logisticsConfig.feishu_app_id"
+                                   class="w-full mt-1 px-3 py-2 rounded-lg text-xs"
+                                   style="background: var(--fuse-bg); color: var(--fuse-text); border: 1px solid var(--fuse-border);"
+                                   placeholder="飞书自建应用的 App ID">
+                          </div>
+                          <div>
+                            <label class="text-[11px] font-medium" style="color: var(--fuse-muted);">App Secret</label>
+                            <input type="password" x-model="logisticsConfig.feishu_app_secret"
+                                   class="w-full mt-1 px-3 py-2 rounded-lg text-xs"
+                                   style="background: var(--fuse-bg); color: var(--fuse-text); border: 1px solid var(--fuse-border);"
+                                   placeholder="飞书自建应用的 App Secret">
+                          </div>
+                          <div>
+                            <label class="text-[11px] font-medium" style="color: var(--fuse-muted);">群聊 Chat ID</label>
+                            <input type="text" x-model="logisticsConfig.feishu_chat_id"
+                                   class="w-full mt-1 px-3 py-2 rounded-lg text-xs"
+                                   style="background: var(--fuse-bg); color: var(--fuse-text); border: 1px solid var(--fuse-border);"
+                                   placeholder="oc_xxxxxxxxxxxx">
+                            <p class="text-[9px] mt-1" style="color: var(--fuse-muted);">从群聊URL中获取 <code style="color: #34d399;">oc_</code> 开头的ID</p>
+                          </div>
+                        </div>
+                        <!-- 飞书按钮 -->
+                        <div class="flex gap-2 mt-3">
+                          <button @click="saveFeishuConfig"
+                                  class="flex-1 py-2 rounded-lg text-xs font-semibold text-white transition"
+                                  style="background: linear-gradient(135deg, #10b981, #059669);"
+                                  x-text="feishuSaving ? '保存中...' : '💾 保存飞书配置'"
+                                  :disabled="feishuSaving"></button>
+                          <button @click="testFeishuConnection"
+                                  class="flex-1 py-2 rounded-lg text-xs font-semibold transition"
+                                  style="background: var(--fuse-card); color: var(--fuse-text); border: 1px solid var(--fuse-border);"
+                                  x-text="feishuTesting ? '测试中...' : '🔗 测试飞书连接'"
+                                  :disabled="feishuTesting"></button>
+                        </div>
+                        <template x-if="feishuStatus">
+                          <div class="mt-2 px-3 py-2 rounded-lg text-xs"
+                               :style="feishuStatus.startsWith('✅') || feishuStatus.startsWith('💾')
+                                 ? 'background: rgba(74,222,128,0.1); color: #4ade80; border: 1px solid rgba(74,222,128,0.2);'
+                                 : 'background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2);'">
+                            <span x-text="feishuStatus"></span>
+                          </div>
+                        </template>
+                      </div>
+
+                    </div>
+
+                    <!-- 新手配置指南 -->
+                    <div class="mt-4 pt-4 border-t" style="border-color: var(--fuse-border);">
+                      <button @click="showConfigGuide = !showConfigGuide" class="w-full flex items-center justify-between text-xs font-semibold py-1"
+                              style="color: var(--fuse-muted);">
+                        <span><i class="fas fa-question-circle mr-1" style="color: #a78bfa;"></i>新手配置指南</span>
+                        <i class="fas" :class="showConfigGuide ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                      </button>
+                      <template x-if="showConfigGuide">
+                        <div class="mt-3 space-y-4">
+                          <!-- 极兔API -->
+                          <div class="rounded-xl p-3" style="background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.12);">
+                            <div class="flex items-center gap-2 mb-2">
+                              <i class="fas fa-truck text-xs" style="color: #60a5fa;"></i>
+                              <span class="text-xs font-semibold" style="color: #60a5fa;">极兔API 凭证获取步骤</span>
+                            </div>
+                            <ol class="text-[11px] space-y-1.5 ml-4" style="color: var(--fuse-muted); list-style: decimal;">
+                              <li>登录 <a href="https://open.jtexpress.com.cn/#/login" target="_blank" style="color: #60a5fa;">极兔开放平台</a>（需先注册极兔商户账号）</li>
+                              <li>在「应用管理」→「我的应用」中创建应用</li>
+                              <li>获取 <b style="color: var(--fuse-text);">apiAccount</b>（商户ID）和 <b style="color: var(--fuse-text);">plainPassword</b></li>
+                              <li>在「安全设置」中生成 <b style="color: var(--fuse-text);">PrivateKey</b>（RSA私钥）</li>
+                              <li><b style="color: var(--fuse-text);">customerCode</b>（客户编码）联系你的极兔出货网点获取</li>
+                              <li>填写完毕后点击「测试连接」验证是否可用</li>
+                            </ol>
+                          </div>
+
+                          <!-- 飞书配置 -->
+                          <div class="rounded-xl p-3" style="background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.12);">
+                            <div class="flex items-center gap-2 mb-2">
+                              <i class="fab fa-telegram-plane text-xs" style="color: #34d399;"></i>
+                              <span class="text-xs font-semibold" style="color: #34d399;">飞书机器人推送配置（可选）</span>
+                            </div>
+                            <p class="text-[11px] mb-2" style="color: var(--fuse-muted);">
+                              物流客服默认在百应智星对话中使用。配置飞书自建应用后，可在飞书群里 <b style="color: var(--fuse-text);">@物流客服</b> 查询物流、拦截退回、修改地址。<b style="color: var(--fuse-text);">需单独创建一个企业自建应用</b>（与报告推送用的机器人独立）。配置完成后点击「测试飞书连接」验证凭证。
+                            </p>
+                            <ol class="text-[11px] space-y-1.5 ml-4" style="color: var(--fuse-muted); list-style: decimal;">
+                              <li>打开 <a href="https://open.feishu.cn/app" target="_blank" style="color: #34d399;">飞书开发者后台</a> → 创建企业自建应用（取名如「驿递通物流」）</li>
+                              <li>在「凭证与基础信息」中获取 <b style="color: var(--fuse-text);">App ID</b> 和 <b style="color: var(--fuse-text);">App Secret</b></li>
+                              <li>在「权限管理」→ 添加权限 → 搜索并添加 <b style="color: var(--fuse-text);">im:message:send_as_bot</b>（以机器人身份发送消息）</li>
+                              <li>在「安全设置」中设置服务器 IP 白名单（当前服务器IP）</li>
+                              <li>在「版本管理与发布」中创建版本 → 提交审核 → 审核通过后点击「发布」</li>
+                              <li>在飞书中将该机器人拉入目标群聊：群设置 → 群机器人 → 添加机器人 → 选择刚创建的应用</li>
+                              <li>从群聊URL获取 <b style="color: var(--fuse-text);">chat_id</b>（URL中的 <span style="color: var(--fuse-text);">oc_xxxxxxxx</span> 部分）填入后端配置</li>
+                              <li>将 App ID、App Secret 填入上方「飞书推送」区域，保存即可</li>
+                            </ol>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+
                 </div><!-- end right panel -->
                 </template>
 
@@ -2048,6 +2235,8 @@ ${r?'Expression: "'+r+`"
                     </button>
                     <button @click="rightPanelTab='auto'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="自动化">🔄</button>
                     <button @click="rightPanelTab='reports'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="报告">📊</button>
+                    <button x-show="selectedEmployee?.id === 'logistics-agent'"
+                            @click="rightPanelTab='logistics-config'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="物流配置">⚙️</button>
                   </div>
                 </template>
 
@@ -3596,6 +3785,108 @@ ${r?'Expression: "'+r+`"
     </div>
 
     <!-- ============================================================== -->
+    <!-- LOGISTICS HELP MODAL                                            -->
+    <!-- ============================================================== -->
+    <div x-show="showLogisticsHelp" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+         @click.self="showLogisticsHelp = false">
+      <div class="relative w-full max-w-lg mx-4 page-enter" @click.stop>
+        <div class="rounded-2xl p-6" style="background: var(--fuse-card); border: 1px solid var(--fuse-border);">
+          <button @click="showLogisticsHelp = false"
+                  class="absolute -top-2.5 -right-2.5 w-7 h-7 rounded-full flex items-center justify-center text-sm"
+                  style="background: var(--bg-card-strong); border: 1px solid var(--border-glass); color: var(--fuse-muted);">
+            <i class="fas fa-times"></i>
+          </button>
+          <div class="text-center mb-5">
+            <div class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl mb-3"
+                 style="background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.15));">
+              📦
+            </div>
+            <h2 class="text-lg font-bold" style="color: var(--fuse-text);">驿递通·物流客服</h2>
+            <p class="text-sm mt-1" style="color: var(--fuse-muted);">快递站点智能客服助手 · 极兔速递集成</p>
+          </div>
+          <div class="space-y-3 mb-5">
+            <div class="p-3 rounded-xl" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
+              <div class="flex items-start gap-3">
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background: rgba(59,130,246,0.12);">
+                  <i class="fas fa-search text-sm" style="color: #60a5fa;"></i>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold" style="color: var(--fuse-text);">📋 物流查询</div>
+                  <div class="text-[11px] mt-0.5" style="color: var(--fuse-muted);">输入极兔运单号查询最新物流轨迹和签收状态</div>
+                  <div class="text-[10px] mt-1 px-2 py-0.5 rounded inline-block" style="background: rgba(59,130,246,0.08); color: #60a5fa;">"帮我查一下 JT1234567890123"</div>
+                </div>
+              </div>
+            </div>
+            <div class="p-3 rounded-xl" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
+              <div class="flex items-start gap-3">
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background: rgba(239,68,68,0.12);">
+                  <i class="fas fa-ban text-sm" style="color: #f87171;"></i>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold" style="color: var(--fuse-text);">🚫 退回件拦截</div>
+                  <div class="text-[11px] mt-0.5" style="color: var(--fuse-muted);">对在途退回件发起拦截，支持指定拦截原因</div>
+                  <div class="text-[10px] mt-1 px-2 py-0.5 rounded inline-block" style="background: rgba(239,68,68,0.08); color: #f87171;">"拦截退回件 JT1234567890123"</div>
+                </div>
+              </div>
+            </div>
+            <div class="p-3 rounded-xl" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
+              <div class="flex items-start gap-3">
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background: rgba(52,211,153,0.12);">
+                  <i class="fas fa-pen text-sm" style="color: #34d399;"></i>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold" style="color: var(--fuse-text);">📝 修改收件地址</div>
+                  <div class="text-[11px] mt-0.5" style="color: var(--fuse-muted);">修改在途快递的收件人姓名、电话和地址</div>
+                  <div class="text-[10px] mt-1 px-2 py-0.5 rounded inline-block" style="background: rgba(52,211,153,0.08); color: #34d399;">"修改地址 JT1234567890123 新地址..."</div>
+                </div>
+              </div>
+            </div>
+            <div class="p-3 rounded-xl" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);">
+              <div class="flex items-start gap-3">
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background: rgba(251,191,36,0.12);">
+                  <i class="fas fa-file-pdf text-sm" style="color: #fbbf24;"></i>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold" style="color: var(--fuse-text);">📄 回单查询</div>
+                  <div class="text-[11px] mt-0.5" style="color: var(--fuse-muted);">获取已签收快递的电子回单 PDF</div>
+                  <div class="text-[10px] mt-1 px-2 py-0.5 rounded inline-block" style="background: rgba(251,191,36,0.08); color: #fbbf24;">"下载回单 JT1234567890123"</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-xl p-4" style="background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.15);">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="fas fa-info-circle text-xs" style="color: #a78bfa;"></i>
+              <span class="text-xs font-semibold" style="color: #a78bfa;">使用前提</span>
+            </div>
+            <p class="text-[11px] leading-relaxed" style="color: var(--fuse-muted);">
+              在右侧面板「配置」选项卡中填写极兔速递 API 凭证后，物流客服即可执行真实操作。配置保存在当前企业账号下，无需重复填写。
+            </p>
+          </div>
+          <div class="flex gap-2 mt-5">
+            <button @click="showLogisticsHelp = false; $nextTick(() => { rightPanelTab='logistics-config'; if (rightPanelCollapsed) toggleRightPanel(); })"
+                    class="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white transition"
+                    style="background: linear-gradient(135deg, var(--fuse-accent), var(--fuse-accent2));">
+              <i class="fas fa-cog text-xs mr-1"></i>去配置
+            </button>
+            <button @click="showLogisticsHelp = false"
+                    class="flex-1 py-2.5 rounded-lg text-sm transition"
+                    style="color: var(--fuse-text2); border: 1px solid var(--fuse-border); background: var(--fuse-surface);">
+              知道了
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
     <!-- ZHIWEN SETTINGS MODAL                                           -->
     <!-- ============================================================== -->
     <div x-show="showZhiWenSettingsModal"
@@ -4236,6 +4527,18 @@ ${r?'Expression: "'+r+`"
         chatHistorySearch: '',
         rightPanelCollapsed: false,
 
+        // ---- Logistics Config ---- 
+        logisticsConfig: { api_account: '', plain_password: '', private_key: '', customer_code: '', feishu_app_id: '', feishu_app_secret: '', feishu_chat_id: '' },
+        logisticsSaving: false,
+        logisticsTesting: false,
+        logisticsStatus: '',
+        feishuSaving: false,
+        feishuTesting: false,
+        feishuStatus: '',
+        showLogisticsHelp: false,
+        showConfigGuide: false,
+        abortController: null,
+
         // ---- ZhiWen Settings ----
         showZhiWenSettingsModal: false,
         zhiWenSettingsTab: 'topics',  // 'topics' | 'push'
@@ -4458,11 +4761,23 @@ ${r?'Expression: "'+r+`"
               { label: '今日早报', icon: 'newspaper', msg: '整理今日行业客户动态和潜在销售线索' },
               { label: '任务状态', icon: 'list-check', msg: '查看客户跟进和销售任务完成情况' },
             ],
+            // ── 驿递通·物流客服 ──
+            'logistics-agent': [
+              { label: '查询物流', icon: 'search', msg: '帮我查一下快递单号 UT0000456907255 的最新物流状态，包括当前所在网点、预计派送时间和签收信息' },
+              { label: '退回拦截', icon: 'undo', msg: '我需要拦截退回件，运单号 UT0000456907255，拦截原因：客户要求退回后再发新地址。拦截后请告知我新的退件路由信息' },
+              { label: '修改地址', icon: 'edit', msg: '修改地址 UT0000456907255 收件人:王小明 电话:18812345678 地址:广东省深圳市南山区科技园' },
+              { label: '使用帮助', icon: 'question-circle', msg: 'showLogisticsHelp' },
+            ],
           };
           return defs[id] || defs['ceo-advisor'];
         },
 
         addQuickMsg(msg) {
+          // For logistics-agent, "showLogisticsHelp" opens the help modal
+          if (msg === 'showLogisticsHelp') {
+            this.showLogisticsHelp = true;
+            return;
+          }
           // For ceo-advisor, topic-specific actions show the topic picker
           if (this.selectedEmployee?.id === 'ceo-advisor') {
             const modeMap = {
@@ -4789,6 +5104,7 @@ ${r?'Expression: "'+r+`"
                 // Preload reports and topics so right panel shows data on first load
                 this.loadReports();
                 this.loadTopics();
+                this.loadLogisticsConfig();
                 return;
               } else {
                 // Token expired
@@ -4906,17 +5222,24 @@ ${r?'Expression: "'+r+`"
         // CHAT
         // ================================================================
         async selectEmployee(emp) {
+          // 中断上一个还在流式输出的请求
+          this.abortController?.abort();
+          this.abortController = null;
+          this.isStreaming = false;
           this.selectedEmployee = emp;
           this.currentPage = 'chat';
           this.messages = [];
           this.currentConversationId = null;
           this.streamingContent = '';
+          this.showLogisticsHelp = false;
 
           // Send welcome message via SSE
           await this.startConversation(emp);
         },
 
         async startConversation(emp) {
+          this.abortController = new AbortController();
+          const signal = this.abortController.signal;
           this.isStreaming = true;
 
           // Add a placeholder AI message that will be streamed into
@@ -4930,6 +5253,7 @@ ${r?'Expression: "'+r+`"
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${this.token}`
               },
+              signal,
               body: JSON.stringify({
                 employee_id: emp.id,
                 message: '你好'
@@ -4987,6 +5311,7 @@ ${r?'Expression: "'+r+`"
               }
             }
           } catch (e) {
+            if (e.name === 'AbortError') return; // 用户切换了员工，静默忽略
             this.showToast(e.message || '对话初始化失败', 'error');
             // Remove the placeholder message on error
             this.messages = this.messages.filter(m => m.content !== '');
@@ -5008,6 +5333,8 @@ ${r?'Expression: "'+r+`"
           const aiMsg = { role: 'assistant', content: '', skills_used: [] };
           this.messages.push(aiMsg);
 
+          this.abortController = new AbortController();
+          const signal = this.abortController.signal;
           this.isStreaming = true;
           this.streamingContent = '';
 
@@ -5024,6 +5351,7 @@ ${r?'Expression: "'+r+`"
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${this.token}`
               },
+              signal,
               body: JSON.stringify({
                 employee_id: this.selectedEmployee.id,
                 message: msg,
@@ -5079,6 +5407,7 @@ ${r?'Expression: "'+r+`"
               }
             }
           } catch (e) {
+            if (e.name === 'AbortError') return;
             this.showToast(e.message || '发送失败', 'error');
             this.messages = this.messages.filter(m => m.content !== '');
             this.streamingContent = '';
@@ -6017,6 +6346,142 @@ ${r?'Expression: "'+r+`"
               const el = this.$refs.teamChatMessages;
               if (el) el.scrollTop = el.scrollHeight;
             });
+          }
+        },
+
+        // ================================================================
+        // LOGISTICS CONFIG
+        // ================================================================
+        async loadLogisticsConfig() {
+          try {
+            const res = await fetch('/api/v1/logistics/config', {
+              headers: { 'Authorization': `Bearer ${this.token}` }
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.api_account) this.logisticsConfig.api_account = data.api_account;
+              if (data.plain_password) this.logisticsConfig.plain_password = data.plain_password;
+              if (data.private_key) this.logisticsConfig.private_key = data.private_key;
+              if (data.customer_code) this.logisticsConfig.customer_code = data.customer_code;
+              if (data.feishu_app_id) this.logisticsConfig.feishu_app_id = data.feishu_app_id;
+              if (data.feishu_app_secret) this.logisticsConfig.feishu_app_secret = data.feishu_app_secret;
+              if (data.feishu_chat_id) this.logisticsConfig.feishu_chat_id = data.feishu_chat_id;
+            }
+          } catch (e) { /* silently fail */ }
+        },
+
+        async saveLogisticsConfig() {
+          this.logisticsSaving = true;
+          this.logisticsStatus = '';
+          try {
+            const body = { ...this.logisticsConfig };
+            // Remove empty strings to not overwrite existing masked values
+            for (const key of Object.keys(body)) {
+              if (!body[key]) delete body[key];
+            }
+            const res = await fetch('/api/v1/logistics/config', {
+              method: 'PUT',
+              headers: { 'Authorization': `Bearer ${this.token}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (data.success) {
+              this.logisticsStatus = '💾 配置已保存';
+              this.showToast('物流配置已保存', 'success');
+              // Reload to show masked values
+              await this.loadLogisticsConfig();
+            } else {
+              this.logisticsStatus = '❌ 保存失败: ' + (data.detail || '未知错误');
+            }
+          } catch (e) {
+            this.logisticsStatus = '❌ 保存失败: ' + e.message;
+          } finally {
+            this.logisticsSaving = false;
+          }
+        },
+
+        async testLogisticsConnection() {
+          this.logisticsTesting = true;
+          this.logisticsStatus = '';
+          try {
+            const body = { ...this.logisticsConfig };
+            for (const key of Object.keys(body)) {
+              if (!body[key]) delete body[key];
+            }
+            const res = await fetch('/api/v1/logistics/test-connection', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${this.token}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (data.success) {
+              this.logisticsStatus = '✅ 连接成功！极兔API可正常调用';
+              this.showToast('极兔连接成功 ✅', 'success');
+            } else {
+              this.logisticsStatus = '❌ ' + (data.message || '连接失败');
+            }
+          } catch (e) {
+            this.logisticsStatus = '❌ 连接异常: ' + e.message;
+          } finally {
+            this.logisticsTesting = false;
+          }
+        },
+
+        // ================================================================
+        // FEISHU CONFIG
+        // ================================================================
+        async saveFeishuConfig() {
+          this.feishuSaving = true;
+          this.feishuStatus = '';
+          try {
+            const body = {};
+            if (this.logisticsConfig.feishu_app_id) body.feishu_app_id = this.logisticsConfig.feishu_app_id;
+            if (this.logisticsConfig.feishu_app_secret) body.feishu_app_secret = this.logisticsConfig.feishu_app_secret;
+            if (this.logisticsConfig.feishu_chat_id) body.feishu_chat_id = this.logisticsConfig.feishu_chat_id;
+            const res = await fetch('/api/v1/logistics/config', {
+              method: 'PUT',
+              headers: { 'Authorization': `Bearer ${this.token}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (data.success) {
+              this.feishuStatus = '💾 飞书配置已保存';
+              this.showToast('飞书配置已保存', 'success');
+              await this.loadLogisticsConfig();
+            } else {
+              this.feishuStatus = '❌ 保存失败: ' + (data.detail || '未知错误');
+            }
+          } catch (e) {
+            this.feishuStatus = '❌ 保存失败: ' + e.message;
+          } finally {
+            this.feishuSaving = false;
+          }
+        },
+
+        async testFeishuConnection() {
+          this.feishuTesting = true;
+          this.feishuStatus = '';
+          try {
+            const body = {};
+            if (this.logisticsConfig.feishu_app_id) body.feishu_app_id = this.logisticsConfig.feishu_app_id;
+            if (this.logisticsConfig.feishu_app_secret) body.feishu_app_secret = this.logisticsConfig.feishu_app_secret;
+            if (this.logisticsConfig.feishu_chat_id) body.feishu_chat_id = this.logisticsConfig.feishu_chat_id;
+            const res = await fetch('/api/v1/logistics/test-feishu', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${this.token}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            if (data.success) {
+              this.feishuStatus = '✅ 飞书连接成功！可在群中@物流客服使用';
+              this.showToast('飞书连接成功 ✅', 'success');
+            } else {
+              this.feishuStatus = '❌ ' + (data.message || '连接失败');
+            }
+          } catch (e) {
+            this.feishuStatus = '❌ 连接异常: ' + e.message;
+          } finally {
+            this.feishuTesting = false;
           }
         },
 
