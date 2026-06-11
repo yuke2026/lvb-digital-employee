@@ -1,5 +1,6 @@
 """经营分析 — API路由"""
 import json, os, logging, threading, time, uuid
+from datetime import datetime
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -310,6 +311,7 @@ async def analyze_custom(
     col_dims = data.get('col_dims', [])
     values = data.get('values', [])
     filters = data.get('filters', [])
+    dimensions = data.get('dimensions', None)  # 命名维度模式
     title = data.get('title', '经营分析报告')
 
     try:
@@ -319,27 +321,79 @@ async def analyze_custom(
         else:
             merged_df = list(analyzer.tables.values())[0]
 
-        # 2. 聚合
-        aggr_result = analyzer.aggregate(
+        # 2. 多维度组合分析（命名维度模式或交叉模式）
+        analysis_result = analyzer.analyze_all(
             merged_df,
             row_dims=row_dims,
-            col_dims=col_dims,
             values=values,
             filters=filters,
+            dimensions=dimensions,
         )
 
-        # 3. 生成HTML报告
+        # 3. 生成AI洞察（基于所有分析结果）
+        ai_insights_text = ''
+        try:
+            sections = analysis_result.get('sections', [])
+            sample_data = []
+            for s in sections[:3]:
+                sample_data.append({
+                    'label': s.get('label'),
+                    'total': s.get('total'),
+                    'rows': s.get('rows'),
+                    'sample': s.get('data', [])[:5],
+                })
+            insight_prompt = f"""你是一个数据分析专家。以下是多维度分析结果，请生成一份简洁的商业洞察报告。
+
+共 {len(sections)} 个分析维度:
+
+{json.dumps(sample_data, ensure_ascii=False, indent=2)}
+
+请输出:
+1. 📊 核心发现（从各维度数据中提炼关键趋势和结论）
+2. 🔍 关键洞察（异常点、分布特征、维度间关联）
+3. 💡 业务建议（2-3条可执行建议）
+
+用中文，简洁有力。"""
+            ai_content = await chat_with_deepseek(
+                system_prompt="你是一个数据分析专家，擅长从多维度数据中发现商业洞察。用中文输出。",
+                messages=[{"role": "user", "content": insight_prompt}],
+                max_tokens=1536,
+            )
+            if ai_content:
+                ai_insights_text = ai_content
+        except Exception as ai_err:
+            logger.warning(f"AI洞察生成失败: {ai_err}")
+
+        # 4. 生成HTML报告（多章节）
         html, report_id = analyzer.build_html_report(
             title=title,
-            aggr_result=aggr_result,
+            analysis_result=analysis_result,
             join_info=joins,
             org_id=org_id,
+            ai_insights=ai_insights_text,
         )
 
-        # 保存报告文件
+        # 保存HTML报告文件
         report_path = REPORT_DIR / org_id / f"{report_id}.html"
+        os.makedirs(os.path.dirname(report_path), exist_ok=True)
         with open(report_path, 'w', encoding='utf-8') as f:
             f.write(html)
+
+        # 生成并保存PPT
+        try:
+            ppt_bytes = analyzer.build_ppt_report(
+                title=title,
+                analysis_result=analysis_result,
+                ai_insights=ai_insights_text,
+                org_id=org_id,
+            )
+            ppt_path = REPORT_DIR / org_id / f"{report_id}.pptx"
+            with open(ppt_path, 'wb') as f:
+                f.write(ppt_bytes)
+            ppt_saved = True
+        except Exception as ppt_err:
+            logger.warning(f"PPT生成失败: {ppt_err}")
+            ppt_saved = False
 
         # 记录到内存
         report_dict = {
@@ -347,19 +401,21 @@ async def analyze_custom(
             'org_id': org_id,
             'title': title,
             'html_path': str(report_path),
+            'ppt_path': str(ppt_path) if ppt_saved else None,
             'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         }
         with _lock:
             _reports[report_id] = report_dict
 
-        logger.info(f"[{org_id}] 自定义分析完成: {report_id}")
+        logger.info(f"[{org_id}] 自定义分析完成: {report_id} (HTML+PPT)")
 
         return {
             "success": True,
             "report_id": report_id,
             "title": title,
             "created_at": report_dict['created_at'],
-            "aggregation": aggr_result,
+            "aggregation": analysis_result,
+            "insights": ai_insights_text,
         }
 
     except Exception as e:
@@ -478,3 +534,36 @@ async def ai_insights(
         insights = "AI洞察暂时不可用"
 
     return {"success": True, "insights": insights}
+
+
+@router.get("/reports/{report_id}/download")
+async def download_report(
+    report_id: str,
+    fmt: str = "html",
+    current_user: User = Depends(get_current_user),
+    db_session: AsyncSession = Depends(get_db),
+):
+    """下载分析报告 (HTML/PPT)"""
+    org_id = await _get_org_id(db_session, current_user)
+    report_dict = _reports.get(report_id)
+    if not report_dict or report_dict['org_id'] != org_id:
+        raise HTTPException(404, "报告不存在")
+
+    if fmt == "pptx":
+        path = report_dict.get('ppt_path')
+        if not path or not os.path.exists(path):
+            raise HTTPException(404, "PPT报告不存在")
+        return FileResponse(
+            path,
+            media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            filename=f"{report_dict['title']}.pptx",
+        )
+    else:
+        path = report_dict.get('html_path')
+        if not path or not os.path.exists(path):
+            raise HTTPException(404, "HTML报告不存在")
+        return FileResponse(
+            path,
+            media_type="text/html; charset=utf-8",
+            filename=f"{report_dict['title']}.html",
+        )

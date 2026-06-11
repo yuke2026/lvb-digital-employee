@@ -173,17 +173,35 @@
   .dim-group .label { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
   .dim-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: .15s; border: 1px solid var(--border-glass); margin: 3px; background: var(--bg-card); color: var(--text-gray); }
   .dim-chip:hover { border-color: #818cf8; background: rgba(129,140,248,.08); }
-  .dim-chip.selected { border-color: #818cf8; background: rgba(129,140,248,.15); color: #a78bfa; }
+  .dim-chip.selected { border-color: #818cf8; background: rgba(129,140,248,.2); color: #fff; font-weight: 600; }
   .recommend-card { background: var(--bg-card); border: 1px solid var(--border-glass-light); border-radius: 10px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; transition: .15s; }
   .recommend-card:hover { background: var(--bg-hover); }
   .recommend-card .title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
   .recommend-card .desc { font-size: 11px; color: var(--text-gray-500); margin-top: 2px; }
   .recommend-card .reason { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-style: italic; }
+  .recommend-card .rec-action { font-size: 11px; font-weight: 600; margin-top: 6px; color: #818cf8; }
+  .recommend-card.added { opacity: 0.5; border-color: var(--border-glass); cursor: default; pointer-events: none; }
+  .recommend-card.added .rec-action { color: #22c55e; }
+  .builder-chip { margin: 2px; padding: 4px 10px; font-size: 11px; }
+  .builder-chip.selected { color: #fff !important; background: rgba(129,140,248,.3) !important; }
+  select option { color: #1e293b; background: #fff; }
+  select option:disabled { color: #9ca3af; }
   .preview-table { width: 100%; border-collapse: collapse; font-size: 11px; }
   .preview-table th { background: var(--bg-tertiary); color: var(--text-gray-300); padding: 5px 8px; text-align: left; font-weight: 500; }
   .preview-table td { padding: 4px 8px; color: var(--text-gray); border-bottom: 1px solid var(--border-glass-light); }
   .preview-table tr:hover td { background: var(--bg-hover); }
   .insight-box { background: rgba(59,130,246,.05); border-left: 3px solid #3b82f6; border-radius: 0 10px 10px 0; padding: 16px 20px; margin-top: 16px; font-size: 13px; line-height: 1.8; color: var(--text-primary); white-space: pre-wrap; }
+  .result-kpi { background: var(--bg-card); border: 1px solid var(--border-glass-light); border-radius: 10px; padding: 12px 14px; }
+  .result-kpi .rk-label { font-size: 10px; color: var(--text-muted); margin-bottom: 2px; text-transform: uppercase; }
+  .result-kpi .rk-val { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+  .sec-tab { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border-glass); background: var(--bg-card); color: var(--text-secondary); font-size: 12px; font-weight: 500; cursor: pointer; transition: all .2s; white-space: nowrap; }
+  .sec-tab:hover { background: var(--bg-glass-strong); }
+  .sec-tab.active { background: linear-gradient(135deg,#3b82f6,#8b5cf6); color: #fff; border-color: transparent; }
+  .mini-kpi { background: var(--bg-card); border: 1px solid var(--border-glass-light); border-radius: 8px; padding: 8px 14px; display: flex; gap: 8px; align-items: center; }
+  .mini-kpi .mk-label { font-size: 11px; color: var(--text-muted); }
+  .mini-kpi .mk-val { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+  .btn-success { padding: 8px 20px; background: #059669; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: background .2s; }
+  .btn-success:hover { background: #047857; }
   .loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: none; align-items: center; justify-content: center; }
   .loading-overlay.show { display: flex; }
   .loading-box { background: var(--bg-secondary); border-radius: 16px; padding: 32px; text-align: center; max-width: 400px; border: 1px solid var(--border-glass); }
@@ -236,6 +254,31 @@
     <button class="btn btn-outline" onclick="resetAll()" id="resetBtn" style="display:none">🔄 重新开始</button>
   </div>
 
+    <!-- 离线版下载横幅 -->
+    <div style="margin-bottom:16px;background:linear-gradient(135deg,#F0FDF4,#ECFDF5);border:1px solid #A7F3D0;border-radius:12px;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:#065F46">💻 想要完全离线运行？</div>
+        <div style="font-size:12px;color:#047857;margin-top:2px">下载浏览器版，双击即用，数据不出电脑</div>
+      </div>
+      <a href="/analyze-browser" style="padding:8px 20px;background:#059669;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:6px">🌐 下载浏览器版</a>
+    </div>
+
+    <!-- 安全说明 -->
+    <div style="margin-bottom:24px;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div style="font-size:12px;color:var(--text-gray-400);line-height:1.6;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:10px">
+        🔒 <strong style="color:var(--text-primary)">数据安全</strong><br>原始数据仅在内存中处理，分析完成后自动删除
+      </div>
+      <div style="font-size:12px;color:var(--text-gray-400);line-height:1.6;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:10px">
+        🖥️ <strong style="color:var(--text-primary)">纯本地运算</strong><br>所有分析在服务器本地完成，不调用第三方API
+      </div>
+      <div style="font-size:12px;color:var(--text-gray-400);line-height:1.6;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:10px">
+        🏢 <strong style="color:var(--text-primary)">企业隔离</strong><br>数据仅本企业可见，与其他租户完全隔离
+      </div>
+      <div style="font-size:12px;color:var(--text-gray-400);line-height:1.6;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:10px">
+        🧠 <strong style="color:var(--text-primary)">AI 驱动</strong><br>AI维度推荐+洞察生成，走内部百应智星对话模型
+      </div>
+    </div>
+
   <!-- Step Indicator -->
   <div class="step-indicator">
     <div class="step-dot active" id="sd1">1</div><div class="step-line" id="sl1"></div>
@@ -255,15 +298,6 @@
       <div style="font-size:11px;color:var(--text-gray-500);margin-top:8px">支持 .xlsx .xls .csv ｜ 最多5个文件 ｜ 每个最大20MB</div>
     </div>
 
-    <!-- 离线版下载横幅 -->
-    <div style="margin-top:16px;margin-bottom:16px;background:linear-gradient(135deg,#F0FDF4,#ECFDF5);border:1px solid #A7F3D0;border-radius:12px;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <div>
-        <div style="font-size:14px;font-weight:600;color:#065F46">💻 想要完全离线运行？</div>
-        <div style="font-size:12px;color:#047857;margin-top:2px">下载浏览器版，双击即用，数据不出电脑</div>
-      </div>
-      <a href="/analyze-browser" style="padding:8px 20px;background:#059669;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:6px">🌐 下载浏览器版</a>
-    </div>
-
     <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple>
     <div id="fileList" style="margin-top:12px"></div>
     <div style="margin-top:16px;display:flex;gap:8px">
@@ -271,21 +305,6 @@
       <button class="btn btn-outline" onclick="document.getElementById('fileInput').click()">➕ 添加文件</button>
     </div>
 
-    <!-- 安全说明 -->
-    <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:14px">
-      <div style="font-size:12px;color:var(--text-gray-400);line-height:1.6;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:10px">
-        🔒 <strong style="color:var(--text-primary)">数据安全</strong><br>原始数据仅在内存中处理，分析完成后自动删除
-      </div>
-      <div style="font-size:12px;color:var(--text-gray-400);line-height:1.6;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:10px">
-        🖥️ <strong style="color:var(--text-primary)">纯本地运算</strong><br>所有分析在服务器本地完成，不调用第三方API
-      </div>
-      <div style="font-size:12px;color:var(--text-gray-400);line-height:1.6;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:10px">
-        🏢 <strong style="color:var(--text-primary)">企业隔离</strong><br>数据仅本企业可见，与其他租户完全隔离
-      </div>
-      <div style="font-size:12px;color:var(--text-gray-400);line-height:1.6;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:10px">
-        🧠 <strong style="color:var(--text-primary)">AI 驱动</strong><br>AI维度推荐+洞察生成，走内部百应智星对话模型
-      </div>
-    </div>
   </div>
 
   <!-- ===== STEP 2: SCHEMA ===== -->
@@ -306,24 +325,62 @@
 
   <!-- ===== STEP 4: DIMENSIONS ===== -->
   <div class="step" id="step4">
-    <button class="btn" onclick="aiRecommend()" id="aiRecBtn" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;margin-bottom:16px">🤖 AI 推荐分析维度</button>
-    <div id="recommendationsArea" style="margin-bottom:16px"></div>
-    <div class="dim-group">
-      <div class="label">📌 行维度（分组依据）</div>
-      <div id="rowDims" class="dim-chips"></div>
+    <p style="font-size:13px;color:var(--text-gray-400);margin-bottom:16px">逐个添加分析维度，每个维度有独立的名字和配置</p>
+
+    <!-- 可用字段参考 -->
+    <div style="margin-bottom:16px;background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:10px;padding:12px 16px">
+      <div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:6px">📋 可用字段</div>
+      <div id="availableFields" style="display:flex;gap:6px;flex-wrap:wrap"></div>
     </div>
-    <div class="dim-group">
-      <div class="label">📊 值维度（聚合指标）</div>
-      <div id="valueDims" class="dim-chips"></div>
-    </div>
-    <div class="dim-group" style="display:flex;gap:12px;align-items:center">
-      <div>
-        <div class="label" style="margin-bottom:4px">聚合方式</div>
-        <select id="aggSelect" style="background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-glass);border-radius:6px;padding:6px 10px;font-size:12px">
-          <option value="sum">求和</option><option value="avg">平均</option><option value="count">计数</option><option value="min">最小值</option><option value="max">最大值</option>
+
+    <!-- 维度构建表单 -->
+    <div style="background:var(--bg-card-strong);border:1px solid var(--border-glass);border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:12px">➕ 添加分析维度</div>
+      
+      <!-- 维度名称 -->
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">维度名称</div>
+        <input id="dimNameInput" placeholder="如：商家维度" style="width:100%;max-width:300px;background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-input);border-radius:8px;padding:8px 12px;font-size:12px;outline:none">
+      </div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
+        <!-- 行维度（多选芯片） -->
+        <div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">📌 行维度（点击选择，可多选。不选=整体汇总）</div>
+          <div id="dimRowChips" class="dim-chips" style="min-height:32px;padding:4px;background:var(--bg-input);border:1px solid var(--border-input);border-radius:8px"></div>
+        </div>
+        <!-- 值维度（多选芯片） -->
+        <div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">📊 值维度（点击选择，可多选。不选=纯计数）</div>
+          <div id="dimValChips" class="dim-chips" style="min-height:32px;padding:4px;background:var(--bg-input);border:1px solid var(--border-input);border-radius:8px"></div>
+        </div>
+      </div>
+      
+      <!-- 聚合 -->
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">聚合方式</div>
+        <select id="dimAggSelect" style="background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-input);border-radius:8px;padding:8px 12px;font-size:12px">
+          <option value="sum">求和</option><option value="avg">平均</option>
+          <option value="count">计数</option><option value="min">最小值</option><option value="max">最大值</option>
         </select>
       </div>
+      
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="addDimension()" id="addDimBtn">➕ 添加此维度</button>
+        <button class="btn" onclick="aiRecommend()" id="aiRecBtn" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;font-size:12px">🤖 AI 智能推荐</button>
+      </div>
     </div>
+
+    <!-- 推荐的维度 -->
+    <div id="recommendationsArea" style="margin-bottom:16px"></div>
+
+    <!-- 已添加的维度列表 -->
+    <div id="dimensionList" style="margin-bottom:16px">
+      <div style="font-size:13px;color:var(--text-muted);padding:20px;text-align:center;background:var(--bg-card);border:1px dashed var(--border-glass);border-radius:10px">
+        还没有添加分析维度，请在上面添加至少一个维度
+      </div>
+    </div>
+
     <div style="margin-top:16px;display:flex;gap:8px">
       <button class="btn btn-outline" onclick="goStep(3)">← 上一步</button>
       <button class="btn btn-primary" onclick="runAnalysis()" id="analyzeBtn" disabled>🚀 生成分析报告</button>
@@ -448,21 +505,129 @@ function getJoins(){
   return pairs.map(p=>({left_table:p.a.table_id,left_col:document.getElementById('j_l_'+p.idx)?.value||'',right_table:p.b.table_id,right_col:document.getElementById('j_r_'+p.idx)?.value||'',how:document.getElementById('j_h_'+p.idx)?.value||'left'})).filter(j=>j.left_col&&j.right_col);
 }
 
-// ── Dimensions ──
+// ── Dimensions (命名维度构建器，多选芯片) ──
+let dimensionList = [];  // [{name, row_columns, row_labels, val_columns, val_labels, agg}]
+
 function initDimChips(){
   const all=tables.flatMap(t=>t.columns.map(c=>({...c,table:t.filename})));
   const text=all.filter(c=>c.type==='文本'), num=all.filter(c=>c.type==='数值'), date=all.filter(c=>c.type==='日期');
   const mixed=[...text,...num,...date];
-  document.getElementById('rowDims').innerHTML=mixed.map(c=>'<span class="dim-chip" onclick="toggleDim(this)" data-col="'+c.name+'">'+c.name+' <span style="font-size:10px;color:var(--text-muted)">'+c.type+'</span></span>').join('');
-  document.getElementById('valueDims').innerHTML=(num.length?num:mixed).map(c=>'<span class="dim-chip" onclick="toggleDim(this)" data-col="'+c.name+'">'+c.name+'</span>').join('');
+  
+  // 可用字段标签
+  document.getElementById('availableFields').innerHTML=mixed.map(c=>
+    '<span style="padding:3px 10px;border-radius:12px;font-size:11px;border:1px solid var(--border-glass);color:var(--text-secondary)">'+
+    c.name+' <span style="font-size:9px;color:var(--text-muted)">'+c.type+'</span></span>'
+  ).join('');
+  
+  // 多选芯片 — 点击切换选中态
+  document.getElementById('dimRowChips').innerHTML=mixed.map(c=>
+    '<span class="dim-chip builder-chip" onclick="toggleBuilderChip(this,\'row\')" data-col="'+c.name+'">'+c.name+
+    ' <span style="font-size:9px;color:var(--text-muted)">'+c.type+'</span></span>'
+  ).join('');
+  document.getElementById('dimValChips').innerHTML=mixed.map(c=>
+    '<span class="dim-chip builder-chip" onclick="toggleBuilderChip(this,\'val\')" data-col="'+c.name+'">'+c.name+
+    ' <span style="font-size:9px;color:var(--text-muted)">'+c.type+'</span></span>'
+  ).join('');
 }
-function toggleDim(el){el.classList.toggle('selected');updateAnalyzeBtn();}
-function updateAnalyzeBtn(){document.getElementById('analyzeBtn').disabled=!(document.querySelector('#rowDims .dim-chip.selected')&&document.querySelector('#valueDims .dim-chip.selected'));}
-function getSelectedDims(){
-  return{
-    rowDims:Array.from(document.querySelectorAll('#rowDims .dim-chip.selected')).map(el=>({column:el.dataset.col,label:el.dataset.col})),
-    valueDims:Array.from(document.querySelectorAll('#valueDims .dim-chip.selected')).map(el=>({column:el.dataset.col,agg:document.getElementById('aggSelect').value,label:el.dataset.col}))
-  };
+
+function toggleBuilderChip(el){
+  el.classList.toggle('selected');
+}
+
+function getSelectedBuilderChips(containerId){
+  return Array.from(document.querySelectorAll('#'+containerId+' .builder-chip.selected')).map(el=>({
+    column: el.dataset.col,
+    label: el.dataset.col,
+  }));
+}
+
+function addDimension(){
+  const name=document.getElementById('dimNameInput').value.trim();
+  const rowCols=getSelectedBuilderChips('dimRowChips');
+  const valCols=getSelectedBuilderChips('dimValChips');
+  const agg=document.getElementById('dimAggSelect').value;
+  
+  if(!name){showError('请输入维度名称');return;}
+  if(dimensionList.some(d=>d.name===name)){showError('维度名称"'+name+'"已存在，请换个名字');return;}
+  if(!rowCols.length && !valCols.length){showError('请至少选择行维度或值维度');return;}
+  
+  dimensionList.push({
+    name,
+    row_columns: rowCols,  // array of {column, label}
+    val_columns: valCols,  // array of {column, label}
+    agg,
+  });
+  
+  renderDimensionList();
+  // 重置表单
+  document.getElementById('dimNameInput').value='';
+  document.querySelectorAll('.builder-chip.selected').forEach(e=>e.classList.remove('selected'));
+  document.getElementById('dimAggSelect').value='sum';
+  document.getElementById('analyzeBtn').disabled=false;
+  document.getElementById('dimNameInput').focus();
+}
+
+function removeDimension(idx){
+  dimensionList.splice(idx,1);
+  renderDimensionList();
+  if(!dimensionList.length)document.getElementById('analyzeBtn').disabled=true;
+}
+
+function renderDimensionList(){
+  const el=document.getElementById('dimensionList');
+  if(!dimensionList.length){
+    el.innerHTML='<div style="font-size:13px;color:var(--text-muted);padding:20px;text-align:center;background:var(--bg-card);border:1px dashed var(--border-glass);border-radius:10px">还没有添加分析维度，请在上面添加至少一个维度</div>';
+    return;
+  }
+  const aggLabels={sum:'求和',avg:'平均',count:'计数',min:'最小值',max:'最大值'};
+  el.innerHTML=dimensionList.map((d,i)=>
+    '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:10px;margin-bottom:8px">'+
+      '<div style="flex:1">'+
+        '<div style="font-size:13px;font-weight:600;color:var(--text-primary)">📊 '+d.name+'</div>'+
+        '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">'+
+          (d.row_columns.length?'行: <strong style="color:var(--text-secondary)">'+d.row_columns.map(c=>c.label).join('+')+'</strong>':'<strong style="color:var(--text-secondary)">整体汇总</strong>')+
+          ' ｜ 值: <strong style="color:var(--text-secondary)">'+(d.val_columns.length?d.val_columns.map(c=>c.label).join('+'):'计数')+'</strong> ｜ 聚合: <strong style="color:var(--text-secondary)">'+aggLabels[d.agg]+'</strong>'+
+        '</div>'+
+      '</div>'+
+      '<button class="btn btn-outline" onclick="removeDimension('+i+')" style="padding:4px 10px;font-size:11px;color:#fca5a5;border-color:rgba(239,68,68,0.3)">✕ 删除</button>'+
+    '</div>'
+  ).join('');
+  
+  // 刷新AI推荐状态（标记已添加）
+  updateRecAddedState();
+}
+
+// ── Check if a recommendation is already added ──
+function isRecAdded(r){
+  const row=r.row||'';
+  const vals=r.values||[];
+  const agg=r.agg||'sum';
+  return dimensionList.some(d=>{
+    const dRows=d.row_columns.map(c=>c.column);
+    const dVals=d.val_columns.map(c=>c.column);
+    // 检查行维、值维、聚合都匹配
+    if(dRows.length===1 && dRows[0]===row && dVals.length===vals.length && d.agg===agg){
+      return vals.every(v=>dVals.includes(v));
+    }
+    return false;
+  });
+}
+
+function updateRecAddedState(){
+  document.querySelectorAll('.recommend-card').forEach(card=>{
+    const idx=parseInt(card.dataset.recIdx);
+    if(isNaN(idx))return;
+    // 从存储的 recommendations 中获取
+    const recs=window._lastRecs||[];
+    const rec=recs[idx];
+    if(rec && isRecAdded(rec)){
+      card.classList.add('added');
+      card.querySelector('.rec-action').textContent='✅ 已添加';
+    }else{
+      card.classList.remove('added');
+      card.querySelector('.rec-action').textContent='➕ 快速添加';
+    }
+  });
 }
 
 // ── AI Recommend ──
@@ -474,44 +639,185 @@ async function aiRecommend(){
     if(!r.ok)throw new Error('AI推荐失败');
     const d=await r.json(); const recs=d.recommendations||[];
     if(!recs.length)throw new Error('无推荐');
-    document.querySelectorAll('.dim-chip.selected').forEach(e=>e.classList.remove('selected'));
+    window._lastRecs=recs;
     const el=document.getElementById('recommendationsArea');
-    el.innerHTML='<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">🤖 AI 推荐（点击应用）</div>'+
-      recs.map(r=>'<div class="recommend-card" onclick="applyRecommend('+JSON.stringify(r).replace(/"/g,'&quot;')+')"><div class="title">📊 '+r.label+'</div><div class="desc">行: '+r.row+' ｜ 聚合: '+(r.values||[]).join(', ')+' ('+r.agg+')</div><div class="reason">💡 '+(r.reason||'')+'</div></div>').join('');
+    el.innerHTML='<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">🤖 AI 推荐（点击快速添加）</div>'+
+      recs.map((r,idx)=>'<div class="recommend-card'+(isRecAdded(r)?' added':'')+'" data-rec-idx="'+idx+'" onclick="applyRecommend('+JSON.stringify(r).replace(/"/g,'&quot;')+')">'+
+        '<div class="title">📊 '+r.label+'</div>'+
+        '<div class="desc">行: '+r.row+' ｜ 聚合: '+(r.values||[]).join(', ')+' ('+r.agg+')</div>'+
+        '<div class="reason">💡 '+(r.reason||'')+'</div>'+
+        '<div class="rec-action">'+(isRecAdded(r)?'✅ 已添加':'➕ 快速添加')+'</div>'+
+      '</div>').join('');
     btn.innerHTML='🤖 AI 重新推荐';
-  }catch(e){document.getElementById('recommendationsArea').innerHTML='<div style="font-size:12px;color:#fca5a5;padding:8px">'+e.message+'</div>';btn.innerHTML='🤖 AI 推荐分析维度';}
+  }catch(e){document.getElementById('recommendationsArea').innerHTML='<div style="font-size:12px;color:#fca5a5;padding:8px">'+e.message+'</div>';btn.innerHTML='🤖 AI 智能推荐';}
   btn.disabled=false;
 }
+
 function applyRecommend(r){
-  document.querySelectorAll('.dim-chip.selected').forEach(e=>e.classList.remove('selected'));
-  document.querySelectorAll('#rowDims .dim-chip').forEach(e=>{if(e.dataset.col===r.row)e.classList.add('selected');});
-  (r.values||[]).forEach(v=>{document.querySelectorAll('#valueDims .dim-chip').forEach(e=>{if(e.dataset.col===v)e.classList.add('selected');});});
-  if(r.agg)document.getElementById('aggSelect').value=r.agg;
-  document.getElementById('rowDims').scrollIntoView({behavior:'smooth',block:'center'});
-  updateAnalyzeBtn();
+  // 填充名称
+  document.getElementById('dimNameInput').value=r.label||(r.row+'分析');
+  
+  // 清除已有选中
+  document.querySelectorAll('.builder-chip.selected').forEach(e=>e.classList.remove('selected'));
+  
+  // 选中行维芯片
+  if(r.row){
+    document.querySelectorAll('#dimRowChips .builder-chip').forEach(el=>{
+      if(el.dataset.col===r.row)el.classList.add('selected');
+    });
+  }
+  
+  // 选中值维芯片
+  (r.values||[]).forEach(v=>{
+    document.querySelectorAll('#dimValChips .builder-chip').forEach(el=>{
+      if(el.dataset.col===v)el.classList.add('selected');
+    });
+  });
+  
+  // 设置聚合
+  if(r.agg)document.getElementById('dimAggSelect').value=r.agg;
+  
+  document.getElementById('dimNameInput').focus();
+  document.getElementById('dimNameInput').scrollIntoView({behavior:'smooth',block:'center'});
 }
 
-// ── Run Analysis ──
+// ── Run Analysis (命名维度模式) ──
 async function runAnalysis(){
-  const dims=getSelectedDims();
-  if(!dims.rowDims.length||!dims.valueDims.length){showError('请选择行维度和值维度');return;}
-  showLoading('AI 正在分析数据...','维度: '+dims.rowDims.map(d=>d.label).join(', ')+' × '+dims.valueDims.map(d=>d.label).join(', '));
+  if(!dimensionList.length){showError('请至少添加一个分析维度');return;}
+  const dimNames=dimensionList.map(d=>d.name).join(', ');
+  showLoading('正在分析...','维度: '+dimNames);
   try{
-    const r=await fetch(API_BASE+'/api/v1/data-analysis/analyze-custom',{method:'POST',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify({session_id:sessionId,joins:getJoins(),row_dims:dims.rowDims,values:dims.valueDims,title:'经营分析 - '+dims.rowDims[0].label+' × '+dims.valueDims[0].label}),credentials:'include'});
+    const dimensions=dimensionList.map(d=>({
+      name: d.name,
+      row_dims: d.row_columns.length?d.row_columns.map(c=>({column:c.column,label:c.label})):[],
+      values: d.val_columns.length?d.val_columns.map(c=>({column:c.column,agg:d.agg,label:c.label})):[],
+    }));
+    const r=await fetch(API_BASE+'/api/v1/data-analysis/analyze-custom',{method:'POST',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify({session_id:sessionId,joins:getJoins(),dimensions,title:'经营分析 - '+dimNames}),credentials:'include'});
     if(!r.ok){const e=await r.json();throw new Error(e.detail||'分析失败');}
     const d=await r.json();
-    let insights='';
-    try{const ir=await fetch(API_BASE+'/api/v1/data-analysis/ai-insights',{method:'POST',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify({aggregation:d.aggregation}),credentials:'include'});if(ir.ok){const id=await ir.json();insights=id.insights||'';}}catch(e){}
     hideLoading();
-    const agg=d.aggregation||{}, chartData=agg.data||[], cols=agg.columns||[];
-    document.getElementById('resultArea').innerHTML=
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px"><div><h2 style="font-size:18px;font-weight:700;color:var(--text-primary)">✅ 分析完成</h2><p style="font-size:12px;color:var(--text-muted);margin-top:2px">'+(agg.dimensions?.row?.[0]?.label||'')+' ｜ '+(agg.dimensions?.values?.[0]?.label||'')+' ｜ '+chartData.length+' 条结果</p></div><div style="display:flex;gap:8px"><a class="btn btn-primary" href="'+API_BASE+'/api/v1/data-analysis/reports/'+d.report_id+'?fmt=html" target="_blank">📄 查看报告</a><button class="btn btn-outline" onclick="goStep(4)">🔄 重新分析</button></div></div>'+
-      (agg.charts?.main?'<div style="background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:12px;padding:16px;margin-bottom:16px"><img src="'+agg.charts.main+'" style="width:100%;border-radius:8px"></div>':'')+
-      (agg.charts?.pie?'<div style="background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:12px;padding:16px;margin-bottom:16px"><img src="'+agg.charts.pie+'" style="width:100%;max-height:300px;object-fit:contain;border-radius:8px"></div>':'')+
-      (insights?'<div class="insight-box">'+insights+'</div>':'')+
-      (chartData.length?'<div style="background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:12px;overflow:hidden;margin-top:12px"><table class="preview-table" style="font-size:12px"><thead><tr>'+cols.slice(0,6).map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>'+chartData.slice(0,20).map(r=>'<tr>'+cols.slice(0,6).map(c=>'<td>'+(r[c]??'')+'</td>').join('')+'</tr>').join('')+'</tbody></table><div style="text-align:center;padding:8px;font-size:11px;color:var(--text-muted)">前20行（共'+chartData.length+'行）</div></div>':'');
+    const agg=d.aggregation||{}, sections=agg.sections||[], insights=d.insights||'', totalRows=agg.total_rows||0;
+    const dimLabels = agg.dimensions||{};
+    
+    let html = '';
+    
+    // ── Top bar ──
+    const namedDims = (dimLabels.named||[]).join(', ');
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">'+
+      '<div><h2 style="font-size:18px;font-weight:700;color:var(--text-primary)">✅ 分析完成</h2>'+
+      '<p style="font-size:12px;color:var(--text-muted);margin-top:2px">'+namedDims+' ｜ '+sections.length+' 个分析章节</p></div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+        '<button class="btn btn-primary" onclick="downloadReport(\''+d.report_id+'\',\'html\')">📄 HTML报告</button>'+
+        '<button class="btn btn-success" onclick="downloadReport(\''+d.report_id+'\',\'pptx\')">📊 下载PPT</button>'+
+        '<button class="btn btn-outline" onclick="goStep(4)">🔄 重新分析</button>'+
+      '</div></div>';
+    
+    // ── Overview KPI ──
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px">'+
+      '<div class="result-kpi"><div class="rk-label">命名维度</div><div class="rk-val">'+sections.length+'</div></div>'+
+      '<div class="result-kpi"><div class="rk-label">数据总量</div><div class="rk-val">'+totalRows.toLocaleString()+'</div></div>'+
+    '</div>';
+    
+    // ── Group sections by dim_name ──
+    const grouped = {};
+    sections.forEach((s, i) => {
+      const key = s.dim_name || s.label;
+      if(!grouped[key]) grouped[key] = [];
+      grouped[key].push({...s, idx: i});
+    });
+    const groupNames = Object.keys(grouped);
+    
+    // ── Dimension tabs ──
+    html += '<div style="display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;flex-wrap:wrap">';
+    groupNames.forEach((name, gi) => {
+      html += '<button class="sec-tab'+(gi===0?' active':'')+'" onclick="switchGroupTab('+gi+')" id="gtab_'+gi+'">📊 '+name+'</button>';
+    });
+    html += '</div>';
+    
+    // ── Each group content ──
+    groupNames.forEach((name, gi) => {
+      const groupSections = grouped[name];
+      const visible = gi===0 ? '' : ' style="display:none"';
+      let grpHtml = '<div class="sec-content" id="gcont_'+gi+'"'+visible+'>';
+      
+      groupSections.forEach((s, si) => {
+        const chartData = s.data||[], cols = s.columns||[];
+        const total = s.total||0, aggLabel = s.agg_label||'', rowCount = s.rows||0;
+        
+        grpHtml += '<div style="margin-bottom:16px">';
+        
+        // Sub-title
+        if(groupSections.length>1){
+          grpHtml += '<div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px">📎 '+s.label+'</div>';
+        }
+        
+        // Mini KPIs
+        grpHtml += '<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">'+
+          (total?'<div class="mini-kpi"><span class="mk-label">'+aggLabel+'</span><span class="mk-val">'+total.toLocaleString()+'</span></div>':'')+
+          '<div class="mini-kpi"><span class="mk-label">分组数</span><span class="mk-val">'+rowCount+'</span></div>'+
+        '</div>';
+        
+        // Charts
+        if(s.charts?.main){
+          grpHtml += '<div style="background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:12px;padding:16px;margin-bottom:10px"><img src="'+s.charts.main+'" style="width:100%;border-radius:8px"></div>';
+        }
+        if(s.charts?.pie){
+          grpHtml += '<div style="background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:12px;padding:16px;margin-bottom:10px"><img src="'+s.charts.pie+'" style="width:100%;max-height:280px;object-fit:contain;border-radius:8px"></div>';
+        }
+        
+        // Table
+        if(chartData.length){
+          grpHtml += '<div style="background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:12px;overflow:hidden">'+
+            '<table class="preview-table" style="font-size:12px"><thead><tr>'+cols.slice(0,6).map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>'+
+            chartData.slice(0,20).map(r=>'<tr>'+cols.slice(0,6).map(c=>'<td>'+(r[c]??'')+'</td>').join('')+'</tr>').join('')+
+            '</tbody></table>'+
+            '<div style="text-align:center;padding:8px;font-size:11px;color:var(--text-muted)">前20行（共'+chartData.length+'行）</div></div>';
+        }
+        
+        grpHtml += '</div>';
+      });
+      
+      grpHtml += '</div>';
+      html += grpHtml;
+    });
+    
+    // ── AI Insights ──
+    if(insights){
+      html += '<div class="insight-box">'+insights+'</div>';
+    }
+    
+    document.getElementById('resultArea').innerHTML = html;
     goStep(5);
   }catch(e){hideLoading();showError(e.message);}
+}
+
+// ── Group tab switching ──
+function switchGroupTab(idx){
+  document.querySelectorAll('.sec-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('gtab_'+idx).classList.add('active');
+  document.querySelectorAll('.sec-content').forEach(c=>c.style.display='none');
+  document.getElementById('gcont_'+idx).style.display='';
+}
+
+// ── Download report with auth ──
+async function downloadReport(reportId, fmt){
+  try{
+    const btn=event.target;
+    btn.disabled=true; btn.innerHTML=fmt==='pptx'?'⏳ 下载PPT...':'⏳ 下载报告...';
+    const url=API_BASE+'/api/v1/data-analysis/reports/'+reportId+'/download?fmt='+fmt;
+    const res=await fetch(url,{headers:authHeaders()});
+    if(!res.ok){const e=await res.json();throw new Error(e.detail||'下载失败');}
+    const blob=await res.blob();
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='经营分析报告.'+(fmt==='pptx'?'pptx':'html');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    btn.innerHTML=fmt==='pptx'?'📊 下载PPT':'📄 HTML报告';
+    btn.disabled=false;
+  }catch(e){showError(e.message);}
 }
 
 // ── Auth & Theme & User (same as before) ──
