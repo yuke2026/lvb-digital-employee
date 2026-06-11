@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>经营分析工具 - 浏览器版</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:#F1F5F9;color:#1E293B;min-height:100vh}
+  .header{background:linear-gradient(135deg,#0F172A,#1E293B);color:#fff;padding:32px 0;border-bottom:4px solid #2563EB}
+  .header .inner{max-width:800px;margin:0 auto;padding:0 24px}
+  .header h1{font-size:24px;font-weight:700}
+  .header p{color:#94A3B8;font-size:13px;margin-top:4px}
+  .container{max-width:800px;margin:0 auto;padding:24px}
+  .card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:24px;margin-bottom:16px}
+  .upload-zone{border:2px dashed #CBD5E1;border-radius:12px;padding:48px 24px;text-align:center;cursor:pointer;transition:.2s;background:#FAFBFC}
+  .upload-zone:hover{border-color:#2563EB;background:#EFF6FF}
+  .upload-zone.dragover{border-color:#2563EB;background:#DBEAFE}
+  .upload-zone .icon{font-size:48px;margin-bottom:12px}
+  .upload-zone .title{font-size:16px;font-weight:600;color:#1E293B;margin-bottom:6px}
+  .upload-zone .desc{font-size:13px;color:#64748B}
+  #fileInput{display:none}
+  .btn{padding:10px 24px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+  .btn-primary{background:#2563EB;color:#fff}
+  .btn-primary:hover{background:#1D4ED8}
+  .btn-primary:disabled{background:#94A3B8;cursor:not-allowed}
+  .btn-success{background:#059669;color:#fff}
+  .btn-success:hover{background:#047857}
+  .status{padding:16px;border-radius:8px;margin:16px 0;font-size:14px;display:none}
+  .status.loading{display:block;background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF}
+  .status.done{display:block;background:#F0FDF4;border:1px solid #BBF7D0;color:#166534}
+  .status.error{display:block;background:#FEF2F2;border:1px solid #FECACA;color:#991B1B}
+  .progress-bar{width:100%;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden;margin-top:12px;display:none}
+  .progress-bar.show{display:block}
+  .progress-bar .fill{width:0%;height:100%;background:linear-gradient(90deg,#2563EB,#60A5FA);border-radius:3px;transition:width .3s}
+  .result-box{display:none}
+  .result-box.show{display:block}
+  .result-box iframe{width:100%;height:80vh;border:none;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .badge{display:inline-block;background:#DBEAFE;color:#2563EB;font-size:11px;padding:2px 10px;border-radius:20px;font-weight:500}
+  .info-box{background:#FAFBFC;border:1px solid #E2E8F0;border-radius:8px;padding:16px;font-size:13px;color:#64748B;line-height:1.7}
+  .info-box strong{color:#1E293B}
+  .footer{text-align:center;padding:24px;color:#94A3B8;font-size:12px}
+  .steps{display:flex;gap:8px;margin-bottom:20px}
+  .step{flex:1;padding:12px;border-radius:8px;text-align:center;font-size:12px;font-weight:600;background:#F1F5F9;color:#94A3B8}
+  .step.active{background:#DBEAFE;color:#2563EB}
+  .step.done{background:#D1FAE5;color:#059669}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="inner">
+    <h1>📊 经营分析工具</h1>
+    <p>浏览器纯本地运行 · 数据不出电脑 · 无需安装任何软件</p>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Steps indicator -->
+  <div class="steps">
+    <div class="step active" id="step1">① 选择文件</div>
+    <div class="step" id="step2">② 加载引擎</div>
+    <div class="step" id="step3">③ 分析数据</div>
+    <div class="step" id="step4">④ 查看报告</div>
+  </div>
+
+  <!-- Upload -->
+  <div class="card" id="uploadCard">
+    <div class="upload-zone" id="dropZone">
+      <div class="icon">📂</div>
+      <div class="title">点击上传或拖拽 Excel 文件到这里</div>
+      <div class="desc">支持 .xlsx / .csv 格式（暂不支持旧版 .xls）</div>
+      <div style="margin-top:16px">
+        <button class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('fileInput').click()">选择文件</button>
+      </div>
+      <input type="file" id="fileInput" accept=".xlsx,.csv">
+    </div>
+    <div class="info-box" style="margin-top:16px">
+      <strong>🔒 数据安全：</strong>所有分析在浏览器本地完成，文件不上传到任何服务器。
+      分析引擎 <strong>Pyodide</strong>（Python 的 WebAssembly 版本）首次加载约 5-10MB，后续秒开。
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div class="status" id="status">
+    <div id="statusText">加载中...</div>
+    <div class="progress-bar" id="progressBar"><div class="fill" id="progressFill"></div></div>
+  </div>
+
+  <!-- Result -->
+  <div class="card result-box" id="resultBox">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div>
+        <span class="badge">✅ 分析完成</span>
+        <span id="resultInfo" style="font-size:13px;color:#64748B;margin-left:8px"></span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-success" onclick="downloadReport()">⬇ 下载报告</button>
+        <button class="btn btn-primary" onclick="resetAll()">🔄 重新分析</button>
+      </div>
+    </div>
+    <div id="iframeContainer"></div>
+  </div>
+</div>
+
+<div class="footer">
+  🔒 纯本地运算 · 数据不离开您的电脑 · 无需服务器 · 无需安装 Python
+</div>
+
+<script>
+// ============ UI state ============
+let pyodide = null;
+let reportHTML = '';
+let reportFileName = '经营分析报告.html';
+
+// ============ Steps ============
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('step' + i);
+    el.className = 'step';
+    if (i < n) el.classList.add('done');
+    else if (i === n) el.classList.add('active');
+  }
+}
+
+// ============ File handling ============
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('click', () => fileInput.click());
+
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
+dropZone.addEventListener('dragleave', () => {
+  dropZone.classList.remove('dragover');
+});
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+fileInput.addEventListener('change', (e) => {
+  if (e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+async function handleFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['xlsx', 'csv'].includes(ext)) {
+    showStatus('error', '不支持的文件格式，请上传 .xlsx 或 .csv 文件（旧版 .xls 暂不支持）');
+    return;
+  }
+
+  reportFileName = file.name.replace(/\.[^.]+$/, '') + '_经营分析报告.html';
+  document.getElementById('uploadCard').style.display = 'none';
+  showStatus('loading', '正在加载分析引擎（首次约 5-10MB）...');
+
+  try {
+    // Step 2: Load Pyodide
+    setStep(2);
+    await loadPyodideAndPackages();
+    setStep(3);
+    showStatus('loading', '正在分析数据...');
+
+    // Step 3: Run analysis
+    const result = await runAnalysis(file);
+
+    // Step 4: Done
+    setStep(4);
+    reportHTML = result;
+    showResult(file.name, reportHTML);
+
+  } catch (err) {
+    setStep(1);
+    showStatus('error', '分析失败：' + err.message);
+    console.error(err);
+    document.getElementById('uploadCard').style.display = 'block';
+    fileInput.value = '';
+  }
+}
+
+// ============ Pyodide ============
+async function loadPyodideAndPackages() {
+  if (pyodide) return pyodide;
+
+  // Load Pyodide from CDN
+  if (!window.loadPyodide) {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js';
+    document.head.appendChild(script);
+    await new Promise((resolve, reject) => {
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Pyodide 加载失败，请检查网络连接'));
+    });
+  }
+
+  pyodide = await loadPyodide({
+    indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/',
+  });
+
+  // Install packages
+  showStatus('loading', '正在安装分析模块（首次加载）...');
+  await pyodide.loadPackage(['micropip', 'matplotlib', 'numpy']);
+  await pyodide.runPythonAsync(`
+    import micropip
+    await micropip.install('openpyxl')
+  `);
+
+  // Download CJK font for matplotlib charts
+  showStatus('loading', '正在下载中文字体（首次加载约 10MB）...');
+  try {
+    const fontResp = await fetch('https://fonts.gstatic.com/s/notosanssc/v36/k3kCo84MPvpLmixcA63oeAL7Iqp5IZJF9bmaG9_EnYxNbPzS5HE.ttf');
+    if (fontResp.ok) {
+      const fontBuf = await fontResp.arrayBuffer();
+      pyodide.FS.writeFile('/tmp/NotoSansSC.ttf', new Uint8Array(fontBuf));
+    }
+  } catch(e) {
+    console.warn('字体下载失败，图表中文可能显示为方框:', e);
+  }
+
+  return pyodide;
+}
+
+// ============ Analysis ============
+async function runAnalysis(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(arrayBuffer);
+
+  // Write file to Pyodide virtual FS
+  pyodide.FS.writeFile('/input' + (file.name.endsWith('.csv') ? '.csv' : '.xlsx'), bytes);
+
+  // Run analysis Python code
+  const result = await pyodide.runPythonAsync(`
+import json, base64, io, sys
+from collections import defaultdict
+
+# Read Excel
+import openpyxl
+wb = openpyxl.load_workbook('/input.xlsx', read_only=True, data_only=True)
+ws = wb.active
+rows = list(ws.iter_rows(values_only=True))
+wb.close()
+
+MONTHS = ["4月","5月","6月","7月","8月","9月","10月","11月","12月","1月","2月","3月"]
+
+# Load data
+data = []
+for r in rows[1:]:
+    gsv_str = str(r[0]).strip() if r[0] is not None else "0"
+    try: gsv = float(gsv_str) if gsv_str else 0.0
+    except: gsv = 0.0
+    m = str(r[34]).strip() if len(r) > 34 and r[34] else "3月"
+    if m.startswith("2026"): m = "3月"
+    data.append({
+        "gsv": gsv,
+        "brand": str(r[11] or "") if len(r) > 11 else "",
+        "cat3": str(r[18] or "") if len(r) > 18 else "",
+        "store": str(r[13] or "") if len(r) > 13 else "",
+        "prov": str(r[61] or "") if len(r) > 61 else "",
+        "prod_id": str(r[8] or "") if len(r) > 8 else "",
+        "order_id": str(r[2] or "") if len(r) > 2 else "",
+        "month": m,
+    })
+
+# Aggregate
+TOTAL = sum(d["gsv"] for d in data)
+monthly = {m: {"gsv": 0.0, "orders": set()} for m in MONTHS}
+for d in data:
+    monthly[d["month"]]["gsv"] += d["gsv"]
+    monthly[d["month"]]["orders"].add(d["order_id"])
+
+cat3_total = defaultdict(float)
+brand_total = defaultdict(float)
+store_gsv = defaultdict(float)
+prov_total = defaultdict(float)
+prod_cat3 = defaultdict(set)
+all_prods = set()
+month_prods = {m: set() for m in MONTHS}
+
+for d in data:
+    cat3_total[d["cat3"]] += d["gsv"]
+    brand_total[d["brand"]] += d["gsv"]
+    if d["store"]: store_gsv[d["store"]] += d["gsv"]
+    if d["prov"]: prov_total[d["prov"]] += d["gsv"]
+    if d["prod_id"]:
+        prod_cat3[d["cat3"]].add(d["prod_id"])
+        all_prods.add(d["prod_id"])
+        month_prods[d["month"]].add(d["prod_id"])
+
+cats = sorted(cat3_total.items(), key=lambda x: -x[1])
+brands_sorted = sorted(brand_total.items(), key=lambda x: -x[1])
+stores_sorted = sorted(store_gsv.items(), key=lambda x: -x[1])
+provs_sorted = sorted(prov_total.items(), key=lambda x: -x[1])
+
+# Generate charts (simplified - use matplotlib with Agg backend)
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+plt.rcParams['axes.unicode_minus'] = False
+# Register CJK font if available
+import os
+_cjk_font = '/tmp/NotoSansSC.ttf'
+if os.path.exists(_cjk_font):
+    from matplotlib.font_manager import fontManager
+    fontManager.addfont(_cjk_font)
+    plt.rcParams['font.sans-serif'] = ['Noto Sans SC']
+    plt.rcParams['font.family'] = 'sans-serif'
+else:
+    plt.rcParams['font.family'] = ['DejaVu Sans', 'Noto Sans CJK SC', 'WenQuanYi Zen Hei', 'Microsoft YaHei', 'SimHei', 'sans-serif']
+
+charts_b64 = {}
+
+# 1. Monthly bar
+months_act = [m for m in MONTHS if monthly[m]["gsv"] > 0]
+vals = [monthly[m]["gsv"] / 10000 for m in months_act]
+if months_act:
+    fig, ax = plt.subplots(figsize=(10, 4))
+    bars = ax.bar(months_act, vals, color="#2563eb", width=0.55, edgecolor="white", linewidth=0.8)
+    for b, v in zip(bars, vals):
+        ax.text(b.get_x() + b.get_width()/2, b.get_height() + 0.3, f"{v:.1f}", ha="center", va="bottom", fontsize=10, fontweight="bold", color="#1e293b")
+    ax.set_ylabel("GSV（万元）", fontsize=11, color="#64748b")
+    ax.set_title("月度GSV达成", fontsize=15, fontweight="bold", color="#1e293b", pad=15)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.tick_params(colors="#64748b", labelsize=10)
+    ax.set_ylim(0, max(vals) * 1.18)
+    buf = io.BytesIO()
+    fig.savefig(buf, dpi=150, bbox_inches="tight", facecolor="white", edgecolor="none")
+    plt.close(fig)
+    b64 = base64.b64encode(buf.getvalue()).decode()
+    charts_b64["monthly"] = b"data:image/png;base64," + b64.encode()
+
+# 2. Category pie
+if cats:
+    fig, ax = plt.subplots(figsize=(7, 5))
+    labels = [f"{c}  {v/TOTAL*100:.1f}%" for c, v in cats[:8]]
+    values = [v for _, v in cats[:8]]
+    colors_cat = ["#2563eb","#f59e0b","#10b981","#ef4444","#8b5cf6","#ec4899","#14b8a6","#f97316"]
+    ax.pie(values, labels=labels, colors=colors_cat[:len(values)], startangle=90, counterclock=False,
+           wedgeprops={"edgecolor": "white", "linewidth": 2.5}, textprops={"fontsize": 12, "color": "#1e293b"})
+    ax.set_title("品类GSV占比", fontsize=16, fontweight="bold", color="#1e293b", pad=15)
+    buf = io.BytesIO()
+    fig.savefig(buf, dpi=150, bbox_inches="tight", facecolor="white", edgecolor="none")
+    plt.close(fig)
+    b64 = base64.b64encode(buf.getvalue()).decode()
+    charts_b64["category"] = b"data:image/png;base64," + b64.encode()
+
+# 3. Brand horizontal bar (top 10)
+brands10 = brands_sorted[:10]
+if brands10:
+    names_b = [b for b, _ in brands10[::-1]]
+    vals_b = [v/10000 for _, v in brands10[::-1]]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    bars = ax.barh(names_b, vals_b, color="#2563eb", height=0.5, edgecolor="white")
+    for b, v in zip(bars, vals_b):
+        ax.text(b.get_width() + 0.15, b.get_y() + b.get_height()/2, f"{v:.1f}万", ha="left", va="center", fontsize=10, color="#64748b")
+    ax.set_xlabel("GSV（万元）", fontsize=11, color="#64748b")
+    ax.set_title("品牌GSV TOP10", fontsize=15, fontweight="bold", color="#1e293b", pad=15)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.tick_params(colors="#64748b", labelsize=10)
+    ax.set_xlim(0, max(vals_b) * 1.35)
+    buf = io.BytesIO()
+    fig.savefig(buf, dpi=150, bbox_inches="tight", facecolor="white", edgecolor="none")
+    plt.close(fig)
+    b64 = base64.b64encode(buf.getvalue()).decode()
+    charts_b64["brand"] = b"data:image/png;base64," + b64.encode()
+
+# 4. Store bar (top 10)
+stores10 = stores_sorted[:10]
+if stores10:
+    names_s = [(s[:10] + '…') if len(s) > 10 else s for s, _ in stores10[::-1]]
+    vals_s = [v/10000 for _, v in stores10[::-1]]
+    fig, ax = plt.subplots(figsize=(9, 5))
+    bars = ax.barh(names_s, vals_s, color="#10b981", height=0.5, edgecolor="white")
+    for b, v in zip(bars, vals_s):
+        ax.text(b.get_width() + 0.1, b.get_y() + b.get_height()/2, f"{v:.1f}万", ha="left", va="center", fontsize=9, color="#64748b")
+    ax.set_xlabel("GSV（万元）", fontsize=11, color="#64748b")
+    ax.set_title("商家GSV TOP10", fontsize=15, fontweight="bold", color="#1e293b", pad=15)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.tick_params(colors="#64748b", labelsize=9)
+    ax.set_xlim(0, max(vals_s) * 1.35)
+    buf = io.BytesIO()
+    fig.savefig(buf, dpi=150, bbox_inches="tight", facecolor="white", edgecolor="none")
+    plt.close(fig)
+    b64 = base64.b64encode(buf.getvalue()).decode()
+    charts_b64["store"] = b"data:image/png;base64," + b64.encode()
+
+# 5. Province bar (top 10)
+provs10 = provs_sorted[:10]
+if provs10:
+    names_p = [p for p, _ in provs10]
+    vals_p = [v/10000 for _, v in provs10]
+    colors_p = ["#2563eb","#3b82f6","#60a5fa","#93c5fd","#bfdbfe","#1d4ed8","#1e40af","#3730a3","#312e81","#1e1b4b"]
+    fig, ax = plt.subplots(figsize=(10, 4.5))
+    bars = ax.bar(names_p, vals_p, color=colors_p[:len(provs10)], width=0.55, edgecolor="white")
+    for b, v in zip(bars, vals_p):
+        ax.text(b.get_x() + b.get_width()/2, b.get_height() + 0.2, f"{v:.1f}", ha="center", va="bottom", fontsize=9, color="#1e293b", fontweight="bold")
+    ax.set_ylabel("GSV（万元）", fontsize=11, color="#64748b")
+    ax.set_title("区域GSV TOP10", fontsize=15, fontweight="bold", color="#1e293b", pad=15)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.tick_params(colors="#64748b", labelsize=9)
+    plt.setp(ax.get_xticklabels(), rotation=30, ha="right", fontsize=9)
+    ax.set_ylim(0, max(vals_p) * 1.2)
+    buf = io.BytesIO()
+    fig.savefig(buf, dpi=150, bbox_inches="tight", facecolor="white", edgecolor="none")
+    plt.close(fig)
+    b64 = base64.b64encode(buf.getvalue()).decode()
+    charts_b64["province"] = b"data:image/png;base64," + b64.encode()
+
+# Build HTML report
+gsv_wan = TOTAL / 10000
+active_3 = len(month_prods["3月"])
+all_prods_count = len(all_prods)
+top3_stores = stores_sorted[:3]
+top3_gsv = sum(v for _, v in top3_stores)
+lenovo_total = brand_total.get("联想", 0) + brand_total.get("联想百应", 0)
+third_party = sum(brand_total.get(b, 0) for b in ["华硕", "戴尔", "惠普"])
+cat_pct1 = cats[0][1]/TOTAL*100 if cats else 0
+order_count = len(set(d["order_id"] for d in data))
+record_count = len(data)
+
+# Table rows
+_cat_rows = ""
+for i, (c, v) in enumerate(cats):
+    bg = "#F8FAFC" if i % 2 == 0 else "#FFFFFF"
+    _cat_rows += f'''<tr style="background:{bg}">
+      <td style="padding:8px 12px;font-size:13px">{c}</td>
+      <td style="padding:8px 12px;font-size:13px;text-align:right;font-weight:600">{v:,.0f}</td>
+      <td style="padding:8px 12px;font-size:13px;text-align:right">
+        <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">
+          <div style="width:80px;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden">
+            <div style="width:{v/TOTAL*100}%;height:100%;background:#2563eb;border-radius:3px"></div>
+          </div>
+          <span style="color:#64748B">{v/TOTAL*100:.1f}%</span>
+        </div>
+      </td>
+    </tr>'''
+
+_brand_rows = ""
+for i, (b, v) in enumerate(brands_sorted[:15]):
+    bg = "#F8FAFC" if i % 2 == 0 else "#FFFFFF"
+    _brand_rows += f'''<tr style="background:{bg}">
+      <td style="padding:6px 10px;font-size:12px">{b}</td>
+      <td style="padding:6px 10px;font-size:12px;text-align:right">{v:,.0f}</td>
+      <td style="padding:6px 10px;font-size:12px;text-align:right">{v/TOTAL*100:.1f}%</td>
+    </tr>'''
+
+_store_rows = ""
+for i, (s, v) in enumerate(stores_sorted[:15]):
+    bg = "#F8FAFC" if i % 2 == 0 else "#FFFFFF"
+    _store_rows += f'''<tr style="background:{bg}">
+      <td style="padding:6px 10px;font-size:12px">{s}</td>
+      <td style="padding:6px 10px;font-size:12px;text-align:right">{v:,.0f}</td>
+      <td style="padding:6px 10px;font-size:12px;text-align:right">{v/TOTAL*100:.1f}%</td>
+    </tr>'''
+
+_prov_rows = ""
+for i, (p, v) in enumerate(provs_sorted):
+    bg = "#F8FAFC" if i % 2 == 0 else "#FFFFFF"
+    _prov_rows += f'''<tr style="background:{bg}">
+      <td style="padding:6px 10px;font-size:12px">{p}</td>
+      <td style="padding:6px 10px;font-size:12px;text-align:right">{v:,.0f}</td>
+      <td style="padding:6px 10px;font-size:12px;text-align:right">{v/TOTAL*100:.1f}%</td>
+    </tr>'''
+
+_prod_rows = ""
+for c, _ in cats:
+    pa = len(prod_cat3[c] & month_prods["3月"])
+    pt = len(prod_cat3[c])
+    if pa == 0: continue
+    rate = pa / pt if pt > 0 else 0
+    _prod_rows += f'''<tr>
+      <td style="padding:8px 12px;font-size:13px">{c}</td>
+      <td style="padding:8px 12px;font-size:13px;text-align:right;font-weight:600">{pa}</td>
+      <td style="padding:8px 12px;font-size:13px;text-align:right">{pt}</td>
+      <td style="padding:8px 12px;font-size:13px;text-align:right">
+        <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">
+          <div style="width:60px;height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden">
+            <div style="width:{rate*100}%;height:100%;background:#10b981;border-radius:3px"></div>
+          </div>
+          <span style="color:#64748B">{rate:.1%}</span>
+        </div>
+      </td>
+    </tr>'''
+
+monthly_img = charts_b64.get("monthly", b"").decode()
+category_img = charts_b64.get("category", b"").decode()
+brand_img = charts_b64.get("brand", b"").decode()
+store_img = charts_b64.get("store", b"").decode()
+province_img = charts_b64.get("province", b"").decode()
+
+html = f'''<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>经营分析报告</title>
+<style>
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:#F1F5F9;color:#1E293B;line-height:1.6}}
+.header{{background:linear-gradient(135deg,#0F172A 0%,#1E293B 100%);color:#fff;padding:40px 0 36px;border-bottom:4px solid #2563EB}}
+.header .inner{{max-width:1100px;margin:0 auto;padding:0 32px}}
+.header h1{{font-size:26px;font-weight:700;margin-bottom:4px}}
+.header .sub{{color:#94A3B8;font-size:14px}}
+.header .meta{{color:#64748B;font-size:12px;margin-top:10px;display:flex;gap:20px}}
+.kpi-bar{{max-width:1100px;margin:-24px auto 0;padding:0 32px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;position:relative;z-index:10}}
+.kpi-card{{background:#fff;border-radius:10px;padding:18px 22px;box-shadow:0 1px 3px rgba(0,0,0,.06);border-top:3px solid #2563EB}}
+.kpi-card:nth-child(2){{border-top-color:#10B981}}
+.kpi-card:nth-child(3){{border-top-color:#F59E0B}}
+.kpi-card:nth-child(4){{border-top-color:#8B5CF6}}
+.kpi-card .label{{font-size:11px;color:#64748B;margin-bottom:3px}}
+.kpi-card .value{{font-size:24px;font-weight:700;color:#1E293B}}
+.kpi-card .unit{{font-size:12px;color:#94A3B8;font-weight:400;margin-left:2px}}
+.container{{max-width:1100px;margin:0 auto;padding:0 32px}}
+.section{{margin-top:28px}}
+.section-title{{font-size:17px;font-weight:700;color:#1E293B;padding-bottom:8px;border-bottom:2px solid #E2E8F0;margin-bottom:16px;display:flex;align-items:center;gap:10px}}
+.section-title .badge{{font-size:10px;font-weight:500;padding:2px 10px;border-radius:20px;background:#DBEAFE;color:#2563EB}}
+.card-grid{{display:grid;gap:18px}}
+.card-grid.two{{grid-template-columns:1fr 1fr}}
+.card{{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden}}
+.card .body{{padding:18px}}
+.card .ctitle{{font-size:13px;font-weight:600;color:#64748B;margin-bottom:12px;letter-spacing:.02em}}
+.card img{{width:100%;height:auto;display:block}}
+.data-table{{width:100%;border-collapse:collapse}}
+.data-table th{{background:#1E293B;color:#fff;font-size:11px;font-weight:600;padding:8px 10px;text-align:left;white-space:nowrap}}
+.data-table th.r{{text-align:right}}
+.data-table tr:hover{{background:#F1F5F9!important}}
+.full-card{{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);padding:22px}}
+.insight{{background:#EFF6FF;border-left:4px solid #2563EB;border-radius:0 8px 8px 0;padding:12px 16px;margin-top:14px;font-size:13px;color:#1E40AF;line-height:1.7}}
+.insight.green{{background:#F0FDF4;border-left-color:#10B981;color:#166534}}
+.insight.purple{{background:#FAF5FF;border-left-color:#8B5CF6;color:#5B21B6}}
+.footer{{text-align:center;padding:28px;color:#94A3B8;font-size:11px;margin-top:36px;border-top:1px solid #E2E8F0}}
+@media(max-width:768px){{.kpi-bar{{grid-template-columns:1fr 1fr}}.card-grid.two{{grid-template-columns:1fr}}}}
+</style></head>
+<body>
+<div class="header">
+  <div class="inner">
+    <h1>📊 经营分析报告</h1>
+    <div class="meta"><span>🔬 纯本地运算 · 数据不存留</span></div>
+  </div>
+</div>
+<div class="kpi-bar">
+  <div class="kpi-card"><div class="label">GSV（总成交额）</div><div class="value">{gsv_wan:.0f}<span class="unit">万元</span></div></div>
+  <div class="kpi-card"><div class="label">订单量</div><div class="value">{order_count}<span class="unit">单</span></div></div>
+  <div class="kpi-card"><div class="label">动销商品</div><div class="value">{active_3}<span class="unit">个</span></div></div>
+  <div class="kpi-card"><div class="label">活跃品牌</div><div class="value">{len(brand_total)}<span class="unit">个</span></div></div>
+</div>
+<div class="container">
+  <div class="section">
+    <div class="section-title">📈 整体达成 <span class="badge">月度快照</span></div>
+    <div class="card"><div class="body"><img src="{monthly_img}" alt="月度GSV"></div></div>
+    <div class="insight"><strong>3月GSV达成{gsv_wan:.0f}万</strong>，订单量{order_count}单，动销商品{active_3}个（上架{all_prods_count}个），整体动销率{active_3/all_prods_count*100:.1f}%。</div>
+  </div>
+  <div class="section">
+    <div class="section-title">📦 品类维度 <span class="badge">{len(cats)}个品类</span></div>
+    <div class="card-grid two">
+      <div class="card"><div class="body"><img src="{category_img}" alt="品类占比"></div></div>
+      <div class="card"><div class="body"><div class="ctitle">品类GSV明细</div>
+      <table class="data-table"><thead><tr><th>品类</th><th class="r">GSV</th><th class="r">占比</th></tr></thead><tbody>{_cat_rows}</tbody></table></div></div>
+    </div>
+    <div class="insight"><strong>核心发现：</strong>Top1 {cats[0][0]} 占比{cat_pct1:.1f}%。</div>
+  </div>
+  <div class="section">
+    <div class="section-title">🏷️ 品牌维度 <span class="badge">{len(brand_total)}个品牌</span></div>
+    <div class="card-grid two">
+      <div class="card"><div class="body"><img src="{brand_img}" alt="品牌TOP10"></div></div>
+      <div class="card"><div class="body"><div class="ctitle">品牌GSV TOP15</div>
+      <table class="data-table"><thead><tr><th>品牌</th><th class="r">GSV</th><th class="r">占比</th></tr></thead><tbody>{_brand_rows}</tbody></table></div></div>
+    </div>
+    <div class="insight green"><strong>品牌洞察：</strong>联想系（含联想百应）占比{lenovo_total/TOTAL*100:.1f}%；第三方品牌（华硕/戴尔/惠普）合计占比{third_party/TOTAL*100:.1f}%。</div>
+  </div>
+  <div class="section">
+    <div class="section-title">🛒 商品维度 <span class="badge">动销率 {active_3/all_prods_count*100:.1f}%</span></div>
+    <div class="full-card">
+      <div style="font-size:13px;color:#64748B;margin-bottom:10px">3月动销 <strong>{active_3}</strong>个 / 上架 <strong>{all_prods_count}</strong>个</div>
+      <table class="data-table"><thead><tr><th>品类</th><th class="r">动销数</th><th class="r">上架数</th><th class="r">动销率</th></tr></thead><tbody>{_prod_rows}</tbody></table>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">🏪 商家维度 <span class="badge">{len(stores_sorted)}家店铺</span></div>
+    <div class="card-grid two">
+      <div class="card"><div class="body"><img src="{store_img}" alt="商家TOP10"></div></div>
+      <div class="card"><div class="body"><div class="ctitle">商家GSV TOP15</div>
+      <table class="data-table"><thead><tr><th>店铺</th><th class="r">GSV</th><th class="r">占比</th></tr></thead><tbody>{_store_rows}</tbody></table></div></div>
+    </div>
+    <div class="insight purple"><strong>商家格局：</strong>Top3 合计GSV {top3_gsv:,.0f}，占比{top3_gsv/TOTAL*100:.1f}%。</div>
+  </div>
+  <div class="section">
+    <div class="section-title">📍 区域维度 <span class="badge">{len(provs_sorted)}个省份</span></div>
+    <div class="card-grid two">
+      <div class="card"><div class="body"><img src="{province_img}" alt="区域TOP10"></div></div>
+      <div class="card"><div class="body"><div class="ctitle">区域GSV明细</div>
+      <table class="data-table"><thead><tr><th>省份</th><th class="r">GSV</th><th class="r">占比</th></tr></thead><tbody>{_prov_rows}</tbody></table></div></div>
+    </div>
+  </div>
+</div>
+<div class="footer">
+  <p>🔒 本报告由浏览器分析工具生成，原始数据未离开您的计算机</p>
+  <p style="margin-top:4px">数据条数: {record_count} 条</p>
+</div>
+</body></html>'''
+
+json.dumps({"html": html})
+  `);
+
+  return JSON.parse(result).html;
+}
+
+// ============ UI helpers ============
+function showStatus(type, text) {
+  const el = document.getElementById('status');
+  el.className = 'status ' + type;
+  document.getElementById('statusText').textContent = text;
+  if (type === 'loading') {
+    document.getElementById('progressBar').classList.add('show');
+    document.getElementById('progressFill').style.width = '60%';
+  } else {
+    document.getElementById('progressBar').classList.remove('show');
+  }
+}
+
+function showResult(fileName, html) {
+  document.getElementById('status').className = 'status done';
+  document.getElementById('statusText').textContent = '✅ 分析完成！共 6 个维度';
+  document.getElementById('progressBar').classList.remove('show');
+  document.getElementById('resultInfo').textContent = '数据来源: ' + fileName;
+
+  const box = document.getElementById('resultBox');
+  box.classList.add('show');
+
+  const container = document.getElementById('iframeContainer');
+  container.innerHTML = '';
+  const iframe = document.createElement('iframe');
+  iframe.srcdoc = html;
+  container.appendChild(iframe);
+}
+
+function downloadReport() {
+  if (!reportHTML) return;
+  const blob = new Blob([reportHTML], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = reportFileName;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 2000);
+}
+
+function resetAll() {
+  reportHTML = '';
+  document.getElementById('resultBox').classList.remove('show');
+  document.getElementById('iframeContainer').innerHTML = '';
+  document.getElementById('status').className = 'status';
+  document.getElementById('uploadCard').style.display = 'block';
+  fileInput.value = '';
+  setStep(1);
+}
+</script>
+</body>
+</html>

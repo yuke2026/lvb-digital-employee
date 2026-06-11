@@ -62,7 +62,7 @@ app.add_middleware(
 )
 
 # 注册路由
-from app.api.v1 import auth, employees, chat, news_sources, topics, reports, scheduler_api, push_configs, feishu_events, ceo_advisor, team, report_push, automation, report_pdf
+from app.api.v1 import auth, employees, chat, news_sources, topics, reports, scheduler_api, push_configs, feishu_events, ceo_advisor, team, report_push, automation, report_pdf, data_analysis
 from app.api.v1 import logistics as logistics_api
 from app.api.v1.topics import TopicCreate
 
@@ -81,6 +81,7 @@ app.include_router(report_push.router, tags=["报告推送"])
 app.include_router(automation.router, tags=["自动化配置"])
 app.include_router(report_pdf.router)
 app.include_router(logistics_api.router)
+app.include_router(data_analysis.router)
 
 
 @app.get("/api/health", include_in_schema=False)
@@ -197,6 +198,37 @@ async def serve_root():
     if os.path.isfile(INDEX_HTML):
         return FileResponse(INDEX_HTML, media_type="text/html")
     return HTMLResponse("<h1>前端未构建</h1><p>请先构建前端文件</p>", status_code=200)
+
+
+@app.get("/analysis")
+async def serve_analysis():
+    """经营分析页面"""
+    analysis_path = os.path.join(FRONTEND_DIR, "analysis.html")
+    if os.path.isfile(analysis_path):
+        return FileResponse(analysis_path, media_type="text/html")
+    return HTMLResponse("<h1>分析页面未找到</h1>", status_code=404)
+
+
+@app.get("/analyze-tool")
+async def serve_analyze_tool():
+    """本地分析工具下载（Python版）"""
+    zip_path = os.path.join(FRONTEND_DIR, "经营分析工具.zip")
+    if os.path.isfile(zip_path):
+        return FileResponse(zip_path, media_type="application/zip",
+                            filename="经营分析工具.zip",
+                            headers={"Cache-Control": "no-cache"})
+    return HTMLResponse("<h1>文件未找到</h1>", status_code=404)
+
+
+@app.get("/analyze-browser")
+async def serve_analyze_browser():
+    """本地分析工具下载（浏览器版，双击即用）"""
+    html_path = os.path.join(FRONTEND_DIR, "经营分析工具-浏览器版.html")
+    if os.path.isfile(html_path):
+        return FileResponse(html_path, media_type="text/html",
+                            filename="经营分析工具-浏览器版.html",
+                            headers={"Cache-Control": "no-cache"})
+    return HTMLResponse("<h1>文件未找到</h1>", status_code=404)
 
 
 @app.get("/tailwind.css")

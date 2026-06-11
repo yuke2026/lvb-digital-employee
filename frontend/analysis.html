@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>经营分析 - 百应智星</title>
+<link rel="stylesheet" href="/fontawesome.min.css">
+
+<!-- Prevent theme flash -->
+<script>
+  (function() {
+    var theme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ===== THEME VARIABLES (matching SPA) ===== */
+  :root {
+    --bg-primary: #0a0a1a;
+    --bg-secondary: #0f0f2a;
+    --bg-tertiary: #0f0f2a;
+    --bg-card: rgba(255, 255, 255, 0.05);
+    --bg-card-strong: rgba(255, 255, 255, 0.08);
+    --bg-glass: rgba(255, 255, 255, 0.05);
+    --bg-glass-strong: rgba(255, 255, 255, 0.08);
+    --bg-input: rgba(255, 255, 255, 0.05);
+    --bg-hover: rgba(255, 255, 255, 0.08);
+    --text-primary: #e2e8f0;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    --text-gray: #9ca3af;
+    --text-gray-300: #d1d5db;
+    --text-gray-400: #9ca3af;
+    --text-gray-500: #6b7280;
+    --text-white: #ffffff;
+    --border-glass: rgba(255, 255, 255, 0.1);
+    --border-glass-light: rgba(255, 255, 255, 0.08);
+    --border-input: rgba(255, 255, 255, 0.15);
+    --scrollbar-thumb: rgba(139, 92, 246, 0.3);
+    --scrollbar-thumb-hover: rgba(139, 92, 246, 0.5);
+  }
+
+  [data-theme="light"] {
+    --bg-primary: #f0f2f5;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e8eaed;
+    --bg-card: rgba(255, 255, 255, 0.7);
+    --bg-card-strong: rgba(255, 255, 255, 0.85);
+    --bg-glass: rgba(255, 255, 255, 0.6);
+    --bg-glass-strong: rgba(255, 255, 255, 0.8);
+    --bg-input: rgba(0, 0, 0, 0.04);
+    --bg-hover: rgba(0, 0, 0, 0.04);
+    --text-primary: #1a1a2e;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --text-gray: #475569;
+    --text-gray-300: #475569;
+    --text-gray-400: #64748b;
+    --text-gray-500: #94a3b8;
+    --text-white: #1a1a2e;
+    --border-glass: rgba(0, 0, 0, 0.08);
+    --border-glass-light: rgba(0, 0, 0, 0.05);
+    --border-input: rgba(0, 0, 0, 0.12);
+    --scrollbar-thumb: rgba(139, 92, 246, 0.25);
+    --scrollbar-thumb-hover: rgba(139, 92, 246, 0.4);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* ===== SAME GLASS CLASSES AS SPA ===== */
+  .glass {
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6, #22d3ee);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ===== NAV LINK (matching SPA) ===== */
+  .nav-link {
+    position: relative;
+    color: rgba(255,255,255,0.5);
+    transition: all 0.3s;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .nav-link:hover {
+    color: rgba(255,255,255,0.8);
+  }
+  .nav-link.active {
+    color: #a78bfa;
+  }
+  .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    border-radius: 1px;
+  }
+
+  [data-theme="light"] .nav-link {
+    color: rgba(0,0,0,0.45);
+  }
+  [data-theme="light"] .nav-link:hover {
+    color: rgba(0,0,0,0.75);
+  }
+  [data-theme="light"] .nav-link.active {
+    color: #7c3aed;
+  }
+
+  /* Light theme: user area icons/text */
+  [data-theme="light"] #themeBtn { color: rgba(0,0,0,0.4) !important; }
+  [data-theme="light"] #themeBtn:hover { color: rgba(0,0,0,0.75) !important; }
+  [data-theme="light"] #userName { color: rgba(0,0,0,0.7) !important; }
+  [data-theme="light"] button[onclick="logout()"] { color: rgba(0,0,0,0.4) !important; }
+  [data-theme="light"] button[onclick="logout()"]:hover { color: #dc2626 !important; }
+  [data-theme="light"] .nav-links .nav-link { color: rgba(0,0,0,0.45); }
+  [data-theme="light"] .nav-links .nav-link:hover { color: rgba(0,0,0,0.75); }
+  [data-theme="light"] .nav-links .nav-link.active { color: #7c3aed; }
+
+  /* ===== ANALYSIS PAGE CONTENT ===== */
+  .container { max-width: 860px; margin: 40px auto; padding: 0 24px; }
+
+  /* Upload zone */
+  .upload-zone {
+    border: 2px dashed var(--border-glass);
+    border-radius: 16px; padding: 48px 24px; text-align: center;
+    cursor: pointer; transition: .2s; background: var(--bg-card);
+  }
+  .upload-zone:hover { border-color: #818cf8; background: rgba(129,140,248,.06); }
+  .upload-zone.dragover { border-color: #818cf8; background: rgba(129,140,248,.1); }
+  .upload-zone .icon { font-size: 40px; margin-bottom: 12px; }
+  .upload-zone .title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+  .upload-zone .desc { font-size: 13px; color: var(--text-gray-400); }
+  .upload-zone .exts { font-size: 11px; color: var(--text-gray-500); margin-top: 12px; }
+  #fileInput { display: none; }
+
+  /* Info panel */
+  .info-panel {
+    margin-top: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass-light);
+    border-radius: 12px; padding: 20px 24px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .info-item { font-size: 13px; color: var(--text-gray-400); line-height: 1.6; }
+  .info-item strong { color: var(--text-primary); }
+
+  /* Loading */
+  .loading-state {
+    display: none; margin-top: 24px;
+    background: var(--bg-card); border: 1px solid var(--border-glass-light);
+    border-radius: 12px; padding: 32px; text-align: center;
+  }
+  .loading-state.show { display: block; }
+  .spinner {
+    width: 32px; height: 32px; border: 3px solid rgba(129,140,248,.2);
+    border-top-color: #818cf8; border-radius: 50%;
+    animation: spin .7s linear infinite; margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-state .title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .loading-state .desc { font-size: 12px; color: var(--text-gray-400); margin-top: 4px; }
+  .progress-bar {
+    width: 200px; height: 4px; background: rgba(255,255,255,.1);
+    border-radius: 2px; margin: 16px auto 0; overflow: hidden;
+  }
+  .progress-bar .fill {
+    width: 0%; height: 100%; background: linear-gradient(90deg, #818cf8, #6366f1);
+    border-radius: 2px; animation: progress 2s ease-in-out infinite;
+  }
+  @keyframes progress { 0% { width: 0% } 50% { width: 70% } 100% { width: 100% } }
+
+  /* Result */
+  .result-section {
+    display: none; margin-top: 24px;
+  }
+  .result-section.show { display: block; }
+  .result-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; padding: 16px 20px;
+    background: var(--bg-card); border: 1px solid var(--border-glass-light);
+    border-radius: 12px;
+  }
+  .result-header .info { font-size: 13px; color: var(--text-gray-400); }
+  .result-header .info strong { color: var(--text-primary); }
+  .result-header .actions { display: flex; gap: 8px; }
+  .btn {
+    padding: 8px 18px; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: .15s; text-decoration: none; display: inline-flex;
+    align-items: center; gap: 6px;
+  }
+  .btn-primary { background: #818cf8; color: #fff; }
+  .btn-primary:hover { background: #6366f1; }
+  .btn-outline {
+    background: transparent; color: var(--text-gray-400);
+    border: 1px solid var(--border-glass);
+  }
+  .btn-outline:hover { color: var(--text-primary); border-color: var(--border-glass); }
+  .btn-danger { background: rgba(239,68,68,.15); color: #fca5a5; }
+  .btn-danger:hover { background: rgba(239,68,68,.25); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* History */
+  .history { margin-top: 32px; }
+  .history-title { font-size: 14px; font-weight: 600; color: var(--text-gray-400); margin-bottom: 12px; }
+  .history-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; border-radius: 10px;
+    background: var(--bg-card); border: 1px solid var(--border-glass-light);
+    margin-bottom: 8px; transition: .15s;
+  }
+  .history-item:hover { background: var(--bg-hover); }
+  .history-item .name { font-size: 13px; color: var(--text-primary); }
+  .history-item .time { font-size: 11px; color: var(--text-gray-500); }
+  .history-item .actions { display: flex; gap: 6px; }
+  .history-empty { text-align: center; padding: 24px; color: var(--text-gray-500); font-size: 13px; }
+
+  /* Error */
+  .error-state {
+    display: none; margin-top: 24px;
+    background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.2);
+    border-radius: 12px; padding: 20px; text-align: center;
+  }
+  .error-state.show { display: block; }
+  .error-state .msg { font-size: 13px; color: #fca5a5; margin-bottom: 10px; }
+
+  @media (max-width: 640px) {
+    .info-panel { grid-template-columns: 1fr; }
+    .result-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER: EXACT SAME STRUCTURE AS SPA ===== -->
+<nav class="glass" style="position:sticky;top:0;z-index:40;border-bottom:1px solid var(--border-glass-light)">
+  <div style="max-width:1280px;margin:0 auto;padding:0 24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;height:64px">
+
+      <!-- Left: Logo -->
+      <div style="display:flex;align-items:center;gap:12px;cursor:pointer" onclick="window.location.href='/'">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(59,130,246,.3)">
+          <i class="fas fa-robot" style="color:#fff;font-size:14px"></i>
+        </div>
+        <span class="text-gradient" style="font-size:18px;font-weight:700;display:none" id="brandName">百应智星</span>
+        <style>@media(min-width:640px){#brandName{display:block!important}}</style>
+      </div>
+
+      <!-- Center: Nav Links (same 5 items as SPA) -->
+      <div style="display:flex;align-items:center;gap:24px" class="nav-links">
+        <a href="/" class="nav-link"><i class="fas fa-store" style="font-size:13px"></i><span>数字员工商店</span></a>
+        <a href="/#chat" class="nav-link"><i class="fas fa-comments" style="font-size:13px"></i><span>我的对话</span></a>
+        <a href="/#reports" class="nav-link"><i class="fas fa-file-lines" style="font-size:13px"></i><span>分析报告</span></a>
+        <a href="/analysis" class="nav-link active"><i class="fas fa-chart-simple" style="font-size:13px"></i><span>经营分析</span></a>
+        <a href="/#team" class="nav-link"><i class="fas fa-users" style="font-size:13px"></i><span>团队</span></a>
+      </div>
+
+      <!-- Right: User Area (same as SPA) -->
+      <div style="display:flex;align-items:center;gap:12px">
+        <!-- Theme toggle -->
+        <button id="themeBtn" onclick="toggleTheme()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:16px;cursor:pointer;transition:all 0.3s;padding:4px" title="切换主题">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <!-- User badge -->
+        <div style="display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:8px;background:var(--bg-glass)" id="userBadge">
+          <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:600" id="userAvatar">U</div>
+          <span style="font-size:13px;color:rgba(255,255,255,0.7)" id="userName">用户</span>
+        </div>
+        <!-- Logout -->
+        <button onclick="logout()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:16px;cursor:pointer;transition:all 0.3s;padding:4px" title="退出登录">
+          <i class="fas fa-right-from-bracket"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- Local tool download - top banner -->
+  <div style="margin-bottom:16px;background:linear-gradient(135deg,#F0FDF4,#ECFDF5);border:1px solid #A7F3D0;border-radius:12px;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div>
+      <div style="font-size:14px;font-weight:600;color:#065F46">💻 想要完全离线运行？</div>
+      <div style="font-size:12px;color:#047857;margin-top:2px">下载浏览器版，双击即用，数据不出电脑</div>
+    </div>
+    <a href="/analyze-browser" style="padding:8px 20px;background:#059669;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:6px">
+      🌐 下载浏览器版
+    </a>
+  </div>
+
+  <!-- Upload Zone -->
+  <div class="upload-zone" id="uploadZone">
+    <div class="icon">📤</div>
+    <div class="title">上传订单数据</div>
+    <div class="desc">拖拽 Excel 文件到此处，或 <span style="color:#818cf8;cursor:pointer">点击选择文件</span></div>
+    <div class="exts">支持格式：.xlsx .xls .csv ｜ 最大 20MB</div>
+  </div>
+  <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+
+  <!-- Security info -->
+  <div class="info-panel">
+    <div class="info-item">
+      🔒 <strong>数据安全</strong><br>
+      原始数据仅在内存中处理，分析完成后自动删除
+    </div>
+    <div class="info-item">
+      🖥️ <strong>纯本地运算</strong><br>
+      所有分析在服务器本地完成，不调用第三方API
+    </div>
+    <div class="info-item">
+      🏢 <strong>企业隔离</strong><br>
+      您的数据仅本企业可见，与其他租户完全隔离
+    </div>
+    <div class="info-item">
+      📋 <strong>自动生成</strong><br>
+      上传即分析，30秒生成专业经营分析报告
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" id="loadingState">
+    <div class="spinner"></div>
+    <div class="title">AI 正在分析数据...</div>
+    <div class="desc">处理 {{count}} 条订单记录，生成多维分析报告</div>
+    <div class="progress-bar"><div class="fill"></div></div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" id="errorState">
+    <div class="msg" id="errorMsg">分析失败，请重试</div>
+    <button class="btn btn-outline" onclick="resetUI()">重新上传</button>
+  </div>
+
+  <!-- Result -->
+  <div class="result-section" id="resultSection">
+    <div class="result-header">
+      <div class="info">
+        分析完成 ✅ ｜ <strong id="resultTitle">经营分析报告</strong>
+        ｜ <span id="resultTime"></span>
+      </div>
+      <div class="actions" style="flex-wrap:wrap">
+        <a class="btn btn-primary" id="viewBtn" target="_blank">📄 HTML报告</a>
+        <a class="btn" id="excelBtn" style="background:#059669;color:#fff" download>📊 Excel</a>
+        <a class="btn" id="pptBtn" style="background:#D97706;color:#fff" download>📽️ PPT</a>
+        <button class="btn btn-outline" onclick="resetUI()">🔄 重新分析</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="history">
+    <div class="history-title">📋 历史报告</div>
+    <div id="historyList"></div>
+  </div>
+
+</div>
+
+<script>
+const API_BASE = window.location.pathname.startsWith('/yiditong') ? '/yiditong' : '';
+
+// ── Upload ──
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+const loadingState = document.getElementById('loadingState');
+const errorState = document.getElementById('errorState');
+const errorMsg = document.getElementById('errorMsg');
+const resultSection = document.getElementById('resultSection');
+
+uploadZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) uploadFile(fileInput.files[0]);
+});
+
+// Drag & drop
+['dragenter','dragover'].forEach(e => {
+  uploadZone.addEventListener(e, ev => { ev.preventDefault(); uploadZone.classList.add('dragover'); });
+});
+['dragleave','drop'].forEach(e => {
+  uploadZone.addEventListener(e, ev => { ev.preventDefault(); uploadZone.classList.remove('dragover'); });
+});
+uploadZone.addEventListener('drop', ev => {
+  const f = ev.dataTransfer.files[0];
+  if (f && (f.name.endsWith('.xlsx') || f.name.endsWith('.xls') || f.name.endsWith('.csv'))) {
+    uploadFile(f);
+  } else {
+    showError('请上传 .xlsx / .xls / .csv 格式的Excel文件');
+  }
+});
+
+// ── Auth ──
+const TOKEN = localStorage.getItem('token');
+function authHeaders() {
+  const h = {};
+  if (TOKEN) h['Authorization'] = `Bearer ${TOKEN}`;
+  return h;
+}
+
+// ── User info (call /api/v1/auth/me same as SPA) ──
+async function initUser() {
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const res = await fetch('/api/v1/auth/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const user = await res.json();
+        const name = user.username || user.name || '用户';
+        document.getElementById('userName').textContent = name;
+        document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
+      }
+    } catch(_) {}
+  }
+}
+
+// ── Theme toggle (shared with SPA via localStorage) ──
+function toggleTheme() {
+  const html = document.documentElement;
+  const isLight = html.getAttribute('data-theme') === 'light';
+  const newTheme = isLight ? 'dark' : 'light';
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  // dark -> show sun (switch to light), light -> show moon (switch to dark)
+  document.getElementById('themeIcon').className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+function initTheme() {
+  const saved = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  // dark mode -> show sun icon, light mode -> show moon icon
+  document.getElementById('themeIcon').className = saved === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+}
+
+// ── Logout (same as SPA) ──
+function logout() {
+  localStorage.removeItem('token');
+  window.location.href = '/';
+}
+
+// ── Upload & Analyze ──
+async function uploadFile(file) {
+  loadingState.classList.add('show');
+  errorState.classList.remove('show');
+  resultSection.classList.remove('show');
+  uploadZone.style.display = 'none';
+
+  const form = new FormData();
+  form.append('file', file);
+  form.append('title', file.name.replace(/\.[^.]+$/, '') + ' - 经营分析报告');
+
+  try {
+    const resp = await fetch(`${API_BASE}/api/v1/data-analysis/upload`, {
+      method: 'POST',
+      body: form,
+      headers: authHeaders(),
+      credentials: 'include',
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.detail || `服务器错误 (${resp.status})`);
+    }
+
+    const data = await resp.json();
+    loadingState.classList.remove('show');
+
+    // Show result
+    document.getElementById('resultTitle').textContent = data.title || '经营分析报告';
+    document.getElementById('resultTime').textContent = data.created_at || '';
+    document.getElementById('viewBtn').href = `${API_BASE}/api/v1/data-analysis/reports/${data.report_id}?fmt=html`;
+    document.getElementById('excelBtn').href = `${API_BASE}/api/v1/data-analysis/reports/${data.report_id}?fmt=excel`;
+    document.getElementById('pptBtn').href = `${API_BASE}/api/v1/data-analysis/reports/${data.report_id}?fmt=ppt`;
+    resultSection.classList.add('show');
+
+    // Refresh history
+    loadHistory();
+
+  } catch (err) {
+    loadingState.classList.remove('show');
+    showError(err.message);
+  }
+}
+
+function showError(msg) {
+  errorMsg.textContent = msg;
+  errorState.classList.add('show');
+}
+
+function resetUI() {
+  uploadZone.style.display = 'block';
+  loadingState.classList.remove('show');
+  errorState.classList.remove('show');
+  resultSection.classList.remove('show');
+  fileInput.value = '';
+}
+
+// ── History ──
+async function loadHistory() {
+  try {
+    const resp = await fetch(`${API_BASE}/api/v1/data-analysis/reports`, {
+      headers: authHeaders(),
+      credentials: 'include',
+    });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const list = document.getElementById('historyList');
+
+    if (!data.reports || data.reports.length === 0) {
+      list.innerHTML = '<div class="history-empty">暂无分析报告，上传数据开始分析</div>';
+      return;
+    }
+
+    list.innerHTML = data.reports.map(r => `
+      <div class="history-item">
+        <div>
+          <div class="name">📊 ${r.title}</div>
+          <div class="time">${r.created_at}</div>
+        </div>
+        <div class="actions">
+          <a class="btn btn-primary" href="${API_BASE}/api/v1/data-analysis/reports/${r.report_id}?fmt=html" target="_blank" style="padding:5px 12px;font-size:11px">📄</a>
+          <a class="btn" href="${API_BASE}/api/v1/data-analysis/reports/${r.report_id}?fmt=excel" download style="padding:5px 12px;font-size:11px;background:#059669;color:#fff">📊</a>
+          <a class="btn" href="${API_BASE}/api/v1/data-analysis/reports/${r.report_id}?fmt=ppt" download style="padding:5px 12px;font-size:11px;background:#D97706;color:#fff">📽️</a>
+          <button class="btn btn-danger" onclick="deleteReport('${r.report_id}')" style="padding:5px 12px;font-size:11px">删除</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (_) {}
+}
+
+async function deleteReport(id) {
+  if (!confirm('确定删除此报告？')) return;
+  try {
+    const resp = await fetch(`${API_BASE}/api/v1/data-analysis/reports/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+      credentials: 'include',
+    });
+    if (resp.ok) loadHistory();
+  } catch (_) {}
+}
+
+// Init
+initTheme();
+initUser().then(loadHistory);
+// If initUser fails silently, still load history
+</script>
+
+</body>
+</html>

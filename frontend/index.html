@@ -1418,6 +1418,11 @@ ${r?'Expression: "'+r+`"
                   <i class="fas fa-file-lines"></i>
                   <span class="hidden sm:inline">分析报告</span>
                 </a>
+                <a href="/analysis"
+                   class="nav-link text-sm font-medium flex items-center gap-1.5">
+                  <i class="fas fa-chart-simple"></i>
+                  <span class="hidden sm:inline">经营分析</span>
+                </a>
                 <a @click="switchPage('team')"
                    class="nav-link text-sm font-medium flex items-center gap-1.5"
                    :class="currentPage === 'team' ? 'active' : ''">
@@ -1645,6 +1650,10 @@ ${r?'Expression: "'+r+`"
                     <div class="fuse-nav-item" @click="switchPage('reports')">
                       <i class="fas fa-chart-pie w-4 text-center text-xs"></i>
                       <span>战略报告</span>
+                    </div>
+                    <div class="fuse-nav-item" @click="location.href='/analysis'">
+                      <i class="fas fa-chart-simple w-4 text-center text-xs"></i>
+                      <span>经营分析</span>
                     </div>
 
                     <!-- Group: 核心大脑 (core + intelligence) -->
@@ -2290,6 +2299,10 @@ ${r?'Expression: "'+r+`"
                     <div class="fuse-nav-item" @click="switchPage('reports'); showMobileDrawer = false">
                       <i class="fas fa-chart-pie w-4 text-center text-xs"></i>
                       <span>分析报告</span>
+                    </div>
+                    <div class="fuse-nav-item" onclick="location.href='/analysis'; showMobileDrawer = false">
+                      <i class="fas fa-chart-simple w-4 text-center text-xs"></i>
+                      <span>经营分析</span>
                     </div>
                     <div class="fuse-nav-item" @click="switchPage('team'); showMobileDrawer = false">
                       <i class="fas fa-users w-4 text-center text-xs"></i>
@@ -3651,9 +3664,9 @@ ${r?'Expression: "'+r+`"
             <i class="fas fa-chart-line text-lg"></i>
             <span>报告</span>
           </button>
-          <button @click="switchPage('store')" class="flex-1 flex flex-col items-center gap-1 py-3 text-xs" :style="currentPage === 'store' ? 'color: var(--fuse-accent2)' : 'color: var(--fuse-muted)'">
-            <i class="fas fa-store text-lg"></i>
-            <span>商店</span>
+          <button onclick="location.href='/analysis'" class="flex-1 flex flex-col items-center gap-1 py-3 text-xs">
+            <i class="fas fa-chart-simple text-lg"></i>
+            <span>经营</span>
           </button>
           <button @click="switchPage('team')" class="flex-1 flex flex-col items-center gap-1 py-3 text-xs" :style="currentPage === 'team' ? 'color: var(--fuse-accent2)' : 'color: var(--fuse-muted)'">
             <i class="fas fa-users text-lg"></i>
@@ -5105,6 +5118,8 @@ ${r?'Expression: "'+r+`"
                 this.loadReports();
                 this.loadTopics();
                 this.loadLogisticsConfig();
+                // Hash routing: from external pages (e.g. analysis)
+                this._handleHashRouting();
                 return;
               } else {
                 // Token expired
@@ -5116,10 +5131,20 @@ ${r?'Expression: "'+r+`"
               this.isLoggedIn = true;
               this.user = { username: '用户' };
               await this.loadEmployees();
+              this._handleHashRouting();
               return;
             }
           }
-          // Not logged in — auth page will show
+          // Also handle hash routing when not logged in (e.g. guest routes)
+          this._handleHashRouting();
+        },
+
+        _handleHashRouting() {
+          const hash = window.location.hash.slice(1);
+          if (hash && ['chat','reports','team','store'].includes(hash)) {
+            this.switchPage(hash);
+            history.replaceState(null, '', window.location.pathname);
+          }
         },
 
         // ================================================================
