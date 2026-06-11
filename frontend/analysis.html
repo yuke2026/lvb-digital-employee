@@ -142,128 +142,61 @@
   [data-theme="light"] .nav-links .nav-link:hover { color: rgba(0,0,0,0.75); }
   [data-theme="light"] .nav-links .nav-link.active { color: #7c3aed; }
 
-  /* ===== ANALYSIS PAGE CONTENT ===== */
-  .container { max-width: 860px; margin: 40px auto; padding: 0 24px; }
-
-  /* Upload zone */
-  .upload-zone {
-    border: 2px dashed var(--border-glass);
-    border-radius: 16px; padding: 48px 24px; text-align: center;
-    cursor: pointer; transition: .2s; background: var(--bg-card);
-  }
-  .upload-zone:hover { border-color: #818cf8; background: rgba(129,140,248,.06); }
-  .upload-zone.dragover { border-color: #818cf8; background: rgba(129,140,248,.1); }
-  .upload-zone .icon { font-size: 40px; margin-bottom: 12px; }
-  .upload-zone .title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
-  .upload-zone .desc { font-size: 13px; color: var(--text-gray-400); }
-  .upload-zone .exts { font-size: 11px; color: var(--text-gray-500); margin-top: 12px; }
+  /* ===== V2 Multi-step Styles ===== */
+  *.step { display: none; }
+  *.step.active { display: block; }
+  .step-indicator { display: flex; gap: 8px; margin-bottom: 24px; align-items: center; }
+  .step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); transition: .2s; }
+  .step-dot.active { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #fff; box-shadow: 0 2px 8px rgba(59,130,246,.3); }
+  .step-dot.done { background: #10b981; color: #fff; }
+  .step-line { flex: 1; height: 1px; background: rgba(255,255,255,0.1); max-width: 60px; }
+  .step-line.done { background: #10b981; }
+  .upload-area-v2 { border: 2px dashed var(--border-glass); border-radius: 16px; padding: 40px 24px; text-align: center; cursor: pointer; transition: .2s; background: var(--bg-card); }
+  .upload-area-v2:hover { border-color: #818cf8; background: rgba(129,140,248,.06); }
+  .upload-area-v2.dragover { border-color: #818cf8; background: rgba(129,140,248,.1); }
+  .file-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--border-glass-light); margin-top: 8px; }
+  .file-item .name { flex: 1; font-size: 13px; color: var(--text-primary); }
+  .file-item .size { font-size: 11px; color: var(--text-gray-500); }
+  .file-item .remove { cursor: pointer; color: #ef4444; font-size: 14px; }
+  .schema-card { background: var(--bg-card); border: 1px solid var(--border-glass-light); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  .schema-card .title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .schema-card .col-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; color: var(--text-gray); border-bottom: 1px solid var(--border-glass-light); }
+  .schema-card .col-row:last-child { border: none; }
+  .schema-card .col-name { font-weight: 500; color: var(--text-primary); min-width: 120px; }
+  .schema-card .col-type { padding: 1px 8px; border-radius: 4px; font-size: 10px; font-weight: 500; }
+  .schema-card .col-type.数值 { background: rgba(59,130,246,.15); color: #60a5fa; }
+  .schema-card .col-type.文本 { background: rgba(139,92,246,.15); color: #a78bfa; }
+  .schema-card .col-type.日期 { background: rgba(16,185,129,.15); color: #34d399; }
+  .join-card { background: var(--bg-card); border: 1px solid var(--border-glass-light); border-radius: 10px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .join-card select { background: var(--bg-input); color: var(--text-primary); border: 1px solid var(--border-glass); border-radius: 6px; padding: 6px 10px; font-size: 12px; }
+  .dim-group { margin-bottom: 20px; }
+  .dim-group .label { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+  .dim-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: .15s; border: 1px solid var(--border-glass); margin: 3px; background: var(--bg-card); color: var(--text-gray); }
+  .dim-chip:hover { border-color: #818cf8; background: rgba(129,140,248,.08); }
+  .dim-chip.selected { border-color: #818cf8; background: rgba(129,140,248,.15); color: #a78bfa; }
+  .recommend-card { background: var(--bg-card); border: 1px solid var(--border-glass-light); border-radius: 10px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; transition: .15s; }
+  .recommend-card:hover { background: var(--bg-hover); }
+  .recommend-card .title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .recommend-card .desc { font-size: 11px; color: var(--text-gray-500); margin-top: 2px; }
+  .recommend-card .reason { font-size: 11px; color: var(--text-muted); margin-top: 4px; font-style: italic; }
+  .preview-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .preview-table th { background: var(--bg-tertiary); color: var(--text-gray-300); padding: 5px 8px; text-align: left; font-weight: 500; }
+  .preview-table td { padding: 4px 8px; color: var(--text-gray); border-bottom: 1px solid var(--border-glass-light); }
+  .preview-table tr:hover td { background: var(--bg-hover); }
+  .insight-box { background: rgba(59,130,246,.05); border-left: 3px solid #3b82f6; border-radius: 0 10px 10px 0; padding: 16px 20px; margin-top: 16px; font-size: 13px; line-height: 1.8; color: var(--text-primary); white-space: pre-wrap; }
+  .loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: none; align-items: center; justify-content: center; }
+  .loading-overlay.show { display: flex; }
+  .loading-box { background: var(--bg-secondary); border-radius: 16px; padding: 32px; text-align: center; max-width: 400px; border: 1px solid var(--border-glass); }
+  .toast-msg { position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#ef4444;color:#fff;padding:10px 24px;border-radius:10px;font-size:13px;z-index:300;box-shadow:0 4px 12px rgba(0,0,0,.3) }
   #fileInput { display: none; }
-
-  /* Info panel */
-  .info-panel {
-    margin-top: 24px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-glass-light);
-    border-radius: 12px; padding: 20px 24px;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-  }
-  .info-item { font-size: 13px; color: var(--text-gray-400); line-height: 1.6; }
-  .info-item strong { color: var(--text-primary); }
-
-  /* Loading */
-  .loading-state {
-    display: none; margin-top: 24px;
-    background: var(--bg-card); border: 1px solid var(--border-glass-light);
-    border-radius: 12px; padding: 32px; text-align: center;
-  }
-  .loading-state.show { display: block; }
-  .spinner {
-    width: 32px; height: 32px; border: 3px solid rgba(129,140,248,.2);
-    border-top-color: #818cf8; border-radius: 50%;
-    animation: spin .7s linear infinite; margin: 0 auto 12px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-state .title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
-  .loading-state .desc { font-size: 12px; color: var(--text-gray-400); margin-top: 4px; }
-  .progress-bar {
-    width: 200px; height: 4px; background: rgba(255,255,255,.1);
-    border-radius: 2px; margin: 16px auto 0; overflow: hidden;
-  }
-  .progress-bar .fill {
-    width: 0%; height: 100%; background: linear-gradient(90deg, #818cf8, #6366f1);
-    border-radius: 2px; animation: progress 2s ease-in-out infinite;
-  }
-  @keyframes progress { 0% { width: 0% } 50% { width: 70% } 100% { width: 100% } }
-
-  /* Result */
-  .result-section {
-    display: none; margin-top: 24px;
-  }
-  .result-section.show { display: block; }
-  .result-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 16px; padding: 16px 20px;
-    background: var(--bg-card); border: 1px solid var(--border-glass-light);
-    border-radius: 12px;
-  }
-  .result-header .info { font-size: 13px; color: var(--text-gray-400); }
-  .result-header .info strong { color: var(--text-primary); }
-  .result-header .actions { display: flex; gap: 8px; }
-  .btn {
-    padding: 8px 18px; border: none; border-radius: 8px;
-    font-size: 13px; font-weight: 600; cursor: pointer;
-    transition: .15s; text-decoration: none; display: inline-flex;
-    align-items: center; gap: 6px;
-  }
-  .btn-primary { background: #818cf8; color: #fff; }
-  .btn-primary:hover { background: #6366f1; }
-  .btn-outline {
-    background: transparent; color: var(--text-gray-400);
-    border: 1px solid var(--border-glass);
-  }
-  .btn-outline:hover { color: var(--text-primary); border-color: var(--border-glass); }
-  .btn-danger { background: rgba(239,68,68,.15); color: #fca5a5; }
-  .btn-danger:hover { background: rgba(239,68,68,.25); }
-  .btn:disabled { opacity: .5; cursor: not-allowed; }
-
-  /* History */
-  .history { margin-top: 32px; }
-  .history-title { font-size: 14px; font-weight: 600; color: var(--text-gray-400); margin-bottom: 12px; }
-  .history-item {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px; border-radius: 10px;
-    background: var(--bg-card); border: 1px solid var(--border-glass-light);
-    margin-bottom: 8px; transition: .15s;
-  }
-  .history-item:hover { background: var(--bg-hover); }
-  .history-item .name { font-size: 13px; color: var(--text-primary); }
-  .history-item .time { font-size: 11px; color: var(--text-gray-500); }
-  .history-item .actions { display: flex; gap: 6px; }
-  .history-empty { text-align: center; padding: 24px; color: var(--text-gray-500); font-size: 13px; }
-
-  /* Error */
-  .error-state {
-    display: none; margin-top: 24px;
-    background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.2);
-    border-radius: 12px; padding: 20px; text-align: center;
-  }
-  .error-state.show { display: block; }
-  .error-state .msg { font-size: 13px; color: #fca5a5; margin-bottom: 10px; }
-
-  @media (max-width: 640px) {
-    .info-panel { grid-template-columns: 1fr; }
-    .result-header { flex-direction: column; gap: 12px; align-items: flex-start; }
-  }
 </style>
 </head>
 <body>
 
-<!-- ===== HEADER: EXACT SAME STRUCTURE AS SPA ===== -->
+<!-- SPA HEADER (unchanged) -->
 <nav class="glass" style="position:sticky;top:0;z-index:40;border-bottom:1px solid var(--border-glass-light)">
   <div style="max-width:1280px;margin:0 auto;padding:0 24px">
     <div style="display:flex;align-items:center;justify-content:space-between;height:64px">
-
-      <!-- Left: Logo -->
       <div style="display:flex;align-items:center;gap:12px;cursor:pointer" onclick="window.location.href='/'">
         <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(59,130,246,.3)">
           <i class="fas fa-robot" style="color:#fff;font-size:14px"></i>
@@ -271,305 +204,300 @@
         <span class="text-gradient" style="font-size:18px;font-weight:700;display:none" id="brandName">百应智星</span>
         <style>@media(min-width:640px){#brandName{display:block!important}}</style>
       </div>
-
-      <!-- Center: Nav Links (same 5 items as SPA) -->
       <div style="display:flex;align-items:center;gap:24px" class="nav-links">
         <a href="/" class="nav-link"><i class="fas fa-store" style="font-size:13px"></i><span>数字员工商店</span></a>
         <a href="/#chat" class="nav-link"><i class="fas fa-comments" style="font-size:13px"></i><span>我的对话</span></a>
-        <a href="/#reports" class="nav-link"><i class="fas fa-file-lines" style="font-size:13px"></i><span>分析报告</span></a>
+        <a href="/#reports" class="nav-link"><i class="fas fa-file-lines" style="font-size:13px"></i><span>战略报告</span></a>
         <a href="/analysis" class="nav-link active"><i class="fas fa-chart-simple" style="font-size:13px"></i><span>经营分析</span></a>
         <a href="/#team" class="nav-link"><i class="fas fa-users" style="font-size:13px"></i><span>团队</span></a>
       </div>
-
-      <!-- Right: User Area (same as SPA) -->
       <div style="display:flex;align-items:center;gap:12px">
-        <!-- Theme toggle -->
         <button id="themeBtn" onclick="toggleTheme()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:16px;cursor:pointer;transition:all 0.3s;padding:4px" title="切换主题">
           <i class="fas fa-moon" id="themeIcon"></i>
         </button>
-        <!-- User badge -->
         <div style="display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:8px;background:var(--bg-glass)" id="userBadge">
           <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:600" id="userAvatar">U</div>
           <span style="font-size:13px;color:rgba(255,255,255,0.7)" id="userName">用户</span>
         </div>
-        <!-- Logout -->
         <button onclick="logout()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:16px;cursor:pointer;transition:all 0.3s;padding:4px" title="退出登录">
           <i class="fas fa-right-from-bracket"></i>
         </button>
       </div>
-
     </div>
   </div>
 </nav>
 
-<div class="container">
-
-  <!-- Local tool download - top banner -->
-  <div style="margin-bottom:16px;background:linear-gradient(135deg,#F0FDF4,#ECFDF5);border:1px solid #A7F3D0;border-radius:12px;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+<div class="container" id="app">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
     <div>
-      <div style="font-size:14px;font-weight:600;color:#065F46">💻 想要完全离线运行？</div>
-      <div style="font-size:12px;color:#047857;margin-top:2px">下载浏览器版，双击即用，数据不出电脑</div>
+      <h1 style="font-size:22px;font-weight:700;color:var(--text-primary)">📊 经营分析</h1>
+      <p style="font-size:13px;color:var(--text-gray-400);margin-top:4px">上传数据表格，自定义分析维度，AI 辅助洞察</p>
     </div>
-    <a href="/analyze-browser" style="padding:8px 20px;background:#059669;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:6px">
-      🌐 下载浏览器版
-    </a>
+    <button class="btn btn-outline" onclick="resetAll()" id="resetBtn" style="display:none">🔄 重新开始</button>
   </div>
 
-  <!-- Upload Zone -->
-  <div class="upload-zone" id="uploadZone">
-    <div class="icon">📤</div>
-    <div class="title">上传订单数据</div>
-    <div class="desc">拖拽 Excel 文件到此处，或 <span style="color:#818cf8;cursor:pointer">点击选择文件</span></div>
-    <div class="exts">支持格式：.xlsx .xls .csv ｜ 最大 20MB</div>
+  <!-- Step Indicator -->
+  <div class="step-indicator">
+    <div class="step-dot active" id="sd1">1</div><div class="step-line" id="sl1"></div>
+    <div class="step-dot" id="sd2">2</div><div class="step-line" id="sl2"></div>
+    <div class="step-dot" id="sd3">3</div><div class="step-line" id="sl3"></div>
+    <div class="step-dot" id="sd4">4</div><div class="step-line" id="sl4"></div>
+    <div class="step-dot" id="sd5">5</div>
+    <span style="margin-left:12px;font-size:11px;color:var(--text-muted)" id="stepLabel">上传数据</span>
   </div>
-  <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
 
-  <!-- Security info -->
-  <div class="info-panel">
-    <div class="info-item">
-      🔒 <strong>数据安全</strong><br>
-      原始数据仅在内存中处理，分析完成后自动删除
+  <!-- ===== STEP 1: UPLOAD ===== -->
+  <div class="step active" id="step1">
+    <div class="upload-area-v2" id="uploadArea">
+      <div style="font-size:36px;margin-bottom:10px">📤</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:4px">上传数据表格</div>
+      <div style="font-size:13px;color:var(--text-gray-400)">拖拽文件至此，或 <span style="color:#818cf8;cursor:pointer">点击选择</span></div>
+      <div style="font-size:11px;color:var(--text-gray-500);margin-top:8px">支持 .xlsx .xls .csv ｜ 最多5个文件 ｜ 每个最大20MB</div>
     </div>
-    <div class="info-item">
-      🖥️ <strong>纯本地运算</strong><br>
-      所有分析在服务器本地完成，不调用第三方API
-    </div>
-    <div class="info-item">
-      🏢 <strong>企业隔离</strong><br>
-      您的数据仅本企业可见，与其他租户完全隔离
-    </div>
-    <div class="info-item">
-      📋 <strong>自动生成</strong><br>
-      上传即分析，30秒生成专业经营分析报告
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple>
+    <div id="fileList" style="margin-top:12px"></div>
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="uploadFiles()" id="uploadBtn" disabled>🚀 开始分析</button>
+      <button class="btn btn-outline" onclick="document.getElementById('fileInput').click()">➕ 添加文件</button>
     </div>
   </div>
 
-  <!-- Loading -->
-  <div class="loading-state" id="loadingState">
-    <div class="spinner"></div>
-    <div class="title">AI 正在分析数据...</div>
-    <div class="desc">处理 {{count}} 条订单记录，生成多维分析报告</div>
-    <div class="progress-bar"><div class="fill"></div></div>
+  <!-- ===== STEP 2: SCHEMA ===== -->
+  <div class="step" id="step2">
+    <div id="schemaArea"></div>
+    <div style="margin-top:16px"><button class="btn btn-primary" onclick="goStep(3)">下一步：定义关联 →</button></div>
   </div>
 
-  <!-- Error -->
-  <div class="error-state" id="errorState">
-    <div class="msg" id="errorMsg">分析失败，请重试</div>
-    <button class="btn btn-outline" onclick="resetUI()">重新上传</button>
+  <!-- ===== STEP 3: JOIN ===== -->
+  <div class="step" id="step3">
+    <p style="font-size:13px;color:var(--text-gray-400);margin-bottom:12px">定义表格之间的关系（只有一个表可跳过）</p>
+    <div id="joinArea"></div>
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn btn-outline" onclick="goStep(2)">← 上一步</button>
+      <button class="btn btn-primary" onclick="goStep(4)">下一步：选择维度 →</button>
+    </div>
   </div>
 
-  <!-- Result -->
-  <div class="result-section" id="resultSection">
-    <div class="result-header">
-      <div class="info">
-        分析完成 ✅ ｜ <strong id="resultTitle">经营分析报告</strong>
-        ｜ <span id="resultTime"></span>
+  <!-- ===== STEP 4: DIMENSIONS ===== -->
+  <div class="step" id="step4">
+    <button class="btn" onclick="aiRecommend()" id="aiRecBtn" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;margin-bottom:16px">🤖 AI 推荐分析维度</button>
+    <div id="recommendationsArea" style="margin-bottom:16px"></div>
+    <div class="dim-group">
+      <div class="label">📌 行维度（分组依据）</div>
+      <div id="rowDims" class="dim-chips"></div>
+    </div>
+    <div class="dim-group">
+      <div class="label">📊 值维度（聚合指标）</div>
+      <div id="valueDims" class="dim-chips"></div>
+    </div>
+    <div class="dim-group" style="display:flex;gap:12px;align-items:center">
+      <div>
+        <div class="label" style="margin-bottom:4px">聚合方式</div>
+        <select id="aggSelect" style="background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-glass);border-radius:6px;padding:6px 10px;font-size:12px">
+          <option value="sum">求和</option><option value="avg">平均</option><option value="count">计数</option><option value="min">最小值</option><option value="max">最大值</option>
+        </select>
       </div>
-      <div class="actions" style="flex-wrap:wrap">
-        <a class="btn btn-primary" id="viewBtn" target="_blank">📄 HTML报告</a>
-        <a class="btn" id="excelBtn" style="background:#059669;color:#fff" download>📊 Excel</a>
-        <a class="btn" id="pptBtn" style="background:#D97706;color:#fff" download>📽️ PPT</a>
-        <button class="btn btn-outline" onclick="resetUI()">🔄 重新分析</button>
-      </div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn btn-outline" onclick="goStep(3)">← 上一步</button>
+      <button class="btn btn-primary" onclick="runAnalysis()" id="analyzeBtn" disabled>🚀 生成分析报告</button>
     </div>
   </div>
 
-  <!-- History -->
-  <div class="history">
-    <div class="history-title">📋 历史报告</div>
-    <div id="historyList"></div>
+  <!-- ===== STEP 5: RESULTS ===== -->
+  <div class="step" id="step5">
+    <div id="resultArea"></div>
   </div>
+</div>
 
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-box">
+    <div class="spinner" style="margin:0 auto 12px"></div>
+    <div style="font-size:14px;font-weight:600;color:var(--text-primary)" id="loadingTitle">分析中...</div>
+    <div style="font-size:12px;color:var(--text-gray-400);margin-top:4px" id="loadingDesc">正在处理数据</div>
+  </div>
 </div>
 
 <script>
-const API_BASE = window.location.pathname.startsWith('/yiditong') ? '/yiditong' : '';
+const API_BASE = '';
+let sessionId = null, tables = [], currentStep = 1, uploadedFiles = [];
+
+function goStep(n) {
+  document.querySelectorAll('.step').forEach(e=>e.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  document.querySelectorAll('.step-dot').forEach(e=>e.classList.remove('active'));
+  document.getElementById('sd'+n).classList.add('active');
+  document.querySelectorAll('.step-line').forEach(e=>e.classList.remove('done'));
+  for(let i=1;i<n;i++){ document.getElementById('sd'+i).classList.add('done'); document.getElementById('sl'+i).classList.add('done'); }
+  if(n>=2) document.getElementById('sd1').classList.add('done');
+  if(n>=3) document.getElementById('sd2').classList.add('done');
+  if(n>=4) document.getElementById('sd3').classList.add('done');
+  if(n>=5) document.getElementById('sd4').classList.add('done');
+  currentStep=n;
+  document.getElementById('stepLabel').textContent=['','上传数据','预览字段','定义关联','选择维度','分析结果'][n]||'';
+  document.getElementById('resetBtn').style.display=n>1?'inline-flex':'none';
+}
 
 // ── Upload ──
-const uploadZone = document.getElementById('uploadZone');
-const fileInput = document.getElementById('fileInput');
-const loadingState = document.getElementById('loadingState');
-const errorState = document.getElementById('errorState');
-const errorMsg = document.getElementById('errorMsg');
-const resultSection = document.getElementById('resultSection');
+const uploadArea=document.getElementById('uploadArea'), fileInput=document.getElementById('fileInput');
+uploadArea.addEventListener('click',()=>fileInput.click());
+['dragenter','dragover'].forEach(e=>{uploadArea.addEventListener(e,ev=>{ev.preventDefault();uploadArea.classList.add('dragover');})});
+['dragleave','drop'].forEach(e=>{uploadArea.addEventListener(e,ev=>{ev.preventDefault();uploadArea.classList.remove('dragover');})});
+uploadArea.addEventListener('drop',ev=>{const fs=Array.from(ev.dataTransfer.files).filter(f=>f.name.match(/\.(xlsx|xls|csv)$/i));if(fs.length)addFiles(fs);});
+fileInput.addEventListener('change',()=>{if(fileInput.files.length)addFiles(Array.from(fileInput.files));fileInput.value='';});
 
-uploadZone.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', () => {
-  if (fileInput.files[0]) uploadFile(fileInput.files[0]);
-});
-
-// Drag & drop
-['dragenter','dragover'].forEach(e => {
-  uploadZone.addEventListener(e, ev => { ev.preventDefault(); uploadZone.classList.add('dragover'); });
-});
-['dragleave','drop'].forEach(e => {
-  uploadZone.addEventListener(e, ev => { ev.preventDefault(); uploadZone.classList.remove('dragover'); });
-});
-uploadZone.addEventListener('drop', ev => {
-  const f = ev.dataTransfer.files[0];
-  if (f && (f.name.endsWith('.xlsx') || f.name.endsWith('.xls') || f.name.endsWith('.csv'))) {
-    uploadFile(f);
-  } else {
-    showError('请上传 .xlsx / .xls / .csv 格式的Excel文件');
-  }
-});
-
-// ── Auth ──
-const TOKEN = localStorage.getItem('token');
-function authHeaders() {
-  const h = {};
-  if (TOKEN) h['Authorization'] = `Bearer ${TOKEN}`;
-  return h;
+function addFiles(files){
+  const max=5, rem=max-uploadedFiles.length; if(rem<=0){showError('最多上传5个文件');return;}
+  files.slice(0,rem).forEach(f=>{if(f.size>20*1024*1024){showError(f.name+'超过20MB');return;}uploadedFiles.push(f);});
+  renderFileList();
+}
+function removeFile(i){uploadedFiles.splice(i,1);renderFileList();}
+function renderFileList(){
+  document.getElementById('fileList').innerHTML=uploadedFiles.map((f,i)=>
+    '<div class="file-item"><span>'+(f.name.endsWith('.csv')?'📄':'📊')+'</span><span class="name">'+f.name+'</span><span class="size">'+(f.size/1024).toFixed(0)+'KB</span><span class="remove" onclick="removeFile('+i+')">✕</span></div>'
+  ).join('');
+  document.getElementById('uploadBtn').disabled=uploadedFiles.length===0;
 }
 
-// ── User info (call /api/v1/auth/me same as SPA) ──
-async function initUser() {
-  const token = localStorage.getItem('token');
-  if (token) {
-    try {
-      const res = await fetch('/api/v1/auth/me', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const user = await res.json();
-        const name = user.username || user.name || '用户';
-        document.getElementById('userName').textContent = name;
-        document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
-      }
-    } catch(_) {}
-  }
+async function uploadFiles(){
+  if(!uploadedFiles.length)return;
+  showLoading('上传文件中...','共 '+uploadedFiles.length+' 个文件');
+  const fd=new FormData(); uploadedFiles.forEach(f=>fd.append('files',f));
+  try{
+    const r=await fetch(API_BASE+'/api/v1/data-analysis/upload-multi',{method:'POST',body:fd,headers:authHeaders(),credentials:'include'});
+    if(!r.ok){const e=await r.json();throw new Error(e.detail||'上传失败');}
+    const d=await r.json(); sessionId=d.session_id; tables=d.tables; hideLoading();
+    renderSchema(); initJoinConfig(); initDimChips(); goStep(2);
+  }catch(e){hideLoading();showError(e.message);}
 }
 
-// ── Theme toggle (shared with SPA via localStorage) ──
-function toggleTheme() {
-  const html = document.documentElement;
-  const isLight = html.getAttribute('data-theme') === 'light';
-  const newTheme = isLight ? 'dark' : 'light';
-  html.setAttribute('data-theme', newTheme);
-  localStorage.setItem('theme', newTheme);
-  // dark -> show sun (switch to light), light -> show moon (switch to dark)
-  document.getElementById('themeIcon').className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-}
-function initTheme() {
-  const saved = localStorage.getItem('theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', saved);
-  // dark mode -> show sun icon, light mode -> show moon icon
-  document.getElementById('themeIcon').className = saved === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+// ── Schema ──
+function renderSchema(){
+  document.getElementById('schemaArea').innerHTML=tables.map(t=>
+    '<div class="schema-card"><div class="title">📊 '+t.filename+' <span style="font-size:11px;color:var(--text-muted);font-weight:400">'+t.rows+'行×'+t.cols+'列</span></div>'+
+    t.columns.map(c=>'<div class="col-row"><span class="col-name">'+c.name+'</span><span class="col-type '+c.type+'">'+c.type+'</span><span style="color:var(--text-muted)">'+c.non_null+'/'+t.rows+' 非空</span><span style="color:var(--text-muted)">'+c.unique+' 唯一值</span></div>').join('')+
+    '<button class="btn btn-outline" style="margin-top:8px;font-size:11px;padding:4px 12px" onclick="previewData(\''+t.table_id+'\')">👁️ 预览数据</button>'+
+    '<div id="preview_'+t.table_id+'" style="margin-top:8px;max-height:200px;overflow:auto;display:none"></div></div>'
+  ).join('');
 }
 
-// ── Logout (same as SPA) ──
-function logout() {
-  localStorage.removeItem('token');
-  window.location.href = '/';
+async function previewData(tid){
+  const el=document.getElementById('preview_'+tid);
+  if(el.style.display!=='none'){el.style.display='none';return;}
+  el.style.display='block'; el.innerHTML='<div style="text-align:center;padding:10px;color:var(--text-muted)">加载中...</div>';
+  try{
+    const r=await fetch(API_BASE+'/api/v1/data-analysis/preview/'+sessionId+'/'+tid,{method:'POST',headers:{...authHeaders(),'Content-Type':'application/x-www-form-urlencoded'},body:'n=20',credentials:'include'});
+    if(!r.ok)throw new Error('预览失败');
+    const d=await r.json();
+    if(!d.data||!d.data.length){el.innerHTML='<div style="text-align:center;padding:10px;color:var(--text-muted)">无数据</div>';return;}
+    const cols=Object.keys(d.data[0]);
+    el.innerHTML='<table class="preview-table"><thead><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>'+
+      d.data.slice(0,10).map(r=>'<tr>'+cols.map(c=>'<td>'+(r[c]??'')+'</td>').join('')+'</tr>').join('')+
+      '</tbody></table><div style="text-align:center;padding:6px;font-size:11px;color:var(--text-muted)">前10行</div>';
+  }catch(e){el.innerHTML='<div style="text-align:center;padding:10px;color:#fca5a5">'+e.message+'</div>';}
 }
 
-// ── Upload & Analyze ──
-async function uploadFile(file) {
-  loadingState.classList.add('show');
-  errorState.classList.remove('show');
-  resultSection.classList.remove('show');
-  uploadZone.style.display = 'none';
-
-  const form = new FormData();
-  form.append('file', file);
-  form.append('title', file.name.replace(/\.[^.]+$/, '') + ' - 经营分析报告');
-
-  try {
-    const resp = await fetch(`${API_BASE}/api/v1/data-analysis/upload`, {
-      method: 'POST',
-      body: form,
-      headers: authHeaders(),
-      credentials: 'include',
-    });
-
-    if (!resp.ok) {
-      const err = await resp.json();
-      throw new Error(err.detail || `服务器错误 (${resp.status})`);
-    }
-
-    const data = await resp.json();
-    loadingState.classList.remove('show');
-
-    // Show result
-    document.getElementById('resultTitle').textContent = data.title || '经营分析报告';
-    document.getElementById('resultTime').textContent = data.created_at || '';
-    document.getElementById('viewBtn').href = `${API_BASE}/api/v1/data-analysis/reports/${data.report_id}?fmt=html`;
-    document.getElementById('excelBtn').href = `${API_BASE}/api/v1/data-analysis/reports/${data.report_id}?fmt=excel`;
-    document.getElementById('pptBtn').href = `${API_BASE}/api/v1/data-analysis/reports/${data.report_id}?fmt=ppt`;
-    resultSection.classList.add('show');
-
-    // Refresh history
-    loadHistory();
-
-  } catch (err) {
-    loadingState.classList.remove('show');
-    showError(err.message);
-  }
+// ── Join ──
+function initJoinConfig(){
+  const el=document.getElementById('joinArea');
+  if(tables.length<2){el.innerHTML='<div style="font-size:13px;color:var(--text-muted);padding:12px">只有一个表，无需关联。</div>';return;}
+  const pairs=[], seen=new Set();
+  for(let i=0;i<tables.length;i++)for(let j=i+1;j<tables.length;j++)pairs.push([tables[i],tables[j]]);
+  el.innerHTML=pairs.map(([a,b],idx)=>
+    '<div class="join-card"><span style="font-size:12px;color:var(--text-primary)">'+a.filename+'</span> '+
+    '<select id="j_l_'+idx+'" style="background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-glass);border-radius:6px;padding:6px 10px;font-size:12px"><option value="">—</option>'+
+    a.columns.map(c=>'<option value="'+c.name+'">'+c.name+' ('+c.type+')</option>').join('')+'</select>'+
+    ' <span style="color:var(--text-muted)">=</span> '+
+    '<select id="j_r_'+idx+'" style="background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-glass);border-radius:6px;padding:6px 10px;font-size:12px"><option value="">—</option>'+
+    b.columns.map(c=>'<option value="'+c.name+'">'+c.name+' ('+c.type+')</option>').join('')+'</select>'+
+    ' <span style="font-size:12px;color:var(--text-primary)">'+b.filename+'</span>'+
+    ' <select id="j_h_'+idx+'" style="margin-left:auto;background:var(--bg-input);color:var(--text-primary);border:1px solid var(--border-glass);border-radius:4px;padding:4px 6px;font-size:11px"><option value="left">左连接</option><option value="inner">内连接</option></select></div>'
+  ).join('');
 }
 
-function showError(msg) {
-  errorMsg.textContent = msg;
-  errorState.classList.add('show');
+function getJoins(){
+  if(tables.length<2)return[];
+  const pairs=[]; for(let i=0;i<tables.length;i++)for(let j=i+1;j<tables.length;j++)pairs.push({idx:pairs.length,a:tables[i],b:tables[j]});
+  return pairs.map(p=>({left_table:p.a.table_id,left_col:document.getElementById('j_l_'+p.idx)?.value||'',right_table:p.b.table_id,right_col:document.getElementById('j_r_'+p.idx)?.value||'',how:document.getElementById('j_h_'+p.idx)?.value||'left'})).filter(j=>j.left_col&&j.right_col);
 }
 
-function resetUI() {
-  uploadZone.style.display = 'block';
-  loadingState.classList.remove('show');
-  errorState.classList.remove('show');
-  resultSection.classList.remove('show');
-  fileInput.value = '';
+// ── Dimensions ──
+function initDimChips(){
+  const all=tables.flatMap(t=>t.columns.map(c=>({...c,table:t.filename})));
+  const text=all.filter(c=>c.type==='文本'), num=all.filter(c=>c.type==='数值'), date=all.filter(c=>c.type==='日期');
+  const mixed=[...text,...num,...date];
+  document.getElementById('rowDims').innerHTML=mixed.map(c=>'<span class="dim-chip" onclick="toggleDim(this)" data-col="'+c.name+'">'+c.name+' <span style="font-size:10px;color:var(--text-muted)">'+c.type+'</span></span>').join('');
+  document.getElementById('valueDims').innerHTML=(num.length?num:mixed).map(c=>'<span class="dim-chip" onclick="toggleDim(this)" data-col="'+c.name+'">'+c.name+'</span>').join('');
+}
+function toggleDim(el){el.classList.toggle('selected');updateAnalyzeBtn();}
+function updateAnalyzeBtn(){document.getElementById('analyzeBtn').disabled=!(document.querySelector('#rowDims .dim-chip.selected')&&document.querySelector('#valueDims .dim-chip.selected'));}
+function getSelectedDims(){
+  return{
+    rowDims:Array.from(document.querySelectorAll('#rowDims .dim-chip.selected')).map(el=>({column:el.dataset.col,label:el.dataset.col})),
+    valueDims:Array.from(document.querySelectorAll('#valueDims .dim-chip.selected')).map(el=>({column:el.dataset.col,agg:document.getElementById('aggSelect').value,label:el.dataset.col}))
+  };
 }
 
-// ── History ──
-async function loadHistory() {
-  try {
-    const resp = await fetch(`${API_BASE}/api/v1/data-analysis/reports`, {
-      headers: authHeaders(),
-      credentials: 'include',
-    });
-    if (!resp.ok) return;
-    const data = await resp.json();
-    const list = document.getElementById('historyList');
-
-    if (!data.reports || data.reports.length === 0) {
-      list.innerHTML = '<div class="history-empty">暂无分析报告，上传数据开始分析</div>';
-      return;
-    }
-
-    list.innerHTML = data.reports.map(r => `
-      <div class="history-item">
-        <div>
-          <div class="name">📊 ${r.title}</div>
-          <div class="time">${r.created_at}</div>
-        </div>
-        <div class="actions">
-          <a class="btn btn-primary" href="${API_BASE}/api/v1/data-analysis/reports/${r.report_id}?fmt=html" target="_blank" style="padding:5px 12px;font-size:11px">📄</a>
-          <a class="btn" href="${API_BASE}/api/v1/data-analysis/reports/${r.report_id}?fmt=excel" download style="padding:5px 12px;font-size:11px;background:#059669;color:#fff">📊</a>
-          <a class="btn" href="${API_BASE}/api/v1/data-analysis/reports/${r.report_id}?fmt=ppt" download style="padding:5px 12px;font-size:11px;background:#D97706;color:#fff">📽️</a>
-          <button class="btn btn-danger" onclick="deleteReport('${r.report_id}')" style="padding:5px 12px;font-size:11px">删除</button>
-        </div>
-      </div>
-    `).join('');
-  } catch (_) {}
+// ── AI Recommend ──
+async function aiRecommend(){
+  const btn=document.getElementById('aiRecBtn'); btn.disabled=true; btn.innerHTML='⏳ AI 思考中...';
+  document.getElementById('recommendationsArea').innerHTML='';
+  try{
+    const r=await fetch(API_BASE+'/api/v1/data-analysis/ai-recommend',{method:'POST',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify({tables,joins:getJoins()}),credentials:'include'});
+    if(!r.ok)throw new Error('AI推荐失败');
+    const d=await r.json(); const recs=d.recommendations||[];
+    if(!recs.length)throw new Error('无推荐');
+    document.querySelectorAll('.dim-chip.selected').forEach(e=>e.classList.remove('selected'));
+    const el=document.getElementById('recommendationsArea');
+    el.innerHTML='<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">🤖 AI 推荐（点击应用）</div>'+
+      recs.map(r=>'<div class="recommend-card" onclick="applyRecommend('+JSON.stringify(r).replace(/"/g,'&quot;')+')"><div class="title">📊 '+r.label+'</div><div class="desc">行: '+r.row+' ｜ 聚合: '+(r.values||[]).join(', ')+' ('+r.agg+')</div><div class="reason">💡 '+(r.reason||'')+'</div></div>').join('');
+    btn.innerHTML='🤖 AI 重新推荐';
+  }catch(e){document.getElementById('recommendationsArea').innerHTML='<div style="font-size:12px;color:#fca5a5;padding:8px">'+e.message+'</div>';btn.innerHTML='🤖 AI 推荐分析维度';}
+  btn.disabled=false;
+}
+function applyRecommend(r){
+  document.querySelectorAll('.dim-chip.selected').forEach(e=>e.classList.remove('selected'));
+  document.querySelectorAll('#rowDims .dim-chip').forEach(e=>{if(e.dataset.col===r.row)e.classList.add('selected');});
+  (r.values||[]).forEach(v=>{document.querySelectorAll('#valueDims .dim-chip').forEach(e=>{if(e.dataset.col===v)e.classList.add('selected');});});
+  if(r.agg)document.getElementById('aggSelect').value=r.agg;
+  document.getElementById('rowDims').scrollIntoView({behavior:'smooth',block:'center'});
+  updateAnalyzeBtn();
 }
 
-async function deleteReport(id) {
-  if (!confirm('确定删除此报告？')) return;
-  try {
-    const resp = await fetch(`${API_BASE}/api/v1/data-analysis/reports/${id}`, {
-      method: 'DELETE',
-      headers: authHeaders(),
-      credentials: 'include',
-    });
-    if (resp.ok) loadHistory();
-  } catch (_) {}
+// ── Run Analysis ──
+async function runAnalysis(){
+  const dims=getSelectedDims();
+  if(!dims.rowDims.length||!dims.valueDims.length){showError('请选择行维度和值维度');return;}
+  showLoading('AI 正在分析数据...','维度: '+dims.rowDims.map(d=>d.label).join(', ')+' × '+dims.valueDims.map(d=>d.label).join(', '));
+  try{
+    const r=await fetch(API_BASE+'/api/v1/data-analysis/analyze-custom',{method:'POST',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify({session_id:sessionId,joins:getJoins(),row_dims:dims.rowDims,values:dims.valueDims,title:'经营分析 - '+dims.rowDims[0].label+' × '+dims.valueDims[0].label}),credentials:'include'});
+    if(!r.ok){const e=await r.json();throw new Error(e.detail||'分析失败');}
+    const d=await r.json();
+    let insights='';
+    try{const ir=await fetch(API_BASE+'/api/v1/data-analysis/ai-insights',{method:'POST',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify({aggregation:d.aggregation}),credentials:'include'});if(ir.ok){const id=await ir.json();insights=id.insights||'';}}catch(e){}
+    hideLoading();
+    const agg=d.aggregation||{}, chartData=agg.data||[], cols=agg.columns||[];
+    document.getElementById('resultArea').innerHTML=
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px"><div><h2 style="font-size:18px;font-weight:700;color:var(--text-primary)">✅ 分析完成</h2><p style="font-size:12px;color:var(--text-muted);margin-top:2px">'+(agg.dimensions?.row?.[0]?.label||'')+' ｜ '+(agg.dimensions?.values?.[0]?.label||'')+' ｜ '+chartData.length+' 条结果</p></div><div style="display:flex;gap:8px"><a class="btn btn-primary" href="'+API_BASE+'/api/v1/data-analysis/reports/'+d.report_id+'?fmt=html" target="_blank">📄 查看报告</a><button class="btn btn-outline" onclick="goStep(4)">🔄 重新分析</button></div></div>'+
+      (agg.charts?.main?'<div style="background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:12px;padding:16px;margin-bottom:16px"><img src="'+agg.charts.main+'" style="width:100%;border-radius:8px"></div>':'')+
+      (agg.charts?.pie?'<div style="background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:12px;padding:16px;margin-bottom:16px"><img src="'+agg.charts.pie+'" style="width:100%;max-height:300px;object-fit:contain;border-radius:8px"></div>':'')+
+      (insights?'<div class="insight-box">'+insights+'</div>':'')+
+      (chartData.length?'<div style="background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:12px;overflow:hidden;margin-top:12px"><table class="preview-table" style="font-size:12px"><thead><tr>'+cols.slice(0,6).map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>'+chartData.slice(0,20).map(r=>'<tr>'+cols.slice(0,6).map(c=>'<td>'+(r[c]??'')+'</td>').join('')+'</tr>').join('')+'</tbody></table><div style="text-align:center;padding:8px;font-size:11px;color:var(--text-muted)">前20行（共'+chartData.length+'行）</div></div>':'');
+    goStep(5);
+  }catch(e){hideLoading();showError(e.message);}
 }
 
-// Init
-initTheme();
-initUser().then(loadHistory);
-// If initUser fails silently, still load history
-</script>
-
-</body>
-</html>
+// ── Auth & Theme & User (same as before) ──
+const TOKEN=localStorage.getItem('token');
+function authHeaders(){const h={};if(TOKEN)h['Authorization']='Bearer '+TOKEN;return h;}
+function toggleTheme(){const h=document.documentElement;const l=h.getAttribute('data-theme')==='light';const n=l?'dark':'light';h.setAttribute('data-theme',n);localStorage.setItem('theme',n);document.getElementById('themeIcon').className=n==='dark'?'fas fa-sun':'fas fa-moon';}
+function initTheme(){const s=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',s);document.getElementById('themeIcon').className=s==='dark'?'fas fa-sun':'fas fa-moon';}
+async function initUser(){const t=localStorage.getItem('token');if(t){try{const r=await fetch('/api/v1/auth/me',{headers:{'Authorization':'Bearer '+t}});if(r.ok){const u=await r.json();const n=u.username||u.name||'用户';document.getElementById('userName').textContent=n;document.getElementById('userAvatar').textContent=n.charAt(0).toUpperCase();}}catch(_){}}}
+function logout(){localStorage.removeItem('token');window.location.href='/';}
+function showLoading(t,d){document.getElementById('loadingTitle').textContent=t||'处理中...';document.getElementById('loadingDesc').textContent=d||'';document.getElementById('loadingOverlay').classList.add('show');}
+function hideLoading(){document.getElementById('loadingOverlay').classList.remove('show');}
+function showError(m){const d=document.createElement('div');d.className='toast-msg';d.textContent='❌ '+m;document.body.appendChild(d);setTimeout(()=>d.remove(),4000);}
+function resetAll(){sessionId=null;tables=[];uploadedFiles=[];document.getElementById('fileList').innerHTML='';document.getElementById('schemaArea').innerHTML='';document.getElementById('joinArea').innerHTML='';document.getElementById('recommendationsArea').innerHTML='';document.getElementById('resultArea').innerHTML='';document.querySelectorAll('.dim-chip.selected').forEach(e=>e.classList.remove('selected'));document.getElementById('uploadBtn').disabled=true;goStep(1);}
+initTheme();initUser();
+</script></body></html>
