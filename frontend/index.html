@@ -1916,18 +1916,19 @@ ${r?'Expression: "'+r+`"
 
                     <!-- Tabs -->
                   <div class="flex border-b" style="border-color: var(--fuse-border);">
-                    <button class="flex-1 py-3 text-xs font-medium border-b-2 transition-all"
+                    <button :class="selectedEmployee?.id === 'logistics-agent' ? 'hidden' : ''"
+                            class="flex-1 py-3 text-xs font-medium border-b-2 transition-all"
                             :style="rightPanelTab === 'auto' ? 'color: var(--fuse-accent2); border-color: var(--fuse-accent);' : 'color: var(--fuse-muted); border-color: transparent;'"
                             @click="switchRightPanel('auto')">
                       <i class="fas fa-sliders-h text-[10px] mr-1"></i>自动化
                     </button>
-                    <button class="flex-1 py-3 text-xs font-medium border-b-2 transition-all"
+                    <button :class="selectedEmployee?.id === 'logistics-agent' ? 'hidden' : ''"
+                            class="flex-1 py-3 text-xs font-medium border-b-2 transition-all"
                             :style="rightPanelTab === 'reports' ? 'color: var(--fuse-accent2); border-color: var(--fuse-accent);' : 'color: var(--fuse-muted); border-color: transparent;'"
                             @click="switchRightPanel('reports')">
                       <i class="fas fa-file-alt text-[10px] mr-1"></i>报告
                     </button>
-                    <!-- 物流配置选项卡（仅物流客服可见） -->
-                    <button x-show="selectedEmployee?.id === 'logistics-agent'"
+                    <button :class="selectedEmployee?.id === 'logistics-agent' ? '' : 'hidden'"
                             class="flex-1 py-3 text-xs font-medium border-b-2 transition-all"
                             :style="rightPanelTab === 'logistics-config' ? 'color: var(--fuse-accent2); border-color: var(--fuse-accent);' : 'color: var(--fuse-muted); border-color: transparent;'"
                             @click="switchRightPanel('logistics-config')">
@@ -2242,11 +2243,9 @@ ${r?'Expression: "'+r+`"
                     <button @click="toggleRightPanel" class="text-gray-500 hover:text-violet-400 transition text-xs p-2 rounded-lg" style="background: var(--fuse-surface); border: 1px solid var(--fuse-border);" title="展开面板">
                       <i class="fas fa-chevron-left"></i>
                     </button>
-                    <button @click="rightPanelTab='auto'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="自动化">🔄</button>
-                    <button @click="rightPanelTab='reports'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="报告">📊</button>
-                    <button @click="rightPanelTab='logistics-config'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition"
-                            :class="selectedEmployee && selectedEmployee.id === 'logistics-agent' ? '' : 'hidden'"
-                            title="物流配置">⚙️</button>
+                    <button :class="selectedEmployee?.id === 'logistics-agent' ? 'hidden' : ''" @click="rightPanelTab='auto'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="自动化">🔄</button>
+                    <button :class="selectedEmployee?.id === 'logistics-agent' ? 'hidden' : ''" @click="rightPanelTab='reports'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="报告">📊</button>
+                    <button :class="selectedEmployee?.id === 'logistics-agent' ? '' : 'hidden'" @click="rightPanelTab='logistics-config'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="物流配置">⚙️</button>
                   </div>
                 </template>
 
@@ -5254,6 +5253,8 @@ ${r?'Expression: "'+r+`"
           this.isStreaming = false;
           this.selectedEmployee = emp;
           this.currentPage = 'chat';
+          // 自动选择右侧tab：物流客服默认切到配置，其他员工默认切到报告
+          this.rightPanelTab = emp.id === 'logistics-agent' ? 'logistics-config' : 'reports';
           this.messages = [];
           this.currentConversationId = null;
           this.streamingContent = '';
