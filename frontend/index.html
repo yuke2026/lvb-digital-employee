@@ -1416,7 +1416,7 @@ ${r?'Expression: "'+r+`"
                    class="nav-link text-sm font-medium flex items-center gap-1.5"
                    :class="currentPage === 'reports' ? 'active' : ''">
                   <i class="fas fa-file-lines"></i>
-                  <span class="hidden sm:inline">分析报告</span>
+                  <span class="hidden sm:inline">战略报告</span>
                 </a>
                 <a href="/analysis"
                    class="nav-link text-sm font-medium flex items-center gap-1.5">
@@ -2244,8 +2244,9 @@ ${r?'Expression: "'+r+`"
                     </button>
                     <button @click="rightPanelTab='auto'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="自动化">🔄</button>
                     <button @click="rightPanelTab='reports'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="报告">📊</button>
-                    <button x-show="selectedEmployee?.id === 'logistics-agent'"
-                            @click="rightPanelTab='logistics-config'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="物流配置">⚙️</button>
+                    <template x-if="selectedEmployee?.id === 'logistics-agent'">
+                      <button @click="rightPanelTab='logistics-config'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="物流配置">⚙️</button>
+                    </template>
                   </div>
                 </template>
 
@@ -2298,7 +2299,7 @@ ${r?'Expression: "'+r+`"
                     </div>
                     <div class="fuse-nav-item" @click="switchPage('reports'); showMobileDrawer = false">
                       <i class="fas fa-chart-pie w-4 text-center text-xs"></i>
-                      <span>分析报告</span>
+                      <span>战略报告</span>
                     </div>
                     <div class="fuse-nav-item" onclick="location.href='/analysis'; showMobileDrawer = false">
                       <i class="fas fa-chart-simple w-4 text-center text-xs"></i>
@@ -3023,7 +3024,7 @@ ${r?'Expression: "'+r+`"
                 <div class="flex items-center justify-between mb-6">
                   <div>
                     <h2 class="text-xl font-bold text-white">
-                      <i class="fas fa-file-lines mr-2 text-violet-400"></i>分析报告
+                      <i class="fas fa-file-lines mr-2 text-violet-400"></i>战略报告
                     </h2>
                     <p class="text-sm text-gray-400 mt-1">查看和管理你的战略分析报告</p>
                   </div>
