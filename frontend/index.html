@@ -2244,9 +2244,9 @@ ${r?'Expression: "'+r+`"
                     </button>
                     <button @click="rightPanelTab='auto'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="自动化">🔄</button>
                     <button @click="rightPanelTab='reports'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="报告">📊</button>
-                    <template x-if="selectedEmployee?.id === 'logistics-agent'">
-                      <button @click="rightPanelTab='logistics-config'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition" title="物流配置">⚙️</button>
-                    </template>
+                    <button @click="rightPanelTab='logistics-config'; toggleRightPanel()" class="text-[10px] text-gray-500 hover:text-violet-400 transition"
+                            :class="selectedEmployee && selectedEmployee.id === 'logistics-agent' ? '' : 'hidden'"
+                            title="物流配置">⚙️</button>
                   </div>
                 </template>
 
