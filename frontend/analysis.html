@@ -254,11 +254,37 @@
       <div style="font-size:13px;color:var(--text-gray-400)">拖拽文件至此，或 <span style="color:#818cf8;cursor:pointer">点击选择</span></div>
       <div style="font-size:11px;color:var(--text-gray-500);margin-top:8px">支持 .xlsx .xls .csv ｜ 最多5个文件 ｜ 每个最大20MB</div>
     </div>
+
+    <!-- 离线版下载横幅 -->
+    <div style="margin-top:16px;margin-bottom:16px;background:linear-gradient(135deg,#F0FDF4,#ECFDF5);border:1px solid #A7F3D0;border-radius:12px;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:#065F46">💻 想要完全离线运行？</div>
+        <div style="font-size:12px;color:#047857;margin-top:2px">下载浏览器版，双击即用，数据不出电脑</div>
+      </div>
+      <a href="/analyze-browser" style="padding:8px 20px;background:#059669;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:6px">🌐 下载浏览器版</a>
+    </div>
+
     <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" multiple>
     <div id="fileList" style="margin-top:12px"></div>
     <div style="margin-top:16px;display:flex;gap:8px">
       <button class="btn btn-primary" onclick="uploadFiles()" id="uploadBtn" disabled>🚀 开始分析</button>
       <button class="btn btn-outline" onclick="document.getElementById('fileInput').click()">➕ 添加文件</button>
+    </div>
+
+    <!-- 安全说明 -->
+    <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div style="font-size:12px;color:var(--text-gray-400);line-height:1.6;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:10px">
+        🔒 <strong style="color:var(--text-primary)">数据安全</strong><br>原始数据仅在内存中处理，分析完成后自动删除
+      </div>
+      <div style="font-size:12px;color:var(--text-gray-400);line-height:1.6;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:10px">
+        🖥️ <strong style="color:var(--text-primary)">纯本地运算</strong><br>所有分析在服务器本地完成，不调用第三方API
+      </div>
+      <div style="font-size:12px;color:var(--text-gray-400);line-height:1.6;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:10px">
+        🏢 <strong style="color:var(--text-primary)">企业隔离</strong><br>数据仅本企业可见，与其他租户完全隔离
+      </div>
+      <div style="font-size:12px;color:var(--text-gray-400);line-height:1.6;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border-glass-light);border-radius:10px">
+        🧠 <strong style="color:var(--text-primary)">AI 驱动</strong><br>AI维度推荐+洞察生成，走内部百应智星对话模型
+      </div>
     </div>
   </div>
 
